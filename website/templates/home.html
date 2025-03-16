@@ -1,3 +1,43 @@
 {% extends "base.html" %} {% block title %}Home{% endblock %}{% block content %}
-<h1>THIS IS MY HOME PAGE</h1>
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
+{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <section class="container">
+      <div class="box">
+        <img src="{{ url_for('static', filename='Chiffon Purple.jpg') }}" />
+        <p>Chiffon Purple</p>
+      </div>
+      <div class="box">
+        <img src="{{ url_for('static', filename='chiffon-fabric.jpeg') }}" />
+        <p>Chifon Fabric</p>
+      </div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='plain-chiffon-fabric.jpg') }}"
+        />
+        <p>Plain Chiffon Fabric</p>
+      </div>
+      <div class="box">
+        <img src="{{ url_for('static', filename='White Chiffon.jpg') }}" />
+        <p>White Chiffon</p>
+      </div>
+      <div class="box">item5</div>
+      <div class="box">item6</div>
+      <div class="box">item7</div>
+      <div class="box">item8</div>
+      <div class="box">item9</div>
+      <div class="box">item10</div>
+      <div class="box">item11</div>
+      <div class="box">item12</div>
+    </section>
+  </body>
+</html>
 {% endblock %}
