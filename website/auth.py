@@ -1,8 +1,7 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from .models import User
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
-
 
 auth = Blueprint('auth', __name__)
 
@@ -75,8 +74,9 @@ def sign_up():
                             role = role)
             db.session.add(new_user)
             db.session.commit()
-            login_user(user, remember=True)
+            login_user(new_user, remember=True)
             flash('Account  created!', category='success')
             return redirect(url_for('views.home'))
-
+        db.session.commit()
+        
     return render_template("sign_up.html", user=current_user) 
