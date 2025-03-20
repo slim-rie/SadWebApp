@@ -6,6 +6,10 @@
 
 body {
   line-height: 1.6;
+  background-image: url("../static/pictures/sew.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 }
 
 .container {
@@ -32,6 +36,27 @@ body {
   width: 100%; /* Makes the image fill the box */
   height: auto; /* Maintains aspect ratio */
   border-radius: 5px; /* Optional: Match box design */
+}
+
+.profile-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.profile-icon img {
+  border-radius: 50%; /* Makes the image circular */
+  cursor: pointer; /* Indicates it's clickable */
+}
+
+.profile-container:hover .dropdown-menu {
+  display: block;
+  justify-content: center;
+  align-items: center;
+}
+
+.dropdown-menu ul li a:hover {
+  background-color: #f0f0f0; /* Light gray hover effect */
 }
 
 @media (max-width: 360px) {

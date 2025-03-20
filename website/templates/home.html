@@ -1,5 +1,5 @@
-{% extends "base.html" %} {% block title %}Home{% endblock %}{% block content %}
-{% block head %}
+{% extends "auth_base.html" %}{% block title %}Home{% endblock %}{% block
+content %} {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
 {% endblock %}
 <!DOCTYPE html>
@@ -10,23 +10,47 @@
     <title>Document</title>
   </head>
   <body>
+    <div class="profile-container">
+      <a href="#" class="profile-icon">
+        <img
+          src="{{ url_for('static', filename='pictures/saka.jpeg') }}"
+          alt="Profile"
+          height="40"
+        />
+      </a>
+      <div class="dropdown-menu" id="profileMenu">
+        <ul>
+          <li><a href="/profile">View Profile</a></li>
+          <li><a href="/settings">Settings</a></li>
+          <li>
+            <a href="{{ url_for('auth.login') }}">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </div>
     <section class="container">
       <div class="box">
-        <img src="{{ url_for('static', filename='Chiffon Purple.jpg') }}" />
+        <img
+          src="{{ url_for('static', filename='pictures/Chiffon Purple.jpg') }}"
+        />
         <p>Chiffon Purple</p>
       </div>
       <div class="box">
-        <img src="{{ url_for('static', filename='chiffon-fabric.jpeg') }}" />
+        <img
+          src="{{ url_for('static', filename='pictures/chiffon-fabric.jpeg') }}"
+        />
         <p>Chifon Fabric</p>
       </div>
       <div class="box">
         <img
-          src="{{ url_for('static', filename='plain-chiffon-fabric.jpg') }}"
+          src="{{ url_for('static', filename='pictures/plain-chiffon-fabric.jpg') }}"
         />
         <p>Plain Chiffon Fabric</p>
       </div>
       <div class="box">
-        <img src="{{ url_for('static', filename='White Chiffon.jpg') }}" />
+        <img
+          src="{{ url_for('static', filename='pictures/White Chiffon.jpg') }}"
+        />
         <p>White Chiffon</p>
       </div>
       <div class="box">BITCH</div>
