@@ -20,8 +20,10 @@ content %} {% block head %}
       </a>
       <div class="dropdown-menu" id="profileMenu">
         <ul>
-          <li><a href="/profile">View Profile</a></li>
-          <li><a href="/settings">Settings</a></li>
+          <li>
+            <a href="{{url_for('auth.profile')}}">View Profile</a>
+          </li>
+          <li><a href="{{url_for('auth.cart')}}">Cart</a></li>
           <li>
             <a href="{{ url_for('auth.login') }}">Logout</a>
           </li>
