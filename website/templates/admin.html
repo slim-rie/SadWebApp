@@ -1,21 +1,21 @@
-{% extends "base.html" %} {% block title %}Admin{% endblock %}{% block content%}
-{% block head %}
+{% extends "auth_base.html" %} {% block title %}Admin{% endblock %}{% block
+content%} {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}" />
-{% endblock %} 
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-    </head>
-    <body>
-          <section class="container">
-        <div class="box">
-          <img src="{{ url_for('static', filename='download.jpeg') }}" />
-          <p>STAR NG PASKO</p>
-        </div>
-    </section>  
-    </body>
-    </html>
-{% endblock %} 
+{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <section class="container">
+      <div class="box">
+        <img src="{{ url_for('static', filename='download.jpeg') }}" />
+        <p>STAR NG PASKO</p>
+      </div>
+    </section>
+  </body>
+</html>
+{% endblock %}
