@@ -16,10 +16,12 @@ GOOGLE_CLIENT_SECRET = "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"
 GOOGLE_CALLBACK_URL = "http://localhost:5000/auth/google-oauth-callback"  # Must match exactly what's in Google Cloud Console
 
 @auth.route('/profile')
+@login_required
 def profile():
     return render_template('profile.html')
 
 @auth.route('/Cart')
+@login_required
 def cart():
     return render_template('Cart.html')
 

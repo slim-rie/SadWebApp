@@ -10,14 +10,57 @@ content %} {% block head %}
     <title>Profile</title>
   </head>
   <body>
-    <head>
-      TANGINAMO
-    </head>
-    <div>
-      <li>
-        <a href="{{ url_for('views.home') }}">Back</a>
-      </li>
-    </div>
+    <header class="profile-container">
+      <a href="#" class="profile-icon">
+        <img
+          src="{{ url_for('static', filename='pictures/saka.jpeg') }}"
+          alt="Profile"
+          height="40"
+      /></a>
+      <nav class="dropdown-menu">
+        <ul>
+          <li>
+            <a href="{{url_for('auth.cart')}}">Cart</a>
+          </li>
+          <li>
+            <a href="{{url_for('auth.login')}}">Logout</a>
+          </li>
+          <li>
+            <a href="{{url_for('views.home')}}">Back</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <h1>My profile</h1>
+    <p>Manage and protect your accoount</p>
+    <label for="username">Username</label>
+    <input type="text" /><br />
+    <label for="first name">First name</label>
+    <input type="text" /><br />
+    <label for="last name">Last name</label>
+    <input type="text" /><br />
+    <a href="email">Useremail</a><br />
+    <label for="phone number">Phone number</label>
+    <a href="number">Add</a><br />
+    <label for="date of birth">date of birth</label>
+    <input type="date" /><br />
+    <button class="submit">Save</button>
+    <aside>
+      <h2>My Account</h2>
+      <a href="profile">Profile</a>
+      <a href="address">Address</a>
+      <a href="change password">Change password</a>
+    </aside>
+    <aside>
+      <a href="#" class="profile-icon">
+        <img
+          src="{{url_for('static', filename='pictures/saka.jpeg')}}"
+          alt="saka"
+          height="70"
+        />
+      </a>
+      <input type="file" name="profile" />
+    </aside>
   </body>
 </html>
 {% endblock %}
