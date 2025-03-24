@@ -1,0 +1,64 @@
+/* Reset some default styles */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #fc515b; /* Light green background for testing */
+  font-family: Arial, sans-serif;
+}
+
+/* Style the profile container (now a <header>) */
+header.profile-container {
+  top: 15px;
+  position: fixed; /* Allows the dropdown to be positioned relative to this container */
+  display: inline-block; /* Keeps the container inline with other elements */
+}
+
+/* Style the profile icon */
+.profile-icon img {
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+}
+
+/* Style the dropdown menu (now a <nav>) */
+nav.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #562531;
+  box-shadow: 0 2px 5px rgba(43, 26, 26, 0.2);
+  border-radius: 5px;
+  z-index: 1000;
+}
+
+/* Show the dropdown menu on hover */
+header.profile-container:hover nav.dropdown-menu {
+  display: block;
+}
+
+/* Style the dropdown menu list */
+nav.dropdown-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Style each dropdown item */
+nav.dropdown-menu li {
+  font-weight: bold;
+  padding: 10px 30px;
+}
+
+/* Style the links in the dropdown */
+nav.dropdown-menu a {
+  text-decoration: none; /* Remove underline from links */
+  color: #4d5e8d;
+  font-size: 16px;
+  display: block; /* Make the link fill the entire list item */
+}
+
+/* Change link color on hover */
+nav.dropdown-menu a:hover {
+  background-color: #562531; /* Light gray background on hover */
+  color: #000; /* Darker text color on hover */
+}
