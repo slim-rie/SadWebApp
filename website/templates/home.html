@@ -10,6 +10,14 @@ content %} {% block head %}
     <title>Document</title>
   </head>
   <body>
+    <select class="categories-dropdown">
+      <option value="Fabric">Fabric</option>
+      <option value="Sewing Parts">Sewing Parts</option>
+      <option value="Sewing Machines">Sewing Machines</option>
+    </select>
+    <div class="search">
+      <input type="text" placeholder="want anything specific?" />
+    </div>
     <div class="profile-container">
       <a href="#" class="profile-icon">
         <img
@@ -30,39 +38,177 @@ content %} {% block head %}
         </ul>
       </div>
     </div>
-    <section class="container">
+    <section class="product-container">
       <div class="box">
         <img
           src="{{ url_for('static', filename='pictures/Chiffon Purple.jpg') }}"
         />
         <p>Chiffon Purple</p>
+        <div class="box-actions">
+          <button class="btn btn-buy">Buy now</button>
+          <a href="#" class="dropdown-item">Option</a>
+          <div class="box-dropdown">
+            <ul>
+              <li>Add to cart</li>
+              <li>Feedback</li>
+            </ul>
+          </div>
+        </div>
       </div>
       <div class="box">
         <img
           src="{{ url_for('static', filename='pictures/chiffon-fabric.jpeg') }}"
         />
         <p>Chifon Fabric</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
       </div>
       <div class="box">
         <img
           src="{{ url_for('static', filename='pictures/plain-chiffon-fabric.jpg') }}"
         />
         <p>Plain Chiffon Fabric</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
       </div>
       <div class="box">
         <img
           src="{{ url_for('static', filename='pictures/White Chiffon.jpg') }}"
         />
         <p>White Chiffon</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
       </div>
-      <div class="box">BITCH</div>
-      <div class="box">item6</div>
-      <div class="box">item7</div>
-      <div class="box">item8</div>
-      <div class="box">item9</div>
-      <div class="box">item10</div>
-      <div class="box">item11</div>
-      <div class="box">item12</div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='pictures/Foot Pedal.jpg') }}"
+        />
+        <p>White Chiffon</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='pictures/Gemsy Presser Foot Quick Adjustable Screw Device Presser Foot.jpg') }}"
+        />
+        <p>Gemsy Presser Foot Quick Adjustable Screw Device Presser Foot</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='pictures/sewing-machine-balance-wheel.jpg') }}"
+        />
+        <p>Sewing Machine Balance Wheel</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='pictures/shuttle hook.jpg') }}"
+        />
+        <p>Shuttle Hook</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='pictures/Anysew Big Hook.jpg') }}"
+        />
+        <p>Anysew Big Hook</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='pictures/Buttonhole.jpg') }}"
+        />
+        <p>Buttonhole</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box">
+        <img src="{{ url_for('static', filename='pictures/hax1 mach.jpg') }}" />
+        <p>Hax1 Mach</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='pictures/Singer Heavy Duty Sewing Machine.jpg') }}"
+        />
+        <p>Singer Heavy Duty Sewing Machine</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
+      <div class="box">
+        <img
+          src="{{ url_for('static', filename='pictures/Vingate Singer Sewing Machine.jpg') }}"
+        />
+        <p>Singer Heavy Duty Sewing Machine</p>
+        <a href="#" class="dropdown-item">Option</a>
+        <div class="box-dropdown">
+          <ul>
+            <li>Add to cart</li>
+            <li>Feedback</li>
+          </ul>
+        </div>
+      </div>
     </section>
   </body>
 </html>
