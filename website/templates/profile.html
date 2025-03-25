@@ -31,36 +31,81 @@ content %} {% block head %}
         </ul>
       </nav>
     </header>
-    <h1>My profile</h1>
-    <p>Manage and protect your accoount</p>
-    <label for="username">Username</label>
-    <input type="text" /><br />
-    <label for="first name">First name</label>
-    <input type="text" /><br />
-    <label for="last name">Last name</label>
-    <input type="text" /><br />
-    <a href="email">Useremail</a><br />
-    <label for="phone number">Phone number</label>
-    <a href="number">Add</a><br />
-    <label for="date of birth">date of birth</label>
-    <input type="date" /><br />
-    <button class="submit">Save</button>
-    <aside>
+    <main>
+      <h1>My profile</h1>
+      <p>Manage and protect your accoount</p>
+      <hr style="border: 1px solid black; width:600px;">
+
+      <div class="personal-info">
+        <div class="field-group">
+          <label for="username">Username</label>
+          <input type="text" />
+        </div>
+      
+        <div class="field-group">
+          <label for="first name">First name</label>
+          <input type="text" />
+        </div>
+
+        <div class="field-group">
+          <label for="last name">Last name</label>
+          <input type="text" />
+        </div>
+
+        <div class="field-group">
+          <label for="email">Email</label>
+          <a href="email">johnjerriehlp@gmail.com</a>
+        </div>
+
+        <div class="field-group">
+          <label for="phone number">Number</label>
+          <a href="number">09090909</a>
+        </div>
+
+        <div class="field-group">
+          <label for="date of birth">date of birth</label>
+          <input type="date" />
+        </div>
+
+        <button class="submit">Save</button>
+      </div>
+    </main>
+    
+
+    <nav class="nav-bar">
+      <a href="#" class="profile-icon" id="edit-profile">
+        <img
+          src="{{url_for('static', filename='pictures/saka.jpeg')}}"
+          alt="saka"
+          height="60"
+        />
+      </a>
+      <input type="file" name="profile" id="update-profile" accept="image/*" />
       <h2>My Account</h2>
       <a href="profile">Profile</a>
       <a href="address">Address</a>
       <a href="change password">Change password</a>
-    </aside>
-    <aside>
-      <a href="#" class="profile-icon">
-        <img
-          src="{{url_for('static', filename='pictures/saka.jpeg')}}"
-          alt="saka"
-          height="70"
-        />
-      </a>
-      <input type="file" name="profile" />
-    </aside>
+    </nav>
+  </nav>
+</body>
+<script>
+  // Get the input and image elements
+  const input = document.getElementById('update-profile');
+  const profileImg = document.querySelector('#edit-profile img');
+
+  // Add an event listener for when a file is selected
+  input.addEventListener('change', function(event) {
+    const file = event.target.files[0]; // Get the selected file
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        profileImg.src = e.target.result; // Update the image src with the new file
+      };
+      reader.readAsDataURL(file); // Read the file as a data URL
+    }
+  });
+</script>
+</html>
   </body>
 </html>
 {% endblock %}
