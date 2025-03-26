@@ -12,7 +12,7 @@ body {
   margin: 0;
   position: relative;
   line-height: 1.6;
-  background-color: #fc515b;
+  background-color: white;
 }
 
 .product-container {
@@ -28,7 +28,7 @@ body {
 
 .box {
   margin: 2rem;
-  background-color: #f0f0f3;
+  background-color: wheat;
   padding: 20px;
   border-radius: 10px;
   width: 100%; /* Make the box fill the grid cell */
