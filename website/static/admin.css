@@ -1,0 +1,381 @@
+.total-stocks-container {
+    display: flex;
+    justify-content: space-between; /* Pushes items to opposite ends */
+    align-items: flex-start; /* Aligns items at the top */
+    width: 100%;
+}
+
+.total-stocks {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Aligns text to the right */
+    text-align: right; /* Ensures text is right-aligned */
+    font-family: Arial, sans-serif;
+    font-size: 14px; /* Adjust as needed */
+    color: #888; /* Optional: lighter text color */
+}
+
+.total-stocks-number {
+    font-size: 28px; /* Bigger number */
+    font-weight: bold;
+    color: black;
+}
+
+/* Total orders styling */
+.total-orders {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #888;
+    float: right;
+}
+
+.total-orders-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: black;
+}
+
+/* Main layout - Sets up the basic dashboard structure */
+.dashboard {
+    display: flex;                /* Creates a flex container for sidebar and main content */
+    min-height: 100vh;           /* Full viewport height */
+    background-color: rgb(255, 255, 255);      /* White background */
+    width: 150%;                 /* Keep the 150% width as requested */
+    position: relative;          /* For proper child positioning */
+    left: 50%;                  /* Move right by 50% of viewport */
+    transform: translateX(-50%); /* Pull back by 50% of element width */
+}
+
+/* Sidebar - Left navigation panel */
+.sidebar {
+    width: 250px;               /* Increased sidebar width for better readability */
+    background-color: white;    /* White background */
+    color: #333333;            /* Dark text */
+    padding: 20px 0;           /* Vertical padding only */
+    flex-shrink: 0;            /* Prevent sidebar from shrinking */
+    border-right: 1px solid #e0e0e0; /* Subtle separator */
+    height: 100vh;             /* Full height */
+    position: sticky;          /* Stick to the top */
+    top: 0;                    /* Stick from the top */
+    overflow-y: auto;          /* Enable scrolling if needed */
+}
+
+/* Logo container in sidebar */
+.logo {
+    padding: 10px 20px;        /* Add horizontal padding */
+    margin-bottom: 5px;       /* Space below logo */
+    border-bottom: 1px solid #e0e0e0;  /* Subtle separator */
+    text-align: center;          /* Center the logo container */
+    display: flex;               /* Use flexbox */
+    justify-content: center;     /* Center horizontally */
+    align-items: center;         /* Center vertically */
+}
+
+/* Logo image sizing */
+.logo img {
+    height: 180px;              /* Slightly reduced height */
+    width: auto;               /* Maintain aspect ratio */
+    display: block;            /* Remove any extra space */
+    margin: 0 auto;            /* Center the image */
+}
+
+/* Navigation items container */
+.nav-items {
+    padding: 0 10px;           /* Add horizontal padding */
+    margin-top: 10px;            /* Reduced top margin */
+}
+
+/* Individual navigation item */
+.nav-item {
+    display: block;            
+    padding: 12px 20px;        /* Increased padding */
+    margin: 4px 0;            /* Consistent spacing */
+    color: #555;              /* Slightly lighter text */
+    text-decoration: none;     
+    border-radius: 6px;        /* Slightly reduced radius */
+    transition: all 0.2s;      /* Smooth transition for all changes */
+    font-size: 14px;          /* Consistent font size */
+    font-weight: 500;         /* Medium weight */
+}
+
+/* Hover and active states for nav items */
+.nav-item:hover {
+    background-color: #f0f2f5;   /* Light gray on hover */
+    color: #1a73e8;             /* Google-style blue */
+    transform: translateX(2px);  /* Slight shift on hover */
+}
+
+/* Active state for nav items */
+.nav-item.active {
+    background-color: #e8f0fe;   /* Light blue background */
+    color: #1a73e8;             /* Google-style blue */
+    font-weight: 600;           /* Slightly bolder */
+}
+
+/* Main content area */
+.main-content {
+    flex: 1;                    /* Takes remaining width */
+    padding: 24px;             /* Consistent padding */
+    background-color: #f8f9fa;  /* Light gray background */
+    min-height: 100vh;         /* Full height */
+    overflow-y: auto;          /* Enable scrolling if needed */
+}
+
+/* Dashboard cards container */
+.dashboard-cards {
+    width: 100%;              /* Full width of container */
+    margin: 0 auto;           /* Center the cards */
+    margin-bottom: 20px;       /* Bottom margin */
+    max-width: 1400px;         /* Maximum width */
+}
+
+/* Header section with title and user info */
+.header {
+    display: flex;              /* For title and profile alignment */
+    justify-content: space-between;  /* Space between title and profile */
+    align-items: center;        /* Vertical centering */
+    margin-bottom: 30px;        /* Space below header */
+}
+
+/* Dashboard title */
+.header h1 {
+    font-size: 24px;           /* Large text */
+    color: #333;               /* Dark gray text */
+}
+
+/* User profile section */
+.user-profile {
+    padding: 8px 15px;         /* Space inside profile box */
+    background: white;         /* White background */
+    border-radius: 50px;       /* Rounded corners */
+    box-shadow: none;          /* No shadow */
+}
+
+/* User profile text */
+.user-profile span {
+    color: #666;              /* Gray text color */
+    font-size: 14px;          /* Text size */
+}
+
+/* Card styling */
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Table styling */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.table th,
+.table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.table th {
+    font-weight: 600;
+    color: #555;
+    background-color: #f8f9fa;
+}
+
+.table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table td {
+    color: #333;
+}
+
+.notify-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.notify-btn:hover {
+    background-color: #0056b3;
+}
+
+.alert-level {
+    color: #ff9800;
+    font-weight: 500;
+}
+
+/* Content section visibility */
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+/* Filter section styling */
+.filter-section {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-weight: 500;
+    color: #333;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-btn, .add-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.add-btn {
+    background-color: #34a853;
+    color: white;
+}
+
+.filter-btn:hover {
+    background-color: #1557b0;
+}
+
+.add-btn:hover {
+    background-color: #2d8d47;
+}
+
+/* Action buttons styling */
+.edit-btn, .delete-btn, .contact-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 0 2px;
+    transition: all 0.2s;
+}
+
+.edit-btn {
+    background-color: #ffd700;
+    color: #333;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.contact-btn {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.edit-btn:hover {
+    background-color: #e6c200;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+.contact-btn:hover {
+    background-color: #1557b0;
+}
+
+/* Table cell styling for prices and stock levels */
+td:nth-child(5), 
+td:nth-child(6) {  /* Cost and Selling Price columns */
+    font-family: monospace;
+    text-align: right;
+    padding-right: 20px;
+}
+
+td:nth-child(7) {  /* Stock Level column */
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Stock level indicators */
+.stock-low {
+    color: #dc3545;
+}
+
+.stock-medium {
+    color: #ffc107;
+}
+
+.stock-high {
+    color: #28a745;
+}
+
+/* Filter group for stock quantity */
+.filter-group select[name="stock-quantity"] {
+    min-width: 150px;
+}
+
+/* Table header for inventory */
+.inventory-table th {
+    white-space: nowrap;
+    padding: 12px 15px;
+}
+
+/* Product name column */
+td:nth-child(2) {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
