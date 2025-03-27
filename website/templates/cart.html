@@ -11,12 +11,28 @@ content %} {% block head %}
   </head>
   <body>
     <head>
-      TANGINAMOCarts
+      <div class="profile-container">
+        <a href="#" class="profile-icon">
+          <img
+            src="{{ url_for('static', filename='pictures/saka.jpeg') }}"
+            alt="Profile"
+            height="40"
+          />
+        </a>
+        <div class="dropdown-menu" id="profileMenu">
+          <ul>
+            <li>
+              <a href="{{ url_for('views.home') }}">Home</a>
+            </li>
+            <li>
+              <a href="{{url_for('auth.profile')}}">View Profile</a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </head>
-    <div>
-      <li>
-        <a href="{{ url_for('views.home') }}">Back</a>
-      </li>
+    <div class="item-cart">
+      Don't have carts? <a href="{{ url_for('views.home') }}">Home</a>
     </div>
   </body>
 </html>

@@ -68,7 +68,7 @@ nav.dropdown-menu a:hover {
 }
 
 .nav-bar {
-  background-color: #562531;
+  background-color: grey;
   top: 80px; /* Increased to ensure it’s below the dropdown menu */
   left: 0px;
   position: absolute;
@@ -109,15 +109,24 @@ nav.dropdown-menu a:hover {
   text-align: center;
 }
 
-main {
-  padding: 20px;
-  margin-left: 300px;
-  top: 50px;
-  position: fixed;
+h1,
+p {
+  margin-left: 250px;
+  padding: 5px;
   left: 20px;
   display: flex;
   flex-direction: column;
   text-align: left;
+}
+
+main {
+  margin-left: 150px;
+  position: relative;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  display: flex;
 }
 
 main .personal-info {
@@ -126,35 +135,22 @@ main .personal-info {
   margin-top: 20px;
 }
 
-main a {
+main label {
   margin: 10px 0;
   display: block;
-  text-align: right;
+  text-align: left;
   position: relative;
 }
 
-.field-group {
+input[type="text"] {
   display: flex;
   align-items: center;
   margin-bottom: 15px;
-}
-
-.field-group label {
-  width: 100px; /* Set a fixed width for labels */
-  margin-right: 20px;
-  margin-bottom: 0;
-}
-
-main .submit {
-  width: 100px;
-}
-
-h1 {
-  font-weight: bold;
+  color: #000;
 }
 
 input[type="text"] {
-  color: transparent;
+  color: black;
   padding: 5px;
   width: 300px;
 }

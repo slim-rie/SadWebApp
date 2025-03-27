@@ -15,6 +15,14 @@ GOOGLE_CLIENT_ID = "240771338078-6lhucfo67thhpdpkcs4d3mihmmdv49e2.apps.googleuse
 GOOGLE_CLIENT_SECRET = "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"
 GOOGLE_CALLBACK_URL = "http://localhost:5000/auth/google-oauth-callback"  # Must match exactly what's in Google Cloud Console
 
+@auth.route('/change-password')#, methods=['POST']
+def change_password():
+   # current_password = request.form['current_password']
+    #new_password = request.form['new_password']
+    # Verify and update password logic here
+    return render_template('change_password.html')
+
+
 @auth.route('/profile')
 @login_required
 def profile():

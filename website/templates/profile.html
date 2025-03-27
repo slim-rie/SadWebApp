@@ -23,52 +23,40 @@ content %} {% block head %}
             <a href="{{url_for('auth.cart')}}">Cart</a>
           </li>
           <li>
-            <a href="{{url_for('auth.login')}}">Logout</a>
+            <a href="{{url_for('views.home')}}">Back</a>
           </li>
           <li>
-            <a href="{{url_for('views.home')}}">Back</a>
+            <a href="{{url_for('auth.login')}}">Logout</a>
           </li>
         </ul>
       </nav>
     </header>
+    <h1>My profile</h1>
+    <p>Manage and protect your accoount</p>
+    <hr style="border: 1px solid black; width:600px;">
     <main>
-      <h1>My profile</h1>
-      <p>Manage and protect your accoount</p>
-      <hr style="border: 1px solid black; width:600px;">
-
-      <div class="personal-info">
-        <div class="field-group">
-          <label for="username">Username</label>
-          <input type="text" />
-        </div>
-      
-        <div class="field-group">
-          <label for="first name">First name</label>
-          <input type="text" />
-        </div>
-
-        <div class="field-group">
-          <label for="last name">Last name</label>
-          <input type="text" />
-        </div>
-
-        <div class="field-group">
-          <label for="email">Email</label>
-          <a href="email">johnjerriehlp@gmail.com</a>
-        </div>
-
-        <div class="field-group">
-          <label for="phone number">Number</label>
-          <a href="number">09090909</a>
-        </div>
-
-        <div class="field-group">
-          <label for="date of birth">date of birth</label>
-          <input type="date" />
-        </div>
-
-        <button class="submit">Save</button>
-      </div>
+      <form method="POST" action="/save-profile" class="personal-info">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+        
+        <label for="first_name">First name</label>
+        <input type="text" id="first_name" name="first_name" required>
+        
+        <label for="last_name">Last name</label>
+        <input type="text" id="last_name" name="last_name" required>
+        
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+        
+        <label for="number">Number</label>
+        <input type="text" id="number" name="number" required>
+        
+        <label for="date_of_birth">Date of Birth</label>
+        <input type="date" id="date_of_birth" name="date_of_birth" required>
+        <br>
+        <br>
+        <button type="submit">Save</button>
+    </form>
     </main>
     
 
@@ -84,7 +72,7 @@ content %} {% block head %}
       <h2>My Account</h2>
       <a href="profile">Profile</a>
       <a href="address">Address</a>
-      <a href="change password">Change password</a>
+      <a href="{{url_for('auth.change_password')}}">Change password</a>
     </nav>
   </nav>
 </body>
