@@ -15,13 +15,35 @@ GOOGLE_CLIENT_ID = "240771338078-6lhucfo67thhpdpkcs4d3mihmmdv49e2.apps.googleuse
 GOOGLE_CLIENT_SECRET = "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"
 GOOGLE_CALLBACK_URL = "http://localhost:5000/auth/google-oauth-callback"  # Must match exactly what's in Google Cloud Console
 
-@auth.route('/change-password')#, methods=['POST']
+@auth.route('/change-password', methods=['GET', 'POST'])
+@login_required
 def change_password():
-   # current_password = request.form['current_password']
-    #new_password = request.form['new_password']
-    # Verify and update password logic here
-    return render_template('change_password.html')
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_new_password')  
 
+        # Verify current password
+        if current_user.password != current_password:
+            flash('Current password is incorrect!', category='error')
+            return render_template('change_password.html')
+
+        # Validate new password
+        if len(new_password) < 7:
+            flash('New password must be at least 7 characters long!', category='error')
+            return render_template('change_password.html')
+
+        if new_password != confirm_password:
+            flash('New passwords don\'t match!', category='error')
+            return render_template('change_password.html')
+
+        # Update password in database
+        current_user.password = new_password
+        db.session.commit()
+        flash('Password updated successfully!', category='success')
+        return redirect(url_for('auth.profile'))
+
+    return render_template('change_password.html')
 
 @auth.route('/profile')
 @login_required
@@ -38,6 +60,11 @@ def cart():
 def admin(): #authenticate admin
     return render_template("admin.html", user=current_user) #this will render the html of admin
 
+@auth.route('/staff', methods=['GET', 'POST'])
+@login_required
+def staff(): #authenticate admin
+    return render_template("staff.html", user=current_user)
+
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -51,6 +78,8 @@ def login():
                 login_user(user, remember=True)
                 if user.role == 'admin':
                     return redirect(url_for('auth.admin', user=current_user))  #if the role is admin, will go to authenticate admin
+                if user.role == 'staff':
+                    return redirect(url_for('auth.staff', user=current_user)) #if the role is staff, will go to authenticate staff
                 else: 
                     return redirect(url_for('views.home', user=current_user)) #if only user, will go views.home which is default page of user
             else:
