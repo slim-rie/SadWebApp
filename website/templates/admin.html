@@ -1,21 +1,532 @@
-{% extends "base.html" %} {% block title %}Admin{% endblock %}{% block content%}
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}" />
-{% endblock %} 
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-    </head>
-    <body>
-          <section class="container">
-        <div class="box">
-          <img src="{{ url_for('static', filename='download.jpeg') }}" />
-          <p>STAR NG PASKO</p>
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='admin.css') }}">
+<div class="dashboard">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='JBR LOGO.png') }}" alt="JBR Logo">
         </div>
-    </section>  
-    </body>
-    </html>
-{% endblock %} 
+        <div class="nav-items">
+            <a href="#" class="nav-item active">Dashboard</a>
+            <a href="#" class="nav-item">Supplier</a>
+            <a href="#" class="nav-item">Inventory</a>
+            <a href="#" class="nav-item">Sales</a>
+            <a href="#" class="nav-item">Customer Order</a>
+            <a href="#" class="nav-item">Customer Purchase</a>
+            <a href="#" class="nav-item">Personnel</a>
+            <a href="#" class="nav-item">Reports</a>
+            <a href="#" class="nav-item">Setting</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="content-section active">
+            <div class="header">
+                <h1>DASHBOARD</h1>
+                <div class="user-profile">
+                    <span>SUPERVISOR</span>
+                </div>
+            </div>
+
+            <div class="dashboard-cards">
+                <!-- Critical Stock Card -->
+                <div class="card">
+                    <h2>
+                        Critical Stock
+                        <div class="total-stocks">
+                            <span class="total-stocks-number">6</span>
+                            Total of Critical Stocks
+                        </div>
+                    </h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>PRODUCT ID</th>
+                                <th>PRODUCT NAME</th>
+                                <th>SUPPLIER</th>
+                                <th>CURRENT STOCK</th>
+                                <th>ALERT LEVEL</th>
+                                <th>CONTACT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>JH563</td>
+                                <td>Portable sewing machine</td>
+                                <td>Shunfa</td>
+                                <td>3</td>
+                                <td class="alert-level">⚠ 10</td>
+                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+                            </tr>
+                            <tr>
+                                <td>B9117-012-000</td>
+                                <td>Bobbin case</td>
+                                <td>Shunfa</td>
+                                <td>5</td>
+                                <td class="alert-level">⚠ 15</td>
+                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+                            </tr>
+                            <tr>
+                                <td>59219</td>
+                                <td>China Cotton 165 GSM</td>
+                                <td>Guifang Manufacturing</td>
+                                <td>3</td>
+                                <td class="alert-level">⚠ 8</td>
+                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+                            </tr>
+                            <tr>
+                                <td>MO-6700</td>
+                                <td>Series Edger Machine</td>
+                                <td>Tai-Sing Industrial</td>
+                                <td>2</td>
+                                <td class="alert-level">⚠ 10</td>
+                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+                            </tr>
+                            <tr>
+                                <td>W582-02BB</td>
+                                <td>Piping Machine</td>
+                                <td>Tai-Sing Industrial</td>
+                                <td>5</td>
+                                <td class="alert-level">⚠ 15</td>
+                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+                            </tr>
+                            <tr>
+                                <td>B3421-552-000</td>
+                                <td>Presser foot</td>
+                                <td>Shunfa</td>
+                                <td>3</td>
+                                <td class="alert-level">⚠ 8</td>
+                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Original New Orders Card -->
+                <div class="card">
+                    <h2>
+                        New Orders
+                        <div class="total-orders">
+                            <span class="total-orders-number">20</span>
+                            Total of New Orders
+                        </div>
+                    </h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>ORDER NUMBER</th>
+                                <th>ITEM</th>
+                                <th>CUSTOMER NAME</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>59217</td>
+                                <td>59217342</td>
+                                <td>1</td>
+                                <td>Cody Fisher</td>
+                            </tr>
+                            <tr>
+                                <td>59213</td>
+                                <td>59217343</td>
+                                <td>2</td>
+                                <td>Kristin Watson</td>
+                            </tr>
+                            <tr>
+                                <td>59219</td>
+                                <td>59217344</td>
+                                <td>12</td>
+                                <td>Esther Howard</td>
+                            </tr>
+                            <tr>
+                                <td>59220</td>
+                                <td>59217345</td>
+                                <td>22</td>
+                                <td>Jenny Wilson</td>
+                            </tr>
+                            <tr>
+                                <td>59223</td>
+                                <td>59217346</td>
+                                <td>32</td>
+                                <td>John Smith</td>
+                            </tr>
+                            <tr>
+                                <td>592182</td>
+                                <td>59217346</td>
+                                <td>41</td>
+                                <td>Cameron Williamson</td>
+                            </tr>
+                            <tr>
+                                <td>592182</td>
+                                <td>59217346</td>
+                                <td>41</td>
+                                <td>Cameron Williamson</td>
+                            </tr>
+                            <tr>
+                                <td>592182</td>
+                                <td>59217347</td>
+                                <td>41</td>
+                                <td>Cameron Williamson</td>
+                            </tr>
+                            <tr>
+                                <td>592182</td>
+                                <td>59217347</td>
+                                <td>41</td>
+                                <td>Cameron Williamson</td>
+                            </tr>
+                            <tr>
+                                <td>592182</td>
+                                <td>59217347</td>
+                                <td>44</td>
+                                <td>Cameron Williamson</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- For Delivery Card -->
+                <div class="card">
+                    <h2>
+                        For Delivery
+                        <div class="total-orders">
+                            <span class="total-orders-number">20</span>
+                            Total Orders to Deliver
+                        </div>
+                    </h2>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>ORDER NUMBER</th>
+                                <th>ITEM</th>
+                                <th>SHIPPING SERVICE</th>
+                                <th>TRACKING CODE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>59217</td>
+                                <td>59217342</td>
+                                <td>1</td>
+                                <td>Standard</td>
+                                <td>94001001093611300113</td>
+                            </tr>
+                            <tr>
+                                <td>59213</td>
+                                <td>59217343</td>
+                                <td>2</td>
+                                <td>Priority</td>
+                                <td>94001001093611300113</td>
+                            </tr>
+                            <tr>
+                                <td>59219</td>
+                                <td>59217344</td>
+                                <td>12</td>
+                                <td>Express</td>
+                                <td>94001001093611300113</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supplier Section -->
+        <div id="supplier-section" class="content-section">
+            <div class="header">
+                <h1>SUPPLIER MANAGEMENT</h1>
+                <div class="user-profile">
+                    <span>SUPERVISOR</span>
+                </div>
+            </div>
+
+            <div class="dashboard-cards">
+                <!-- Supplier Filter Card -->
+                <div class="card">
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <label>Filter by Supplier:</label>
+                            <select class="filter-select">
+                                <option value="">Select an option</option>
+                                <option value="shunfa">Shunfa</option>
+                                <option value="skylab">Skylab Manufacturing</option>
+                                <option value="quitalig">Quitalig Manufacturing</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filter by Item:</label>
+                            <select class="filter-select">
+                                <option value="">Select an option</option>
+                                <option value="sewing-machine">Sewing Machine</option>
+                                <option value="fabric">Fabric</option>
+                                <option value="thread">Thread</option>
+                            </select>
+                        </div>
+                        <div class="filter-buttons">
+                            <button class="filter-btn">Filter</button>
+                            <button class="add-btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Supplier List Card -->
+                <div class="card">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Contact Person</th>
+                                <th>Phone Number</th>
+                                <th>Address</th>
+                                <th>Registration Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td>Shunfa</td>
+                                <td>Yoon Zino</td>
+                                <td>+639454321870</td>
+                                <td>432 Taft Avenue, Fashion Hub, Pasay City, Metro Manila</td>
+                                <td>2025-03-10 21:14:06</td>
+                                <td>Active</td>
+                                <td>
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn">Delete</button>
+                                    <button class="contact-btn">Contact Supplier</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Skylab Manufacturing</td>
+                                <td>Hobi Jung</td>
+                                <td>+639454321870</td>
+                                <td>201 EDSA Road, Textile District, Quezon City, Metro Manila</td>
+                                <td>2025-03-10 21:14:06</td>
+                                <td>Active</td>
+                                <td>
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn">Delete</button>
+                                    <button class="contact-btn">Contact Supplier</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>Quitalig Manufacturing</td>
+                                <td>Jennie Kim</td>
+                                <td>+639454321870</td>
+                                <td>789 MacArthur Highway, Commercial Zone, Bocaue, Bulacan</td>
+                                <td>2025-03-10 21:14:06</td>
+                                <td>Active</td>
+                                <td>
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn">Delete</button>
+                                    <button class="contact-btn">Contact Supplier</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div id="inventory-section" class="content-section">
+            <div class="header">
+                <h1>INVENTORY MANAGEMENT</h1>
+                <div class="user-profile">
+                    <span>SUPERVISOR</span>
+                </div>
+            </div>
+
+            <div class="dashboard-cards">
+                <!-- Inventory Filter Card -->
+                <div class="card">
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <label>Filter by Category:</label>
+                            <select class="filter-select">
+                                <option value="">Select an option</option>
+                                <option value="industrial">Industrial Machines</option>
+                                <option value="sewing">Sewing Machines</option>
+                                <option value="parts">Machine Parts</option>
+                                <option value="accessories">Accessories</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filter by Item:</label>
+                            <select class="filter-select">
+                                <option value="">Select an option</option>
+                                <option value="sf-1020">SF-1020 - Speed master high-speed machine</option>
+                                <option value="sf-562">SF-562 - Button hole machine</option>
+                                <option value="sf-781">SF-781 - Button holder machine</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filter by Stock Quantity:</label>
+                            <select class="filter-select">
+                                <option value="">Select an option</option>
+                                <option value="out">Out of Stock (0)</option>
+                                <option value="low">Low Stock (1-10)</option>
+                                <option value="medium">Medium Stock (11-50)</option>
+                                <option value="high">High Stock (50+)</option>
+                            </select>
+                        </div>
+                        <div class="filter-buttons">
+                            <button class="filter-btn">Filter</button>
+                            <button class="add-btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory List Card -->
+                <div class="card">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Product Name</th>
+                                <th>Product Code</th>
+                                <th>Category</th>
+                                <th>Cost Price</th>
+                                <th>Selling Price</th>
+                                <th>Stock Level</th>
+                                <th>Min Order</th>
+                                <th>Max Order</th>
+                                <th>Supplier</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>36</td>
+                                <td>SF-1020 - Speed master high-speed machine</td>
+                                <td>SH-020</td>
+                                <td>Industrial Machines</td>
+                                <td>₱0.00</td>
+                                <td>₱0.00</td>
+                                <td>50</td>
+                                <td>10</td>
+                                <td>8</td>
+                                <td>Shunfa</td>
+                                <td>2025-03-10 20:45:43</td>
+                                <td>
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn">Delete</button>
+                                    <button class="contact-btn">Contact Supplier</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>37</td>
+                                <td>SF-562 - Button hole machine</td>
+                                <td>SH-023</td>
+                                <td>Industrial Machines</td>
+                                <td>₱0.00</td>
+                                <td>₱0.00</td>
+                                <td>8</td>
+                                <td>5</td>
+                                <td>2</td>
+                                <td>Shunfa</td>
+                                <td>2025-03-10 20:45:43</td>
+                                <td>
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn">Delete</button>
+                                    <button class="contact-btn">Contact Supplier</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>38</td>
+                                <td>SF-781 - Button holder machine</td>
+                                <td>SH-004</td>
+                                <td>Industrial Machines</td>
+                                <td>₱0.00</td>
+                                <td>₱0.00</td>
+                                <td>2</td>
+                                <td>5</td>
+                                <td>2</td>
+                                <td>Shunfa</td>
+                                <td>2025-03-10 20:45:43</td>
+                                <td>
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn">Delete</button>
+                                    <button class="contact-btn">Contact Supplier</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>39</td>
+                                <td>SF-8700 - High-speed lockstitch machine</td>
+                                <td>SH-005</td>
+                                <td>Industrial Machines</td>
+                                <td>₱0.00</td>
+                                <td>₱0.00</td>
+                                <td>100</td>
+                                <td>20</td>
+                                <td>10</td>
+                                <td>Shunfa</td>
+                                <td>2025-03-10 20:45:43</td>
+                                <td>
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn">Delete</button>
+                                    <button class="contact-btn">Contact Supplier</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>40</td>
+                                <td>SF-767 - 4-threads overlock machine</td>
+                                <td>SH-056</td>
+                                <td>Industrial Machines</td>
+                                <td>₱0.00</td>
+                                <td>₱0.00</td>
+                                <td>18</td>
+                                <td>20</td>
+                                <td>10</td>
+                                <td>Shunfa</td>
+                                <td>2025-03-10 20:45:43</td>
+                                <td>
+                                    <button class="edit-btn">Edit</button>
+                                    <button class="delete-btn">Delete</button>
+                                    <button class="contact-btn">Contact Supplier</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get all nav items and content sections
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentSections = document.querySelectorAll('.content-section');
+
+        // Add click event listeners to nav items
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all nav items and add to clicked item
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+
+                // Hide all content sections
+                contentSections.forEach(section => section.classList.remove('active'));
+
+                // Show the corresponding content section
+                const sectionId = item.textContent.toLowerCase().replace(' ', '-') + '-section';
+                document.getElementById(sectionId).classList.add('active');
+            });
+        });
+    </script>
+</div>
+{% endblock %}
