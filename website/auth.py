@@ -45,6 +45,25 @@ def change_password():
 
     return render_template('change_password.html')
 
+@auth.route('/add-item')
+def add_item():
+    return render_template('example_add.html')
+
+@auth.route('/Contact-Seller')
+@login_required
+def contact_seller():
+    return render_template('contact_seller.html')
+
+@auth.route('/feedback')
+@login_required
+def feedback():
+    return render_template('feedback.html')
+
+@auth.route('/supplier')
+@login_required
+def supplier():
+    return render_template('supplier.html')
+
 @auth.route('/profile')
 @login_required
 def profile():
@@ -80,6 +99,8 @@ def login():
                     return redirect(url_for('auth.admin', user=current_user))  #if the role is admin, will go to authenticate admin
                 if user.role == 'staff':
                     return redirect(url_for('auth.staff', user=current_user)) #if the role is staff, will go to authenticate staff
+                if user.role == 'supplier':
+                    return redirect(url_for('auth.supplier', user=current_user)) #if the role is staff, will go to authenticate supplier
                 else: 
                     return redirect(url_for('views.home', user=current_user)) #if only user, will go views.home which is default page of user
             else:

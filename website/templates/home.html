@@ -7,7 +7,7 @@ content %} {% block head %}
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Home</title>
   </head>
   <body>
     <select class="categories-dropdown">
@@ -50,8 +50,14 @@ content %} {% block head %}
           <div class="box-dropdown">
             <ul>
               <li>Add to cart</li>
-              <li>Feedback</li>
-              <li>Contact seller</li>
+              <li>
+                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
+              </li>
+              <li>
+                <a href="{{ url_for('auth.contact_seller') }}"
+                  >contact_seller</a
+                >
+              </li>
             </ul>
           </div>
         </div>
