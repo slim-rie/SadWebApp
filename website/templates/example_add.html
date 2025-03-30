@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Item Management</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='example.css') }}"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Item Management</h1>
+    </header>
+
+    <!-- Form to Add Items -->
+    <form id="add-item-form">
+      <input
+        type="text"
+        id="item-name"
+        placeholder="Enter Item Name"
+        required
+      />
+      <input type="file" id="item-image" accept="image/*" required />
+      <textarea
+        id="item-description"
+        placeholder="Enter Item Description"
+        rows="3"
+      ></textarea>
+      <button type="submit">Add Item</button>
+    </form>
+
+    <!-- Container for Items -->
+    <section id="items-container" class="product-container">
+      <!-- New items will appear here -->
+    </section>
+
+    <script src="{{ url_for('static', filename='example.js') }}"></script>
+  </body>
+</html>
