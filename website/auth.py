@@ -10,6 +10,11 @@ auth = Blueprint('auth', __name__)
 def admin(): #authenticate admin
     return render_template("admin.html", user=current_user) #this will render the html of admin
 
+@auth.route('/staff', methods=['GET', 'POST'])
+@login_required
+def staff(): #authenticate staff
+    return render_template("staff.html", user=current_user)  #this will render the html of staff
+
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -23,6 +28,8 @@ def login():
                 login_user(user, remember=True)
                 if user.role == 'admin':
                     return redirect(url_for('auth.admin', user=current_user))  #if the role is admin, will go to authenticate admin
+                if user.role == 'staff':
+                    return redirect(url_for('auth.staff', user=current_user)) #if the role is staff, will go to authenticate staff
                 else: 
                     return redirect(url_for('views.home', user=current_user)) #if only user, will go views.home which is default page of user
             else:

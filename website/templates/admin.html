@@ -29,7 +29,8 @@
             <div class="header">
                 <h1>DASHBOARD</h1>
                 <div class="user-profile">
-                    <span>SUPERVISOR</span>
+                    <span>ADMIN</span>
+                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
                 </div>
             </div>
 
@@ -242,7 +243,8 @@
             <div class="header">
                 <h1>SUPPLIER MANAGEMENT</h1>
                 <div class="user-profile">
-                    <span>SUPERVISOR</span>
+                    <span>ADMIN</span>
+                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
                 </div>
             </div>
 
@@ -344,7 +346,8 @@
             <div class="header">
                 <h1>INVENTORY MANAGEMENT</h1>
                 <div class="user-profile">
-                    <span>SUPERVISOR</span>
+                    <span>ADMIN</span>
+                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
                 </div>
             </div>
 
@@ -501,6 +504,131 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Sales Section -->
+    <div id="sales-section" class="content-section">
+        <div class="header">
+            <h1>SALES MANAGEMENT</h1>
+            <div class="user-profile">
+                <span>ADMIN</span>
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+            </div>
+        </div>
+
+        <div class="dashboard-cards">
+            <!-- Sales Filter Card -->
+            <div class="card">
+                <div class="filter-section sales-filters">
+                    <div class="filter-group">
+                        <label>Filter by Customer:</label>
+                        <select class="filter-select">
+                            <option value="">Select an option</option>
+                            <option value="sunghoon">Sunghoon Park</option>
+                            <option value="minji">Minji Kim</option>
+                            <option value="jihoon">Lee Jihoon</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Filter by Item:</label>
+                        <select class="filter-select">
+                            <option value="">Select an option</option>
+                            <option value="sf-747">SF-747 - 4 threads overlock machine</option>
+                            <option value="sf-372">SF-372 - Buttonsew machine</option>
+                            <option value="sf-781">SF-781 - Buttonhole machine</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Start Date:</label>
+                        <input type="date" class="date-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>End Date:</label>
+                        <input type="date" class="date-input">
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn">Filter</button>
+                        <button class="add-btn">Add</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales List Card -->
+            <div class="card">
+                <table class="table sales-table">
+                    <thead>
+                        <tr>
+                            <th>Sale ID</th>
+                            <th>Customer</th>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Total Amount</th>
+                            <th>Payment Method</th>
+                            <th>Order Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Sunghoon Park</td>
+                            <td>B1835-012-000 - Positioning finger</td>
+                            <td>1</td>
+                            <td>₱850.00</td>
+                            <td><span class="payment-method">PayPal</span></td>
+                            <td class="status-cell status-to-ship">To Ship</td>
+                            <td>2025-03-08 16:00:00</td>
+                            <td>
+                                <button class="edit-btn">Edit</button>
+                                <button class="delete-btn">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Minji Kim</td>
+                            <td>SF-747 - 4 threads overlock machine</td>
+                            <td>4</td>
+                            <td>₱475.00</td>
+                            <td><span class="payment-method">Bank Transfer</span></td>
+                            <td class="status-cell status-to-receive">To Receive</td>
+                            <td>2025-03-07 09:00:00</td>
+                            <td>
+                                <button class="edit-btn">Edit</button>
+                                <button class="delete-btn">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Lee Jihoon</td>
+                            <td>SF-372 - Buttonsew machine</td>
+                            <td>3</td>
+                            <td>₱440.00</td>
+                            <td><span class="payment-method">PayPal</span></td>
+                            <td class="status-cell status-completed">Completed</td>
+                            <td>2025-03-05 14:30:00</td>
+                            <td>
+                                <button class="edit-btn">Edit</button>
+                                <button class="delete-btn">Delete</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Wonyoung Jang</td>
+                            <td>SF-757-5 - threads overlock machine</td>
+                            <td>1</td>
+                            <td>₱250.00</td>
+                            <td><span class="payment-method">PayPal</span></td>
+                            <td class="status-cell status-to-pay">To Pay</td>
+                            <td>2025-03-03 15:00:00</td>
+                            <td>
+                                <button class="edit-btn">Edit</button>
+                                <button class="delete-btn">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
