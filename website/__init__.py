@@ -15,8 +15,15 @@ def create_app():
     app.config['SECRET_KEY'] = 'SADPROJECT'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/SADprojectdb'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_POOL_SIZE'] = 20       # Limit connections
+    app.config['SQLALCHEMY_POOL_SIZE'] = 20
     app.config['SQLALCHEMY_POOL_RECYCLE'] = 3600
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_timeout': 30,
+        'connect_args': {
+            'connect_timeout': 30
+        }
+    }
 
     db.init_app(app)
 
