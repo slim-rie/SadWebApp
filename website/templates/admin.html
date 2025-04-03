@@ -18,6 +18,13 @@
             <a href="#" class="nav-item">Customer Purchase</a>
             <a href="#" class="nav-item">Personnel</a>
             <a href="#" class="nav-item">Reports</a>
+            <!-- Settings navigation item - Uses nav-item class for consistent styling
+                 The nav-item class provides:
+                 - Padding and margins for proper spacing
+                 - Hover effects for better interactivity
+                 - Text color and font styling to match design
+                 - Cursor pointer for better UX
+            -->
             <a href="#" class="nav-item">Setting</a>
         </div>
     </div>
@@ -507,8 +514,62 @@
             </div>
         </div>
 
+        <!-- Settings Section -->
+        <div id="setting-section" class="content-section">
+            <div class="header">
+                <h1>SETTINGS MANAGEMENT</h1>
+                <div class="user-profile">
+                    <span>ADMIN</span>
+                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+                </div>
+            </div>
+
+            <div class="dashboard-cards">
+                <div class="card"><h2 class="section-title">ACCOUNT DETAILS</h2>
+                    <div class="settings-header">
+                        <div class="dropdown-container">
+                            
+                            <input type="text" value="ADMIN" class="dropdown-input" readonly>
+                            <button class="dropdown-toggle">▼</button> 
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn new-btn">New</button>
+                            <button class="action-btn edit-btn">Edit</button>
+                            <button class="action-btn delete-btn">Delete</button>
+                        </div>
+                    </div>
+                    <div class="filter-section">
+                        
+                        <div class="settings-form">
+                            <div class="filter-group">
+                                <label>User ID</label>
+                                <div class="input-with-status">
+                                    <input type="text" value="ADMIN" readonly class="filter-input">
+                                    <div class="active-status">
+                                        <input type="checkbox" id="active-checkbox" checked>
+                                        <label for="active-checkbox">Active</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label>Password</label>
+                                <input type="password" value="******" class="filter-input">
+                            </div>
+                            <div class="filter-group">
+                                <label>Username</label>
+                                <input type="text" value="*****" class="filter-input">
+                            </div>
+                            <div class="filter-buttons">
+                                <button class="filter-btn save-btn">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Sales Section -->
-    <div id="sales-section" class="content-section">
+        <div id="sales-section" class="content-section">
         <div class="header">
             <h1>SALES MANAGEMENT</h1>
             <div class="user-profile">
@@ -639,7 +700,7 @@
         const contentSections = document.querySelectorAll('.content-section');
 
         // Add click event listeners to nav items
-        navItems.forEach(item => {
+        navItems.forEach((item, index) => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 
@@ -647,12 +708,15 @@
                 navItems.forEach(nav => nav.classList.remove('active'));
                 item.classList.add('active');
 
-                // Hide all content sections
+                // Hide all sections
                 contentSections.forEach(section => section.classList.remove('active'));
 
-                // Show the corresponding content section
-                const sectionId = item.textContent.toLowerCase().replace(' ', '-') + '-section';
-                document.getElementById(sectionId).classList.add('active');
+                // Show the corresponding section based on the clicked nav item's text
+                const sectionId = item.textContent.trim().toLowerCase().replace(' ', '-') + '-section';
+                const targetSection = document.getElementById(sectionId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
             });
         });
     </script>
