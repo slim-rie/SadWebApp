@@ -1,125 +1,16 @@
-{% extends "base.html" %}
-{% block title %}Staff Dashboard{% endblock %}
-
-{% block content %}
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='staff.css') }}">
-<div class="dashboard">
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='JBR LOGO.png') }}" alt="JBR Logo">
-        </div>
-        <div class="nav-items">
-            <a href="#" class="nav-item active">Dashboard</a>
-            <a href="#" class="nav-item">Inventory</a>
-            <a href="#" class="nav-item">Sales</a>
-            <a href="#" class="nav-item">Customer Order</a>
-            <a href="#" class="nav-item">Reports</a>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Dashboard Section -->
-        <div id="dashboard-section" class="content-section active">
-            <div class="header">
-                <h1>DASHBOARD</h1>
-                <div class="user-profile">
-                    <span>STAFF</span>
-                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-                </div>
-            </div>
-
-            <div class="dashboard-cards">
-                <!-- Critical Stock Card -->
-                <div class="card">
-                    <h2>
-                        Critical Stock
-                        <div class="total-stocks">
-                            <span class="total-stocks-number">6</span>
-                            Total of Critical Stocks
-                        </div>
-                    </h2>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>PRODUCT ID</th>
-                                <th>PRODUCT NAME</th>
-                                <th>QUANTITY</th>
-                                <th>STATUS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>36</td>
-                                <td>SF-1020 - Speed master high-speed machine</td>
-                                <td>2</td>
-                                <td class="status-cell status-critical">Critical</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- New Orders Card -->
-                <div class="card">
-                    <h2>
-                        New Orders
-                        <div class="total-orders">
-                            <span class="total-orders-number">20</span>
-                            Total of New Orders
-                        </div>
-                    </h2>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ORDER ID</th>
-                                <th>CUSTOMER</th>
-                                <th>PRODUCT</th>
-                                <th>STATUS</th>
-                                <th>ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Park Sunghoon</td>
-                                <td>SF-747 - 4 threads overlock machine</td>
-                                <td class="status-cell status-pending">Pending</td>
-                                <td>
-                                    <button class="notify-btn">Process</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Other sections will be added here -->
-    </div>
-
-    <script>
-        // Get all nav items and content sections
-        const navItems = document.querySelectorAll('.nav-item');
-        const contentSections = document.querySelectorAll('.content-section');
-
-        // Add click event listeners to nav items
-        navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Remove active class from all nav items and add to clicked item
-                navItems.forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
-
-                // Hide all content sections
-                contentSections.forEach(section => section.classList.remove('active'));
-
-                // Show the corresponding content section
-                const sectionId = item.textContent.toLowerCase().replace(' ', '-') + '-section';
-                document.getElementById(sectionId).classList.add('active');
-            });
-        });
-    </script>
-</div>
+{% extends "auth_base.html" %} {% block title %}Staff{% endblock %}{% block
+content%} {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='staff.css') }}" />
+{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Staff</title>
+  </head>
+  <body>
+    <h1>Staff</h1>
+  </body>
+</html>
 {% endblock %}
