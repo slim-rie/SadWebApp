@@ -1,0 +1,51 @@
+{% extends "auth_base.html" %} {% block title %}Supplier{% endblock %}{% block
+content%} {% block head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='supplier.css') }}"
+/>
+{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supplier</title>
+  </head>
+  <body>
+    <header>
+      <h1>Supplier Stock Management</h1>
+      <a href="{{ url_for('auth.login') }}" class="logout-button">Logout</a>
+    </header>
+    <main>
+      <section class="request">
+        <h2>Supply Request</h2>
+        <div class="item">
+          <section class="supply-info">
+            <p>Item Requested: <strong>Fabric</strong></p>
+            <p>Quantity Requested: <strong>50</strong></p>
+          </section>
+          <div class="button-container">
+            <button class="accept">Accept</button>
+            <button class="reject">Reject</button>
+          </div>
+        </div>
+      </section>
+      <br />
+      <section class="request">
+        <h2>Supply Request</h2>
+        <div class="item">
+          <section class="supply-info">
+            <p>Item Requested: <strong>Fabric</strong></p>
+            <p>Quantity Requested: <strong>50</strong></p>
+          </section>
+          <div class="button-container">
+            <button class="accept">Accept</button>
+            <button class="reject">Reject</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+{% endblock %}

@@ -1,0 +1,12 @@
+git checkout main
+git pull origin main /do this first if you want to merge your branch in main
+
+git checkout Jerriehl /checkout the branch you use then
+git merge main /merge main so the work in branch will be publish in main. /dont do this unless it is sure. It could ruin the github repo
+
+git checkout main /switch to main branhc. Can do this other way around
+git merge Jerriehl/ if you want to merge the main to your branch
+
+git push origin main
+
+

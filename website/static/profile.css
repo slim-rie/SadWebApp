@@ -1,0 +1,156 @@
+/* Reset some default styles */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: white; /* Light green background for testing */
+  font-family: Arial, sans-serif;
+  padding-top: 60px;
+  display: grid;
+}
+
+/* Style the profile container (now a <header>) */
+header.profile-container {
+  top: 15px;
+  left: 15px;
+  position: fixed;
+  z-index: 1001; /* Higher than the nav-bar’s z-index */
+}
+
+/* Style the profile icon */
+.profile-icon img {
+  border-radius: 50%;
+  border: 2px solid black;
+}
+
+nav.dropdown-menu {
+  display: none;
+  top: 100%;
+  left: 0;
+  background-color: #562531;
+  box-shadow: 0 2px 5px rgba(43, 26, 26, 0.2);
+  border-radius: 5px;
+  z-index: 1000;
+  padding: 0;
+  min-width: 150px; /* Keep the dropdown wide enough */
+}
+
+/* Show the dropdown menu on hover */
+header.profile-container:hover nav.dropdown-menu {
+  display: block;
+}
+
+/* Style the dropdown menu list */
+nav.dropdown-menu ul {
+  list-style: none;
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+}
+
+/* Style each dropdown item */
+nav.dropdown-menu li {
+  font-weight: bold;
+  padding: 10px 10px 10px 15px; /* Adjusted padding for left alignment */
+}
+
+/* Style the links in the dropdown */
+nav.dropdown-menu a {
+  text-align: left;
+  text-decoration: none; /* Remove underline from links */
+  color: #4d5e8d;
+  font-size: 16px;
+  display: block; /* Make the link fill the entire list item */
+}
+
+/* Change link color on hover */
+nav.dropdown-menu a:hover {
+  background-color: #562531; /* Light gray background on hover */
+  color: #000; /* Darker text color on hover */
+}
+
+.nav-bar {
+  background-color: grey;
+  top: 80px; /* Increased to ensure it’s below the dropdown menu */
+  left: 0px;
+  position: absolute;
+  margin: 0;
+  padding: 30px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 500px;
+}
+
+.nav-bar h2 {
+  font-weight: bold;
+  text-align: center;
+}
+
+.nav-bar a {
+  text-align: left;
+  display: block;
+  text-decoration: none;
+  color: #4d5e8d;
+  font-weight: bold;
+  padding: 5px 30px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.nav-bar a:hover {
+  color: #000;
+}
+
+.nav-bar #update-profile {
+  margin-left: 10px;
+  font-size: small;
+}
+
+.nav-bar #edit-profile {
+  text-align: center;
+}
+
+h1,
+p {
+  margin-left: 250px;
+  padding: 5px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+main {
+  margin-left: 150px;
+  position: relative;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  display: flex;
+}
+
+main .personal-info {
+  position: relative; /* or absolute/fixed depending on your layout */
+  left: 100px;
+  margin-top: 20px;
+}
+
+main label {
+  margin: 10px 0;
+  display: block;
+  text-align: left;
+  position: relative;
+}
+
+input[type="text"] {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  color: #000;
+}
+
+input[type="text"] {
+  color: black;
+  padding: 5px;
+  width: 300px;
+}

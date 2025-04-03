@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feedback Form</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='feedback.css') }}"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Feedback Form</h1>
+    </header>
+    <main>
+      <form action="/submit-feedback" method="POST" class="feedback-form">
+        <label for="name">Your Name:</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          placeholder="Enter your name"
+          required
+        />
+
+        <label for="email">Your Email:</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="Enter your email"
+          required
+        />
+
+        <label for="item">Item to Provide Feedback On:</label>
+        <select id="item" name="item" required>
+          <option value="Fabric">Fabric</option>
+          <option value="Sewing Parts">Sewing Parts</option>
+          <option value="Sewing Machines">Sewing Machines</option>
+          <option value="Chiffon Purple">Chiffon Purple</option>
+          <option value="Chiffon Fabric">Chiffon Fabric</option>
+          <option value="Plain Chiffon Fabric">Plain Chiffon Fabric</option>
+          <option value="White Chiffon">White Chiffon</option>
+          <option value="Foot Pedal">Foot Pedal</option>
+          <option
+            value="Gemsy Presser Foot Quick Adjustable Screw Device Presser Foot"
+          >
+            Gemsy Presser Foot Quick Adjustable Screw Device Presser Foot
+          </option>
+          <option value="Sewing Machine Balance Wheel">
+            Sewing Machine Balance Wheel
+          </option>
+          <option value="Shuttle Hook">Shuttle Hook</option>
+          <option value="Anysew Big Hook">Anysew Big Hook</option>
+          <option value="Buttonhole">Buttonhole</option>
+          <option value="Hax1 Mach">Hax1 Mach</option>
+          <option value="Singer Heavy Duty Sewing Machine">
+            Singer Heavy Duty Sewing Machine
+          </option>
+          <option value="Vintage Singer Sewing Machine">
+            Vintage Singer Sewing Machine
+          </option>
+        </select>
+
+        <label for="rating">Rating:</label>
+        <select id="rating" name="rating">
+          <option value="5">Excellent</option>
+          <option value="4">Good</option>
+          <option value="3">Average</option>
+          <option value="2">Poor</option>
+          <option value="1">Terrible</option>
+        </select>
+
+        <label for="comments">Comments:</label>
+        <textarea
+          id="comments"
+          name="comments"
+          rows="5"
+          placeholder="Write your feedback here"
+        ></textarea>
+
+        <button type="submit">Submit Feedback</button>
+      </form>
+      <br />
+      <a href="{{url_for('views.home')}}">Back</a>
+    </main>
+  </body>
+</html>

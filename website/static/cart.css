@@ -1,0 +1,37 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.item-cart {
+  text-align: center;
+}
+
+.profile-container {
+  position: absolute;
+  top: 15px;
+  left: 30px;
+}
+
+.profile-icon img {
+  border-radius: 50%; /* Makes the image circular */
+  cursor: pointer; /* Indicates it's clickable */
+}
+
+.profile-container:hover .dropdown-menu {
+  display: block;
+  text-align: left;
+  position: absolute;
+  z-index: 1000; /* Ensures it stays above other elements */
+}
+
+.dropdown-menu ul li a:hover {
+  background-color: #ba0000; /* Light gray hover effect */
+}
+
+.dropdown-menu ul {
+  list-style: none;
+}

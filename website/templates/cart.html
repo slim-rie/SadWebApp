@@ -1,0 +1,39 @@
+{% extends "auth_base.html" %}{% block title %}Cart{% endblock %}{% block
+content %} {% block head %}
+<link rel="stylesheet" href="{{url_for('static', filename='cart.css')}}" />
+{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile</title>
+  </head>
+  <body>
+    <head>
+      <div class="profile-container">
+        <a href="#" class="profile-icon">
+          <img
+            src="{{ url_for('static', filename='pictures/saka.jpeg') }}"
+            alt="Profile"
+            height="40"
+          />
+        </a>
+        <div class="dropdown-menu" id="profileMenu">
+          <ul>
+            <li>
+              <a href="{{ url_for('views.home') }}">Home</a>
+            </li>
+            <li>
+              <a href="{{url_for('auth.profile')}}">View Profile</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </head>
+    <div class="item-cart">
+      Don't have carts? <a href="{{ url_for('views.home') }}">Home</a>
+    </div>
+  </body>
+</html>
+{% endblock %}
