@@ -1,16 +1,11 @@
-{% extends "auth_base.html" %} {% block title %}Staff{% endblock %}{% block
-content%} {% block head %}
+{% extends "auth_base.html" %}
+
+{% block title %}Staff{% endblock %}
+
+{% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='staff.css') }}" />
 {% endblock %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Staff</title>
-  </head>
-  <body>
-    <h1>Staff</h1>
-  </body>
-</html>
+
+{% block content %}
+<h1>Staff</h1>
 {% endblock %}
