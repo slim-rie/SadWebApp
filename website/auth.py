@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .models import User
+from .models import User, CartItem
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -24,7 +24,7 @@ def change_password():
         confirm_password = request.form.get('confirm_new_password')  
 
         # Verify current password
-        if current_user.password != current_password:
+        if not current_user.verify_password(current_password):
             flash('Current password is incorrect!', category='error')
             return render_template('change_password.html')
 
@@ -72,7 +72,18 @@ def profile():
 @auth.route('/Cart')
 @login_required
 def cart():
-    return render_template('Cart.html')
+    cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
+    total_items = sum(item.quantity for item in cart_items)
+    total_amount = sum(item.quantity * item.product.price for item in cart_items)
+    return render_template("cart.html", user=current_user, cart_items=cart_items,
+                         total_items=total_items, total_amount=total_amount)
+
+@auth.route('/add-to-cart/<int:product_id>')
+@login_required
+def add_to_cart(product_id):
+    # Add product to cart logic here
+    flash('Product added to cart successfully!', category='success')
+    return redirect(url_for('auth.cart'))
 
 @auth.route('/admin', methods=['GET', 'POST'])
 @login_required
@@ -92,7 +103,7 @@ def login():
 
         user = User.query.filter_by(email=email).first() #indent is important to align to which you want it connected
         if user:
-            if user.password == password:
+            if user.verify_password(password):
                 flash('Logged in successfully', category='success')
                 login_user(user, remember=True)
                 if user.role == 'admin':
