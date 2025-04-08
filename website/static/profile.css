@@ -154,3 +154,18 @@ input[type="text"] {
   padding: 5px;
   width: 300px;
 }
+
+button {
+  background-color: #4caf50; /* Green */
+  color: white; /* Text color */
+  padding: 10px 20px; /* Add padding */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  font-size: 16px; /* Adjust font size */
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
