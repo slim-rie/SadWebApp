@@ -14,6 +14,13 @@ class User(db.Model, UserMixin):
     number = db.Column(db.String(20), nullable=True)
     date_of_birth = db.Column(db.Date, nullable=True)
     address = db.Column(db.Text, nullable=True)
+    profile_picture = db.Column(db.String(255), nullable=True, default='pictures/saka.jpeg')
+
+    def get_id(self):
+        return str(self.user_id)
+    
+    def has_address(self):
+        return bool(self.address and self.address.strip())
 
     @property
     def password(self):
@@ -31,27 +38,19 @@ class User(db.Model, UserMixin):
         except ValueError:
             return False
 
-    def get_id(self):
-        return str(self.user_id)
-
-    def has_address(self):
-        return bool(self.address and self.address.strip())
-
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
+    stock = db.Column(db.Integer, nullable=False, default=0)
     image_url = db.Column(db.String(500), nullable=False)
     category = db.Column(db.String(100), nullable=False)
-    stock = db.Column(db.Integer, nullable=False, default=0)
 
 class CartItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
-    
-    # Relationships
     user = db.relationship('User', backref=db.backref('cart_items', lazy=True))
     product = db.relationship('Product', backref=db.backref('cart_items', lazy=True))

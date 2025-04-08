@@ -5,6 +5,8 @@ from flask_login import login_user, login_required, logout_user, current_user
 import os
 from requests_oauthlib import OAuth2Session
 from datetime import datetime
+from werkzeug.utils import secure_filename
+import uuid
 
 auth = Blueprint('auth', __name__)
 
@@ -15,6 +17,32 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 GOOGLE_CLIENT_ID = "240771338078-6lhucfo67thhpdpkcs4d3mihmmdv49e2.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "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"
 GOOGLE_CALLBACK_URL = "http://localhost:5000/auth/google-oauth-callback"  # Must match exactly what's in Google Cloud Console
+
+# File upload settings
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Create upload folder if it doesn't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def save_profile_picture(file):
+    if file and allowed_file(file.filename):
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        ext = filename.rsplit('.', 1)[1].lower()
+        new_filename = f"profile_{uuid.uuid4().hex}.{ext}"
+        
+        # Save file
+        file_path = os.path.join(UPLOAD_FOLDER, new_filename)
+        file.save(file_path)
+        
+        # Return relative path for database
+        return f'uploads/{new_filename}'
+    return None
 
 @auth.route('/change-password', methods=['GET', 'POST'])
 @login_required
@@ -79,14 +107,14 @@ def cart():
     return render_template("cart.html", user=current_user, cart_items=cart_items,
                          total_items=total_items, total_amount=total_amount)
 
-@auth.route('/add-to-cart/<int:product_id>')
+@auth.route('/add-to-cart/<int:product_id>', methods=['POST'])
 @login_required
 def add_to_cart(product_id):
+    # Check if user has address
     if not current_user.has_address():
-        flash('Please add your address in your profile before making a purchase!', category='error')
-        return redirect(url_for('auth.profile'))
+        flash('Please add your address in profile before making a purchase.', 'error')
+        return redirect(url_for('views.home'))
 
-    # Check if product exists
     product = Product.query.get_or_404(product_id)
     
     # Check if item already in cart
@@ -95,63 +123,45 @@ def add_to_cart(product_id):
     if cart_item:
         cart_item.quantity += 1
     else:
-        cart_item = CartItem(user_id=current_user.user_id, product_id=product_id, quantity=1)
+        cart_item = CartItem(user_id=current_user.user_id, product_id=product_id)
         db.session.add(cart_item)
     
-    try:
-        db.session.commit()
-        flash('Product added to cart successfully!', category='success')
-    except Exception as e:
-        db.session.rollback()
-        flash('Error adding product to cart.', category='error')
-        print(f"Error adding to cart: {str(e)}")
+    db.session.commit()
+    flash('Item added to cart successfully!', 'success')
+    return redirect(url_for('views.home'))
+
+@auth.route('/update-cart-quantity/<int:item_id>', methods=['POST'])
+@login_required
+def update_cart_quantity(item_id):
+    cart_item = CartItem.query.get_or_404(item_id)
+    if cart_item.user_id != current_user.user_id:
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('auth.cart'))
     
+    action = request.form.get('action')
+    if action == 'increase':
+        cart_item.quantity += 1
+    elif action == 'decrease':
+        if cart_item.quantity > 1:
+            cart_item.quantity -= 1
+        else:
+            db.session.delete(cart_item)
+    
+    db.session.commit()
     return redirect(url_for('auth.cart'))
 
-@auth.route('/update-profile', methods=['POST'])
+@auth.route('/remove-from-cart/<int:item_id>', methods=['POST'])
 @login_required
-def update_profile():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        number = request.form.get('number')
-        date_of_birth = request.form.get('date_of_birth')
-        address = request.form.get('address')
-
-        # Validate email format
-        if not email or '@' not in email:
-            flash('Invalid email address!', category='error')
-            return redirect(url_for('auth.profile'))
-
-        # Check if email is already taken by another user
-        existing_user = User.query.filter(User.email == email, User.user_id != current_user.user_id).first()
-        if existing_user:
-            flash('Email already exists!', category='error')
-            return redirect(url_for('auth.profile'))
-
-        # Check if username is already taken
-        existing_username = User.query.filter(User.username == username, User.user_id != current_user.user_id).first()
-        if existing_username:
-            flash('Username already taken!', category='error')
-            return redirect(url_for('auth.profile'))
-
-        try:
-            # Update user information
-            current_user.username = username
-            current_user.email = email
-            current_user.number = number
-            if date_of_birth:
-                current_user.date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
-            current_user.address = address
-
-            db.session.commit()
-            flash('Profile updated successfully!', category='success')
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while updating your profile.', category='error')
-            print(f"Error updating profile: {str(e)}")
-
-        return redirect(url_for('auth.profile'))
+def remove_from_cart(item_id):
+    cart_item = CartItem.query.get_or_404(item_id)
+    if cart_item.user_id != current_user.user_id:
+        flash('Unauthorized access', 'error')
+        return redirect(url_for('auth.cart'))
+    
+    db.session.delete(cart_item)
+    db.session.commit()
+    flash('Item removed from cart', 'success')
+    return redirect(url_for('auth.cart'))
 
 @auth.route('/admin', methods=['GET', 'POST'])
 @login_required
@@ -288,3 +298,55 @@ def google_oauth_callback():
     except Exception as e:
         flash(f'Failed to sign in with Google: {str(e)}', category='error')
         return redirect(url_for('auth.login'))
+
+@auth.route('/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        number = request.form.get('number')
+        date_of_birth = request.form.get('date_of_birth')
+        address = request.form.get('address')
+
+        # Handle profile picture upload
+        profile_picture = request.files.get('profile')
+        if profile_picture:
+            picture_path = save_profile_picture(profile_picture)
+            if picture_path:
+                current_user.profile_picture = picture_path
+
+        # Validate email format
+        if not email or '@' not in email:
+            flash('Invalid email address!', category='error')
+            return redirect(url_for('auth.profile'))
+
+        # Check if email is already taken by another user
+        existing_user = User.query.filter(User.email == email, User.user_id != current_user.user_id).first()
+        if existing_user:
+            flash('Email already exists!', category='error')
+            return redirect(url_for('auth.profile'))
+
+        # Check if username is already taken
+        existing_username = User.query.filter(User.username == username, User.user_id != current_user.user_id).first()
+        if existing_username:
+            flash('Username already taken!', category='error')
+            return redirect(url_for('auth.profile'))
+
+        try:
+            # Update user information
+            current_user.username = username
+            current_user.email = email
+            current_user.number = number
+            if date_of_birth:
+                current_user.date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+            current_user.address = address
+
+            db.session.commit()
+            flash('Profile updated successfully!', category='success')
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred while updating your profile.', category='error')
+            print(f"Error updating profile: {str(e)}")
+
+        return redirect(url_for('auth.profile'))

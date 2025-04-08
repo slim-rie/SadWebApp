@@ -11,7 +11,7 @@ def create_database(app):
             db.create_all()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_url_path='/static', static_folder='static')
     app.config['SECRET_KEY'] = 'SADPROJECT'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/SADprojectdb'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -49,4 +49,3 @@ def create_app():
     
 
     return app
-

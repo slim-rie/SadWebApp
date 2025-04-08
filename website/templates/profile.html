@@ -2,160 +2,129 @@
 content %} {% block head %}
 <link rel="stylesheet" href="{{url_for('static', filename='profile.css')}}" />
 {% endblock %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Profile</title>
-  </head>
-  <body>
-    <header class="profile-container">
-      <a href="#" class="profile-icon">
-        <img
-          src="{{ url_for('static', filename='pictures/saka.jpeg') }}"
-          alt="Profile"
-          height="40"
-      /></a>
-      <nav class="dropdown-menu">
-        <ul>
-          <li>
-            <a href="{{url_for('auth.cart')}}">Cart</a>
-          </li>
-          <li>
-            <a href="{{url_for('views.home')}}">Back</a>
-          </li>
-          <li>
-            <a href="{{url_for('auth.login')}}">Logout</a>
-          </li>
-        </ul>
-      </nav>
-    </header>
-    <h1>My profile</h1>
-    <p>Manage and protect your account</p>
-    <hr style="border: 1px solid black; width:600px;">
-    <main>
-      <form method="POST" action="{{url_for('auth.update_profile')}}" class="personal-info">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" value="{{ current_user.email }}" required>
-          <p class="current-email">Current email: {{ current_user.email }}</p>
-        </div>
-        
-        <div class="form-group">
-          <label for="number">Phone Number</label>
-          <input type="text" id="number" name="number" value="{{ current_user.number }}" required>
-        </div>
-        
-        <div class="form-group">
-          <label for="date_of_birth">Date of Birth</label>
-          <input type="date" id="date_of_birth" name="date_of_birth" value="{{ current_user.date_of_birth }}" required>
-        </div>
 
-        <div class="form-group">
-          <label for="address">Address</label>
-          <textarea id="address" name="address" required>{{ current_user.address }}</textarea>
-          {% if not current_user.address %}
-          <p class="warning">Please add your address to enable purchasing products</p>
-          {% endif %}
-        </div>
-        
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="messages">
-          {% for message in messages %}
-          <p class="message">{{ message }}</p>
-          {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
-        
-        <button type="submit" class="save-btn">Save Changes</button>
-    </form>
-    </main>
-
-    <nav class="nav-bar">
-      <a href="#" class="profile-icon" id="edit-profile">
-        <img
-          src="{{url_for('static', filename='pictures/saka.jpeg')}}"
-          alt="saka"
-          height="60"
-        />
+<div class="profile-page">
+  <header class="profile-header">
+    <div class="header-content">
+      <h1>My Profile</h1>
+      <p class="subtitle">Manage and protect your account</p>
+    </div>
+    <nav class="top-nav">
+      <a href="{{url_for('auth.cart')}}" class="nav-link">
+        <i class="fas fa-shopping-cart"></i> Cart
       </a>
-      <input type="file" name="profile" id="update-profile" accept="image/*" />
-      <h2>My Account</h2>
-      <a href="profile">Profile</a>
-      <a href="address">Address</a>
-      <a href="{{url_for('auth.change_password')}}">Change password</a>
+      <a href="{{url_for('views.home')}}" class="nav-link">
+        <i class="fas fa-home"></i> Home
+      </a>
+      <a href="{{url_for('auth.login')}}" class="nav-link">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
     </nav>
+  </header>
 
-    <style>
-      .form-group {
-        margin-bottom: 15px;
-      }
-      .form-group label {
-        display: block;
-        margin-bottom: 5px;
-      }
-      .current-email {
-        color: #666;
-        font-size: 0.9em;
-        margin-top: 5px;
-      }
-      .warning {
-        color: #ff4444;
-        font-size: 0.9em;
-        margin-top: 5px;
-      }
-      .messages {
-        margin: 10px 0;
-      }
-      .message {
-        padding: 10px;
-        background-color: #e3f2fd;
-        border-radius: 4px;
-        margin-bottom: 5px;
-      }
-      .save-btn {
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .save-btn:hover {
-        background-color: #45a049;
-      }
-      textarea {
-        width: 100%;
-        min-height: 100px;
-        padding: 8px;
-      }
-    </style>
-  </body>
+  <div class="profile-container">
+    <div class="profile-sidebar">
+      <div class="profile-picture-section">
+        <div class="profile-picture">
+          <img src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Profile Picture" id="profile-image"/>
+          <label for="profile-upload" class="edit-photo-btn">
+            <i class="fas fa-camera"></i>
+            Change Photo
+          </label>
+        </div>
+      </div>
+      
+      <nav class="profile-nav">
+        <h2>My Account</h2>
+        <a href="profile" class="active"><i class="fas fa-user"></i> Profile</a>
+        <a href="address"><i class="fas fa-map-marker-alt"></i> Address</a>
+        <a href="{{url_for('auth.change_password')}}"><i class="fas fa-key"></i> Change Password</a>
+      </nav>
+    </div>
 
-  <script>
-    // Get the input and image elements
-    const input = document.getElementById('update-profile');
-    const profileImg = document.querySelector('#edit-profile img');
+    <main class="profile-content">
+      <div class="card">
+        <h2>Personal Information</h2>
+        <form method="POST" action="{{url_for('auth.update_profile')}}" class="profile-form" enctype="multipart/form-data">
+          <input type="file" name="profile" id="profile-upload" accept="image/*" hidden/>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" value="{{ current_user.email }}" required>
+              <p class="current-info">Current: {{ current_user.email }}</p>
+            </div>
+            
+            <div class="form-group">
+              <label for="number">Phone Number</label>
+              <input type="tel" id="number" name="number" value="{{ current_user.number }}" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="date_of_birth">Date of Birth</label>
+              <input type="date" id="date_of_birth" name="date_of_birth" value="{{ current_user.date_of_birth }}" required>
+            </div>
+          </div>
 
-    // Add an event listener for when a file is selected
-    input.addEventListener('change', function(event) {
-      const file = event.target.files[0]; // Get the selected file
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          profileImg.src = e.target.result; // Update the image src with the new file
-        };
-        reader.readAsDataURL(file); // Read the file as a data URL
+          <div class="form-group full-width">
+            <label for="address">Address</label>
+            <textarea id="address" name="address" required>{{ current_user.address }}</textarea>
+            {% if not current_user.address %}
+            <p class="warning"><i class="fas fa-exclamation-circle"></i> Please add your address to enable purchasing products</p>
+            {% endif %}
+          </div>
+          
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          <div class="messages">
+            {% for category, message in messages %}
+            <div class="message {{ category }}">
+              {% if category == 'success' %}
+                <i class="fas fa-check-circle"></i>
+              {% else %}
+                <i class="fas fa-exclamation-circle"></i>
+              {% endif %}
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% endwith %}
+          
+          <div class="form-actions">
+            <button type="submit" class="save-btn">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  const input = document.getElementById('profile-upload');
+  const profileImg = document.getElementById('profile-image');
+
+  input.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        profileImg.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      
+      // Automatically submit the form when a new image is selected
+      if (file.type.startsWith('image/')) {
+        this.closest('form').submit();
       }
-    });
-  </script>
-</html>
+    }
+  });
+</script>
 {% endblock %}
