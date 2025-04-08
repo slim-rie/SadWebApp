@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .models import User
+from .models import User, CartItem
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -24,21 +24,23 @@ def change_password():
         confirm_password = request.form.get('confirm_new_password')  
 
         # Verify current password
-        if current_user.password != current_password:
+        if not current_user.check_password(current_password):
             flash('Current password is incorrect!', category='error')
             return render_template('change_password.html')
 
         # Validate new password
-        if len(new_password) < 7:
-            flash('New password must be at least 7 characters long!', category='error')
-            return render_template('change_password.html')
-
         if new_password != confirm_password:
             flash('New passwords don\'t match!', category='error')
             return render_template('change_password.html')
 
+        # Check password complexity
+        is_valid, error_msg = User.is_password_valid(new_password)
+        if not is_valid:
+            flash(error_msg, category='error')
+            return render_template('change_password.html')
+
         # Update password in database
-        current_user.password = new_password
+        current_user.set_password(new_password)
         db.session.commit()
         flash('Password updated successfully!', category='success')
         return redirect(url_for('auth.profile'))
@@ -72,7 +74,9 @@ def profile():
 @auth.route('/Cart')
 @login_required
 def cart():
-    return render_template('Cart.html')
+    # Get the user's cart items with their associated products
+    cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
+    return render_template('Cart.html', user=current_user, cart_items=cart_items)
 
 @auth.route('/admin', methods=['GET', 'POST'])
 @login_required
@@ -92,7 +96,7 @@ def login():
 
         user = User.query.filter_by(email=email).first() #indent is important to align to which you want it connected
         if user:
-            if user.password == password:
+            if user.check_password(password):
                 flash('Logged in successfully', category='success')
                 login_user(user, remember=True)
                 if user.role == 'admin':
@@ -139,17 +143,21 @@ def sign_up():
             flash('Middle name must be greater than 1 character.', category='error')
         elif len(last_name) < 2:
             flash('Last name must be greater than 1 character.', category='error')
-        elif len(password1) < 7:
-            flash('password must be greater than 6 characters.', category='error')
         elif password1 != password2:
-            flash('password don\'t match!', category='error')
+            flash('Passwords don\'t match!', category='error')
         else:
+            # Check password complexity
+            is_valid, error_msg = User.is_password_valid(password1)
+            if not is_valid:
+                flash(error_msg, category='error')
+                return render_template("sign_up.html", user=current_user)
+
             new_user = User(email=email, 
                             first_name=first_name, 
                             middle_name=middle_name, 
                             last_name=last_name, 
-                            password=password1,
-                            role = role)
+                            role=role)
+            new_user.set_password(password1)
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user, remember=True)

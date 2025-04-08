@@ -1,343 +1,163 @@
-{% extends "auth_base.html" %}{% block title %}Home{% endblock %}{% block
-content %} {% block head %}
+{% extends "auth_base.html" %}
+{% block title %}Home{% endblock %}
+{% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}" />
 {% endblock %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Home</title>
-  </head>
-  <body>
-    <select class="categories-dropdown">
-      <option value="Fabric">Fabric</option>
-      <option value="Sewing Parts">Sewing Parts</option>
-      <option value="Sewing Machines">Sewing Machines</option>
-    </select>
-    <div class="search">
-      <input type="text" placeholder="want anything specific?" />
-    </div>
+{% block content %}
+  <div class="container">
+    <form method="GET" action="{{ url_for('views.home') }}" class="filters-form">
+      <select name="category" class="categories-dropdown" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        {% for category in categories %}
+        <option value="{{ category.id }}" {% if current_category == category.id %}selected{% endif %}>
+          {{ category.name }}
+        </option>
+        {% endfor %}
+      </select>
+      <div class="search">
+        <input type="text" name="search" placeholder="Search products..." value="{{ search_query }}">
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+    </form>
+
     <div class="profile-container">
       <a href="#" class="profile-icon">
-        <img
-          src="{{ url_for('static', filename='pictures/saka.jpeg') }}"
-          alt="Profile"
-          height="40"
-        />
+        <img src="{{ url_for('static', filename='pictures/saka.jpeg') }}" alt="Profile" height="40" />
       </a>
       <div class="dropdown-menu" id="profileMenu">
         <ul>
-          <li>
-            <a href="{{url_for('auth.profile')}}">View Profile</a>
-          </li>
+          <li><a href="{{url_for('auth.profile')}}">View Profile</a></li>
           <li><a href="{{url_for('auth.cart')}}">Cart</a></li>
-          <li>
-            <a href="{{ url_for('auth.login') }}">Logout</a>
-          </li>
+          <li><a href="{{ url_for('auth.login') }}">Logout</a></li>
         </ul>
       </div>
     </div>
     <section class="product-container">
       <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/Chiffon Purple.jpg') }}"
-        />
-        <h6>Chiffon Purple</h6>
-        <p>Chiffon is the best kind</p>
-        <div class="box-actions">
-          <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
-          <div class="box-dropdown">
-            <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/chiffon-fabric.jpeg') }}"
-        />
-        <p>Chifon Fabric</p>
-        <div class="box-actions">
-          <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
-          <div class="box-dropdown">
-            <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/plain-chiffon-fabric.jpg') }}"
-        />
+        <img src="{{ url_for('static', filename='pictures/plain-chiffon-fabric.jpg') }}" />
         <p>Plain Chiffon Fabric</p>
         <div class="box-actions">
+          <form action="{{ url_for('views.add_to_cart', product_id=1) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+          </form>
           <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
           <div class="box-dropdown">
+            <a href="#" class="dropdown-item">Options</a>
             <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
+              <li><a href="{{ url_for('auth.feedback') }}">Feedback</a></li>
+              <li><a href="{{ url_for('auth.contact_seller') }}">Contact Seller</a></li>
             </ul>
           </div>
         </div>
       </div>
+
       <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/White Chiffon.jpg') }}"
-        />
+        <img src="{{ url_for('static', filename='pictures/White Chiffon.jpg') }}" />
         <p>White Chiffon</p>
         <div class="box-actions">
+          <form action="{{ url_for('views.add_to_cart', product_id=2) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+          </form>
           <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
           <div class="box-dropdown">
+            <a href="#" class="dropdown-item">Options</a>
             <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
+              <li><a href="{{ url_for('auth.feedback') }}">Feedback</a></li>
+              <li><a href="{{ url_for('auth.contact_seller') }}">Contact Seller</a></li>
             </ul>
           </div>
         </div>
       </div>
+
       <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/Foot Pedal.jpg') }}"
-        />
-        <p>White Chiffon</p>
+        <img src="{{ url_for('static', filename='pictures/Foot Pedal.jpg') }}" />
+        <p>Foot Pedal</p>
         <div class="box-actions">
+          <form action="{{ url_for('views.add_to_cart', product_id=3) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+          </form>
           <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
           <div class="box-dropdown">
+            <a href="#" class="dropdown-item">Options</a>
             <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
+              <li><a href="{{ url_for('auth.feedback') }}">Feedback</a></li>
+              <li><a href="{{ url_for('auth.contact_seller') }}">Contact Seller</a></li>
             </ul>
           </div>
         </div>
       </div>
+
       <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/Gemsy Presser Foot Quick Adjustable Screw Device Presser Foot.jpg') }}"
-        />
-        <p>Gemsy Presser Foot Quick Adjustable Screw Device Presser Foot</p>
+        <img src="{{ url_for('static', filename='pictures/Gemsy Presser Foot Quick Adjustable Screw Device Presser Foot.jpg') }}" />
+        <p>Gemsy Presser Foot Quick Adjustable Screw Device</p>
         <div class="box-actions">
+          <form action="{{ url_for('views.add_to_cart', product_id=4) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+          </form>
           <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
           <div class="box-dropdown">
+            <a href="#" class="dropdown-item">Options</a>
             <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
+              <li><a href="{{ url_for('auth.feedback') }}">Feedback</a></li>
+              <li><a href="{{ url_for('auth.contact_seller') }}">Contact Seller</a></li>
             </ul>
           </div>
         </div>
       </div>
+
       <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/sewing-machine-balance-wheel.jpg') }}"
-        />
+        <img src="{{ url_for('static', filename='pictures/sewing-machine-balance-wheel.jpg') }}" />
         <p>Sewing Machine Balance Wheel</p>
         <div class="box-actions">
+          <form action="{{ url_for('views.add_to_cart', product_id=5) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+          </form>
           <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
           <div class="box-dropdown">
+            <a href="#" class="dropdown-item">Options</a>
             <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
+              <li><a href="{{ url_for('auth.feedback') }}">Feedback</a></li>
+              <li><a href="{{ url_for('auth.contact_seller') }}">Contact Seller</a></li>
             </ul>
           </div>
         </div>
       </div>
+
       <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/shuttle hook.jpg') }}"
-        />
+        <img src="{{ url_for('static', filename='pictures/shuttle hook.jpg') }}" />
         <p>Shuttle Hook</p>
         <div class="box-actions">
+          <form action="{{ url_for('views.add_to_cart', product_id=6) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+          </form>
           <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
           <div class="box-dropdown">
+            <a href="#" class="dropdown-item">Options</a>
             <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
+              <li><a href="{{ url_for('auth.feedback') }}">Feedback</a></li>
+              <li><a href="{{ url_for('auth.contact_seller') }}">Contact Seller</a></li>
             </ul>
           </div>
         </div>
       </div>
+
       <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/Anysew Big Hook.jpg') }}"
-        />
+        <img src="{{ url_for('static', filename='pictures/Anysew Big Hook.jpg') }}" />
         <p>Anysew Big Hook</p>
         <div class="box-actions">
+          <form action="{{ url_for('views.add_to_cart', product_id=7) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-primary">Add to Cart</button>
+          </form>
           <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
           <div class="box-dropdown">
+            <a href="#" class="dropdown-item">Options</a>
             <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/Buttonhole.jpg') }}"
-        />
-        <p>Buttonhole</p>
-        <div class="box-actions">
-          <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
-          <div class="box-dropdown">
-            <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="box">
-        <img src="{{ url_for('static', filename='pictures/hax1 mach.jpg') }}" />
-        <p>Hax1 Mach</p>
-        <div class="box-actions">
-          <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
-          <div class="box-dropdown">
-            <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/Singer Heavy Duty Sewing Machine.jpg') }}"
-        />
-        <p>Singer Heavy Duty Sewing Machine</p>
-        <div class="box-actions">
-          <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
-          <div class="box-dropdown">
-            <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="box">
-        <img
-          src="{{ url_for('static', filename='pictures/Vingate Singer Sewing Machine.jpg') }}"
-        />
-        <p>Singer Heavy Duty Sewing Machine</p>
-        <div class="box-actions">
-          <button class="btn btn-buy">Buy now</button>
-          <a href="#" class="dropdown-item">Option</a>
-          <div class="box-dropdown">
-            <ul>
-              <li>Add to cart</li>
-              <li>
-                <a href="{{ url_for('auth.feedback') }}">Feedback</a>
-              </li>
-              <li>
-                <a href="{{ url_for('auth.contact_seller') }}"
-                  >contact_seller</a
-                >
-              </li>
+              <li><a href="{{ url_for('auth.feedback') }}">Feedback</a></li>
+              <li><a href="{{ url_for('auth.contact_seller') }}">Contact Seller</a></li>
             </ul>
           </div>
         </div>
       </div>
     </section>
-  </body>
-</html>
+  </div>
 {% endblock %}

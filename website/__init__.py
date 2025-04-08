@@ -7,8 +7,24 @@ from flask_login import LoginManager
 db = SQLAlchemy()
 
 def create_database(app):
-        with app.app_context():
+    with app.app_context():
+        # Get database engine
+        engine = db.get_engine()
+        
+        # Use a connection context
+        with engine.connect() as conn:
+            # Drop and recreate database
+            conn.execute(db.text('DROP DATABASE IF EXISTS SADprojectdb;'))
+            conn.execute(db.text('CREATE DATABASE SADprojectdb;'))
+            conn.execute(db.text('USE SADprojectdb;'))
+            conn.commit()
+            
+            # Create all tables
             db.create_all()
+            
+            # Initialize sample data
+            from .migrations import init_db
+            init_db()
 
 def create_app():
     app = Flask(__name__)
