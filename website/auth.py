@@ -30,7 +30,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def save_profile_picture(file):
-    if file and allowed_file(file.filename):
+    if file and file.filename:
         # Generate unique filename
         filename = secure_filename(file.filename)
         ext = filename.rsplit('.', 1)[1].lower()
@@ -303,50 +303,59 @@ def google_oauth_callback():
 @login_required
 def update_profile():
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        number = request.form.get('number')
-        date_of_birth = request.form.get('date_of_birth')
-        address = request.form.get('address')
-
-        # Handle profile picture upload
-        profile_picture = request.files.get('profile')
-        if profile_picture:
-            picture_path = save_profile_picture(profile_picture)
-            if picture_path:
-                current_user.profile_picture = picture_path
-
-        # Validate email format
-        if not email or '@' not in email:
-            flash('Invalid email address!', category='error')
-            return redirect(url_for('auth.profile'))
-
-        # Check if email is already taken by another user
-        existing_user = User.query.filter(User.email == email, User.user_id != current_user.user_id).first()
-        if existing_user:
-            flash('Email already exists!', category='error')
-            return redirect(url_for('auth.profile'))
-
-        # Check if username is already taken
-        existing_username = User.query.filter(User.username == username, User.user_id != current_user.user_id).first()
-        if existing_username:
-            flash('Username already taken!', category='error')
-            return redirect(url_for('auth.profile'))
-
         try:
+            # Get form data
+            username = request.form.get('username')
+            email = request.form.get('email')
+            number = request.form.get('number')
+            date_of_birth = request.form.get('date_of_birth')
+            address = request.form.get('address')
+            
+            # Validate username
+            if not username:
+                flash('Username is required', 'error')
+                return redirect(url_for('auth.profile'))
+            
+            # Check if username is taken by another user
+            existing_user = User.query.filter(User.username == username, User.user_id != current_user.user_id).first()
+            if existing_user:
+                flash('Username is already taken', 'error')
+                return redirect(url_for('auth.profile'))
+            
+            # Handle profile picture upload
+            if 'profile' in request.files:
+                file = request.files['profile']
+                if file and file.filename:
+                    profile_path = save_profile_picture(file)
+                    if profile_path:
+                        current_user.profile_picture = profile_path
+            
             # Update user information
             current_user.username = username
             current_user.email = email
             current_user.number = number
+            
+            # Handle date of birth
             if date_of_birth:
-                current_user.date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+                try:
+                    current_user.date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+                except ValueError:
+                    flash('Invalid date format', 'error')
+                    return redirect(url_for('auth.profile'))
+            
+            # Update address
             current_user.address = address
-
+            
+            # Save changes to database
             db.session.commit()
-            flash('Profile updated successfully!', category='success')
+            
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('auth.profile'))
+            
         except Exception as e:
             db.session.rollback()
-            flash('An error occurred while updating your profile.', category='error')
+            flash('An error occurred while updating your profile', 'error')
             print(f"Error updating profile: {str(e)}")
-
-        return redirect(url_for('auth.profile'))
+            return redirect(url_for('auth.profile'))
+    
+    return redirect(url_for('auth.profile'))

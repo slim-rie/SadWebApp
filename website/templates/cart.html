@@ -1,65 +1,81 @@
 {% extends "auth_base.html" %}
 {% block title %}Cart{% endblock %}
-{% block content %}
+
 {% block head %}
 <link rel="stylesheet" href="{{url_for('static', filename='cart.css')}}" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 {% endblock %}
 
-<body>
-  <div class="profile-container">
-    <a href="#" class="profile-icon">
-      <img src="{{ url_for('static', filename='pictures/saka.jpeg') }}" alt="Profile" height="40" />
-    </a>
-    <div class="dropdown-menu" id="profileMenu">
-      <ul>
-        <li><a href="{{ url_for('views.home') }}">Home</a></li>
-        <li><a href="{{url_for('auth.profile')}}">View Profile</a></li>
-      </ul>
-    </div>
+{% block content %}
+<div class="profile-container">
+  <a href="#" class="profile-icon">
+    <img src="{{ url_for('static', filename=current_user.profile_picture if current_user.profile_picture else 'pictures/default-profile.jpg') }}" alt="Profile" height="40" />
+  </a>
+  <div class="dropdown-menu" id="profileMenu">
+    <ul>
+      <li><a href="{{ url_for('views.home') }}">Home</a></li>
+      <li><a href="{{url_for('auth.profile')}}">View Profile</a></li>
+    </ul>
   </div>
+</div>
 
-  <div class="cart-container">
-    <h2>Shopping Cart</h2>
-    {% if cart_items %}
-    <div class="cart-items">
-      {% for item in cart_items %}
-      <div class="cart-item" id="item-{{ item.id }}">
-        <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" />
-        <div class="item-details">
-          <h3>{{ item.product.name }}</h3>
-          <p class="description">{{ item.product.description }}</p>
-          <p class="price">₱{{ "%.2f"|format(item.product.price) }}</p>
-          <div class="quantity-controls">
-            <form action="{{ url_for('views.update_cart_quantity', item_id=item.id) }}" method="POST" style="display: inline;">
-              <input type="hidden" name="action" value="decrease">
-              <button type="submit" class="qty-btn">-</button>
-            </form>
-            <span class="quantity">{{ item.quantity }}</span>
-            <form action="{{ url_for('views.update_cart_quantity', item_id=item.id) }}" method="POST" style="display: inline;">
-              <input type="hidden" name="action" value="increase">
-              <button type="submit" class="qty-btn">+</button>
-            </form>
-          </div>
-          <form action="{{ url_for('views.remove_from_cart', item_id=item.id) }}" method="POST" style="display: inline;">
-            <button type="submit" class="remove-btn">Remove</button>
+<div class="cart-container">
+  <h2>Shopping Cart</h2>
+  {% if cart_items %}
+  <div class="cart-items">
+    {% for item in cart_items %}
+    <div class="cart-item" id="item-{{ item.id }}">
+      <img src="{{ url_for('static', filename='pictures/' + item.product.image_url) }}" alt="{{ item.product.name }}" />
+      <div class="item-details">
+        <h3>{{ item.product.name }}</h3>
+        <p class="description">{{ item.product.description }}</p>
+        <p class="price">₱{{ "%.2f"|format(item.product.price) }}</p>
+        <div class="quantity-controls">
+          <form action="{{ url_for('auth.update_cart_quantity', item_id=item.id) }}" method="POST" style="display: inline;">
+            <input type="hidden" name="action" value="decrease">
+            <button type="submit" class="qty-btn">-</button>
+          </form>
+          <span class="quantity">{{ item.quantity }}</span>
+          <form action="{{ url_for('auth.update_cart_quantity', item_id=item.id) }}" method="POST" style="display: inline;">
+            <input type="hidden" name="action" value="increase">
+            <button type="submit" class="qty-btn">+</button>
           </form>
         </div>
+        <form action="{{ url_for('auth.remove_from_cart', item_id=item.id) }}" method="POST" style="display: inline;">
+          <button type="submit" class="remove-btn">Remove</button>
+        </form>
       </div>
-      {% endfor %}
     </div>
-    <div class="cart-summary">
-      <h3>Order Summary</h3>
-      <p>Total Items: {{ total_items }}</p>
-      <p>Total Amount: ₱{{ "%.2f"|format(total_amount) }}</p>
-      <button class="checkout-btn">Proceed to Checkout</button>
-    </div>
-    {% else %}
-    <div class="empty-cart">
-      <p>Your cart is empty</p>
-      <a href="{{ url_for('views.home') }}" class="continue-shopping">Continue Shopping</a>
-    </div>
-    {% endif %}
+    {% endfor %}
   </div>
-</body>
+  <div class="cart-summary">
+    <h3>Order Summary</h3>
+    <p>Total Items: {{ total_items }}</p>
+    <p>Total Amount: ₱{{ "%.2f"|format(total_amount) }}</p>
+    <button class="checkout-btn">Proceed to Checkout</button>
+  </div>
+  {% else %}
+  <div class="empty-cart">
+    <p>Your cart is empty</p>
+    <a href="{{ url_for('views.home') }}" class="continue-shopping">Continue Shopping</a>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+$(document).ready(function() {
+  // Toggle profile menu
+  $('.profile-icon').click(function(e) {
+    e.preventDefault();
+    $('#profileMenu').toggleClass('show');
+  });
+
+  // Close profile menu when clicking outside
+  $(document).click(function(e) {
+    if (!$(e.target).closest('.profile-container').length) {
+      $('#profileMenu').removeClass('show');
+    }
+  });
+});
+</script>
 {% endblock %}

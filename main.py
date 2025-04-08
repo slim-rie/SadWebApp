@@ -7,7 +7,6 @@ app = create_app()
 migrate = Migrate(app, db)
 
 def init_db():
-    # Add sample products
     products = [
         Product(
             name='Singer Heavy Duty Sewing Machine',

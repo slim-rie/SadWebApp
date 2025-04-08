@@ -1,22 +1,24 @@
-{% extends "auth_base.html" %}{% block title %}Profile{% endblock %}{% block
-content %} {% block head %}
-<link rel="stylesheet" href="{{url_for('static', filename='profile.css')}}" />
+{% extends "auth_base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}" />
 {% endblock %}
 
 <div class="profile-page">
   <header class="profile-header">
     <div class="header-content">
       <h1>My Profile</h1>
-      <p class="subtitle">Manage and protect your account</p>
+      <p class="subtitle">Manage your account information</p>
     </div>
     <nav class="top-nav">
-      <a href="{{url_for('auth.cart')}}" class="nav-link">
-        <i class="fas fa-shopping-cart"></i> Cart
-      </a>
-      <a href="{{url_for('views.home')}}" class="nav-link">
+      <a href="{{ url_for('views.home') }}" class="nav-link">
         <i class="fas fa-home"></i> Home
       </a>
-      <a href="{{url_for('auth.login')}}" class="nav-link">
+      <a href="{{ url_for('auth.cart') }}" class="nav-link">
+        <i class="fas fa-shopping-cart"></i> Cart
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="nav-link">
         <i class="fas fa-sign-out-alt"></i> Logout
       </a>
     </nav>
@@ -26,7 +28,7 @@ content %} {% block head %}
     <div class="profile-sidebar">
       <div class="profile-picture-section">
         <div class="profile-picture">
-          <img src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Profile Picture" id="profile-image"/>
+          <img src="{{ url_for('static', filename=current_user.profile_picture) }}" alt="Profile Picture" id="profile-preview"/>
           <label for="profile-upload" class="edit-photo-btn">
             <i class="fas fa-camera"></i>
             Change Photo
@@ -36,22 +38,44 @@ content %} {% block head %}
       
       <nav class="profile-nav">
         <h2>My Account</h2>
-        <a href="profile" class="active"><i class="fas fa-user"></i> Profile</a>
-        <a href="address"><i class="fas fa-map-marker-alt"></i> Address</a>
-        <a href="{{url_for('auth.change_password')}}"><i class="fas fa-key"></i> Change Password</a>
+        <a href="{{ url_for('auth.profile') }}" class="active">
+          <i class="fas fa-user"></i> Profile
+        </a>
+        <a href="{{ url_for('auth.change_password') }}">
+          <i class="fas fa-key"></i> Change Password
+        </a>
       </nav>
     </div>
 
     <main class="profile-content">
       <div class="card">
         <h2>Personal Information</h2>
-        <form method="POST" action="{{url_for('auth.update_profile')}}" class="profile-form" enctype="multipart/form-data">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="messages">
+          {% for category, message in messages %}
+          <div class="message {{ category }}">
+            {% if category == 'success' %}
+              <i class="fas fa-check-circle"></i>
+            {% else %}
+              <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth.update_profile') }}" class="profile-form" enctype="multipart/form-data">
           <input type="file" name="profile" id="profile-upload" accept="image/*" hidden/>
           
           <div class="form-grid">
             <div class="form-group">
               <label for="username">Username</label>
               <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
+              <p class="current-info">Current: {{ current_user.username }}</p>
             </div>
             
             <div class="form-group">
@@ -61,40 +85,30 @@ content %} {% block head %}
             </div>
             
             <div class="form-group">
-              <label for="number">Phone Number</label>
-              <input type="tel" id="number" name="number" value="{{ current_user.number }}" required>
+              <label for="number">Phone Number <span class="required">*</span></label>
+              <input type="tel" id="number" name="number" value="{{ current_user.number if current_user.number else '' }}" required>
+              <p class="current-info">{% if current_user.number %}Current: {{ current_user.number }}{% else %}No phone number set{% endif %}</p>
             </div>
             
             <div class="form-group">
               <label for="date_of_birth">Date of Birth</label>
-              <input type="date" id="date_of_birth" name="date_of_birth" value="{{ current_user.date_of_birth }}" required>
+              <input type="date" id="date_of_birth" name="date_of_birth" 
+                value="{{ current_user.date_of_birth.strftime('%Y-%m-%d') if current_user.date_of_birth else '' }}">
+              <p class="current-info">{% if current_user.date_of_birth %}Current: {{ current_user.date_of_birth.strftime('%B %d, %Y') }}{% else %}No birth date set{% endif %}</p>
             </div>
           </div>
 
           <div class="form-group full-width">
-            <label for="address">Address</label>
-            <textarea id="address" name="address" required>{{ current_user.address }}</textarea>
+            <label for="address">Address <span class="required">*</span></label>
+            <textarea id="address" name="address" rows="3" required>{{ current_user.address if current_user.address else '' }}</textarea>
+            <p class="current-info">{% if current_user.address %}Current: {{ current_user.address }}{% else %}No address set{% endif %}</p>
             {% if not current_user.address %}
-            <p class="warning"><i class="fas fa-exclamation-circle"></i> Please add your address to enable purchasing products</p>
+            <p class="warning">
+              <i class="fas fa-exclamation-circle"></i>
+              Please add your address to enable purchasing products
+            </p>
             {% endif %}
           </div>
-          
-          {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-          <div class="messages">
-            {% for category, message in messages %}
-            <div class="message {{ category }}">
-              {% if category == 'success' %}
-                <i class="fas fa-check-circle"></i>
-              {% else %}
-                <i class="fas fa-exclamation-circle"></i>
-              {% endif %}
-              {{ message }}
-            </div>
-            {% endfor %}
-          </div>
-          {% endif %}
-          {% endwith %}
           
           <div class="form-actions">
             <button type="submit" class="save-btn">
@@ -108,23 +122,21 @@ content %} {% block head %}
 </div>
 
 <script>
-  const input = document.getElementById('profile-upload');
-  const profileImg = document.getElementById('profile-image');
-
-  input.addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        profileImg.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-      
-      // Automatically submit the form when a new image is selected
-      if (file.type.startsWith('image/')) {
-        this.closest('form').submit();
-      }
+document.getElementById('profile-upload').onchange = function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    // Preview the image
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('profile-preview').src = e.target.result;
     }
-  });
+    reader.readAsDataURL(file);
+    
+    // Automatically submit the form when a new image is selected
+    if (file.type.startsWith('image/')) {
+      this.closest('form').submit();
+    }
+  }
+};
 </script>
 {% endblock %}
