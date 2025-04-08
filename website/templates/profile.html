@@ -35,24 +35,49 @@ content %} {% block head %}
     <p>Manage and protect your account</p>
     <hr style="border: 1px solid black; width:600px;">
     <main>
-      <form method="POST" action="/save-profile" class="personal-info">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required>
+      <form method="POST" action="{{url_for('auth.update_profile')}}" class="personal-info">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" value="{{ current_user.username }}" required>
+        </div>
         
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="{{ current_user.email }}" required>
+          <p class="current-email">Current email: {{ current_user.email }}</p>
+        </div>
         
-        <label for="number">Number</label>
-        <input type="text" id="number" name="number" required>
+        <div class="form-group">
+          <label for="number">Phone Number</label>
+          <input type="text" id="number" name="number" value="{{ current_user.number }}" required>
+        </div>
         
-        <label for="date_of_birth">Date of Birth</label>
-        <input type="date" id="date_of_birth" name="date_of_birth" required>
-        <br>
-        <br>
-        <button type="submit">Save</button>
+        <div class="form-group">
+          <label for="date_of_birth">Date of Birth</label>
+          <input type="date" id="date_of_birth" name="date_of_birth" value="{{ current_user.date_of_birth }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Address</label>
+          <textarea id="address" name="address" required>{{ current_user.address }}</textarea>
+          {% if not current_user.address %}
+          <p class="warning">Please add your address to enable purchasing products</p>
+          {% endif %}
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+          <p class="message">{{ message }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <button type="submit" class="save-btn">Save Changes</button>
     </form>
     </main>
-    
 
     <nav class="nav-bar">
       <a href="#" class="profile-icon" id="edit-profile">
@@ -68,26 +93,69 @@ content %} {% block head %}
       <a href="address">Address</a>
       <a href="{{url_for('auth.change_password')}}">Change password</a>
     </nav>
-  </nav>
-</body>
-<script>
-  // Get the input and image elements
-  const input = document.getElementById('update-profile');
-  const profileImg = document.querySelector('#edit-profile img');
 
-  // Add an event listener for when a file is selected
-  input.addEventListener('change', function(event) {
-    const file = event.target.files[0]; // Get the selected file
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        profileImg.src = e.target.result; // Update the image src with the new file
-      };
-      reader.readAsDataURL(file); // Read the file as a data URL
-    }
-  });
-</script>
-</html>
+    <style>
+      .form-group {
+        margin-bottom: 15px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      .current-email {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 5px;
+      }
+      .warning {
+        color: #ff4444;
+        font-size: 0.9em;
+        margin-top: 5px;
+      }
+      .messages {
+        margin: 10px 0;
+      }
+      .message {
+        padding: 10px;
+        background-color: #e3f2fd;
+        border-radius: 4px;
+        margin-bottom: 5px;
+      }
+      .save-btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .save-btn:hover {
+        background-color: #45a049;
+      }
+      textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 8px;
+      }
+    </style>
   </body>
+
+  <script>
+    // Get the input and image elements
+    const input = document.getElementById('update-profile');
+    const profileImg = document.querySelector('#edit-profile img');
+
+    // Add an event listener for when a file is selected
+    input.addEventListener('change', function(event) {
+      const file = event.target.files[0]; // Get the selected file
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          profileImg.src = e.target.result; // Update the image src with the new file
+        };
+        reader.readAsDataURL(file); // Read the file as a data URL
+      }
+    });
+  </script>
 </html>
 {% endblock %}

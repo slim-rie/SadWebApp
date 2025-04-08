@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
-from .models import User, CartItem
+from .models import User, CartItem, Product
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
 from requests_oauthlib import OAuth2Session
+from datetime import datetime
 
 auth = Blueprint('auth', __name__)
 
@@ -81,9 +82,76 @@ def cart():
 @auth.route('/add-to-cart/<int:product_id>')
 @login_required
 def add_to_cart(product_id):
-    # Add product to cart logic here
-    flash('Product added to cart successfully!', category='success')
+    if not current_user.has_address():
+        flash('Please add your address in your profile before making a purchase!', category='error')
+        return redirect(url_for('auth.profile'))
+
+    # Check if product exists
+    product = Product.query.get_or_404(product_id)
+    
+    # Check if item already in cart
+    cart_item = CartItem.query.filter_by(user_id=current_user.user_id, product_id=product_id).first()
+    
+    if cart_item:
+        cart_item.quantity += 1
+    else:
+        cart_item = CartItem(user_id=current_user.user_id, product_id=product_id, quantity=1)
+        db.session.add(cart_item)
+    
+    try:
+        db.session.commit()
+        flash('Product added to cart successfully!', category='success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error adding product to cart.', category='error')
+        print(f"Error adding to cart: {str(e)}")
+    
     return redirect(url_for('auth.cart'))
+
+@auth.route('/update-profile', methods=['POST'])
+@login_required
+def update_profile():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        number = request.form.get('number')
+        date_of_birth = request.form.get('date_of_birth')
+        address = request.form.get('address')
+
+        # Validate email format
+        if not email or '@' not in email:
+            flash('Invalid email address!', category='error')
+            return redirect(url_for('auth.profile'))
+
+        # Check if email is already taken by another user
+        existing_user = User.query.filter(User.email == email, User.user_id != current_user.user_id).first()
+        if existing_user:
+            flash('Email already exists!', category='error')
+            return redirect(url_for('auth.profile'))
+
+        # Check if username is already taken
+        existing_username = User.query.filter(User.username == username, User.user_id != current_user.user_id).first()
+        if existing_username:
+            flash('Username already taken!', category='error')
+            return redirect(url_for('auth.profile'))
+
+        try:
+            # Update user information
+            current_user.username = username
+            current_user.email = email
+            current_user.number = number
+            if date_of_birth:
+                current_user.date_of_birth = datetime.strptime(date_of_birth, '%Y-%m-%d').date()
+            current_user.address = address
+
+            db.session.commit()
+            flash('Profile updated successfully!', category='success')
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred while updating your profile.', category='error')
+            print(f"Error updating profile: {str(e)}")
+
+        return redirect(url_for('auth.profile'))
 
 @auth.route('/admin', methods=['GET', 'POST'])
 @login_required
