@@ -1,39 +1,73 @@
-{% extends "auth_base.html" %}{% block title %}Cart{% endblock %}{% block
-content %} {% block head %}
+{% extends "auth_base.html" %}
+{% block title %}Cart{% endblock %}
+{% block content %}
+{% block head %}
 <link rel="stylesheet" href="{{url_for('static', filename='cart.css')}}" />
 {% endblock %}
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Profile</title>
-  </head>
-  <body>
-    <head>
-      <div class="profile-container">
-        <a href="#" class="profile-icon">
-          <img
-            src="{{ url_for('static', filename='pictures/saka.jpeg') }}"
-            alt="Profile"
-            height="40"
-          />
-        </a>
-        <div class="dropdown-menu" id="profileMenu">
-          <ul>
-            <li>
-              <a href="{{ url_for('views.home') }}">Home</a>
-            </li>
-            <li>
-              <a href="{{url_for('auth.profile')}}">View Profile</a>
-            </li>
-          </ul>
+    <title>Cart</title>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Shopping Cart</h1>
+        <div class="profile-container">
+            <a href="#" class="profile-icon">
+                <img src="{{ url_for('static', filename='pictures/saka.jpeg') }}" alt="Profile" height="40" />
+            </a>
+            <div class="dropdown-menu" id="profileMenu">
+                <ul>
+                    <li><a href="{{ url_for('views.home') }}">Home</a></li>
+                    <li><a href="{{url_for('auth.profile')}}">View Profile</a></li>
+                </ul>
+            </div>
         </div>
-      </div>
-    </head>
-    <div class="item-cart">
-      Don't have carts? <a href="{{ url_for('views.home') }}">Home</a>
     </div>
-  </body>
+
+    <div class="cart-container">
+        {% if current_user.cart_items %}
+            {% for cart_item in current_user.cart_items %}
+            <div class="cart-item">
+                <img src="{{ url_for('static', filename='pictures/' + cart_item.product.image_url) }}" alt="{{ cart_item.product.name }}" />
+                <div class="item-details">
+                    <h3>{{ cart_item.product.name }}</h3>
+                    <p>{{ cart_item.product.description }}</p>
+                    <div class="price">${{ "%.2f"|format(cart_item.product.price) }}</div>
+                    <div class="quantity-controls">
+                        <form action="{{ url_for('views.update_cart', item_id=cart_item.id) }}" method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="decrease">
+                            <button type="submit" class="btn-quantity">-</button>
+                        </form>
+                        <span class="quantity">{{ cart_item.quantity }}</span>
+                        <form action="{{ url_for('views.update_cart', item_id=cart_item.id) }}" method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="increase">
+                            <button type="submit" class="btn-quantity">+</button>
+                        </form>
+                        <form action="{{ url_for('views.update_cart', item_id=cart_item.id) }}" method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="remove">
+                            <button type="submit" class="btn-remove">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <div class="cart-summary">
+                <div class="total">
+                    Total: ${{ "%.2f"|format(current_user.cart_items|sum(attribute='product.price')) }}
+                </div>
+                <button class="btn-checkout">Proceed to Checkout</button>
+            </div>
+        {% else %}
+            <div class="empty-cart">
+                <h2>Your cart is empty</h2>
+                <a href="{{ url_for('views.home') }}" class="btn-continue-shopping">Continue Shopping</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
 </html>
 {% endblock %}

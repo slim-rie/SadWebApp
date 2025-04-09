@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from .models import User
-from . import db
+from . import db, bcrypt
 from flask_login import login_user, login_required, logout_user, current_user
 import os
+import re
 from requests_oauthlib import OAuth2Session
 
 auth = Blueprint('auth', __name__)
@@ -15,22 +16,41 @@ GOOGLE_CLIENT_ID = "240771338078-6lhucfo67thhpdpkcs4d3mihmmdv49e2.apps.googleuse
 GOOGLE_CLIENT_SECRET = "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"
 GOOGLE_CALLBACK_URL = "http://localhost:5000/auth/google-oauth-callback"  # Must match exactly what's in Google Cloud Console
 
+def is_valid_password(password):
+    """
+    Validate password requirements:
+    - Minimum 7 characters
+    - At least one uppercase letter
+    - At least one lowercase letter
+    - At least one number
+    """
+    if len(password) < 7:
+        return False, "Password must be at least 7 characters long"
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must contain at least one uppercase letter"
+    if not re.search(r'[a-z]', password):
+        return False, "Password must contain at least one lowercase letter"
+    if not re.search(r'\d', password):
+        return False, "Password must contain at least one number"
+    return True, "Password is valid"
+
 @auth.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
     if request.method == 'POST':
         current_password = request.form.get('current_password')
         new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_new_password')  
+        confirm_password = request.form.get('confirm_new_password')
 
         # Verify current password
-        if current_user.password != current_password:
+        if not bcrypt.check_password_hash(current_user.password, current_password):
             flash('Current password is incorrect!', category='error')
             return render_template('change_password.html')
 
         # Validate new password
-        if len(new_password) < 7:
-            flash('New password must be at least 7 characters long!', category='error')
+        is_valid, message = is_valid_password(new_password)
+        if not is_valid:
+            flash(message, category='error')
             return render_template('change_password.html')
 
         if new_password != confirm_password:
@@ -38,7 +58,8 @@ def change_password():
             return render_template('change_password.html')
 
         # Update password in database
-        current_user.password = new_password
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        current_user.password = hashed_password
         db.session.commit()
         flash('Password updated successfully!', category='success')
         return redirect(url_for('auth.profile'))
@@ -92,7 +113,7 @@ def login():
 
         user = User.query.filter_by(email=email).first() #indent is important to align to which you want it connected
         if user:
-            if user.password == password:
+            if bcrypt.check_password_hash(user.password, password):
                 flash('Logged in successfully', category='success')
                 login_user(user, remember=True)
                 if user.role == 'admin':
@@ -139,16 +160,21 @@ def sign_up():
             flash('Middle name must be greater than 1 character.', category='error')
         elif len(last_name) < 2:
             flash('Last name must be greater than 1 character.', category='error')
-        elif len(password1) < 7:
-            flash('password must be greater than 6 characters.', category='error')
         elif password1 != password2:
             flash('password don\'t match!', category='error')
         else:
+            # Validate password requirements
+            is_valid, message = is_valid_password(password1)
+            if not is_valid:
+                flash(message, category='error')
+                return render_template("sign_up.html", user=current_user)
+
+            hashed_password = bcrypt.generate_password_hash(password1).decode('utf-8')
             new_user = User(email=email, 
                             first_name=first_name, 
                             middle_name=middle_name, 
                             last_name=last_name, 
-                            password=password1,
+                            password=hashed_password,
                             role = role)
             db.session.add(new_user)
             db.session.commit()
