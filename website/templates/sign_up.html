@@ -1,0 +1,62 @@
+{% extends "auth_base.html" %} {% block title %}Sign Up{% endblock %}{% block
+content %}{% block head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='sign_up.css') }}"
+/>{% endblock %}
+<form method="POST">
+  <div class="sign_up-container">
+    <h3 align="center">Sign Up</h3>
+    <input
+      type="email"
+      class="form-control"
+      id="email"
+      name="email"
+      placeholder="Enter email"
+    />
+    <br />
+    <input
+      type="text"
+      class="form-control"
+      id="first_name"
+      name="first_name"
+      placeholder="Enter first name"
+    />
+    <br />
+    <input
+      type="text"
+      class="form-control"
+      id="middle_name"
+      name="middle_name"
+      placeholder="Enter middle name"
+    />
+    <br />
+    <input
+      type="text"
+      class="form-control"
+      id="last_name"
+      name="last_name"
+      placeholder="Enter last name"
+    />
+    <br />
+    <input
+      type="password"
+      class="form-control"
+      id="password1"
+      name="password1"
+      placeholder="Enter Password"
+    />
+    <br />
+    <input
+      type="password"
+      class="form-control"
+      id="password2"
+      name="password2"
+      placeholder="Confirm password"
+    />
+    <br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <p>Already have an account? <a href="/login">Login</a></p>
+  </div>
+</form>
+{% endblock %}
