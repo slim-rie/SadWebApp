@@ -1,0 +1,93 @@
+{% extends "auth_base.html" %}{% block title %}Profile{% endblock %}{% block
+content %} {% block head %}
+<link rel="stylesheet" href="{{url_for('static', filename='profile.css')}}" />
+{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile</title>
+  </head>
+  <body>
+    <header class="profile-container">
+      <a href="#" class="profile-icon">
+        <img
+          src="{{ url_for('static', filename='pictures/saka.jpeg') }}"
+          alt="Profile"
+          height="40"
+      /></a>
+      <nav class="dropdown-menu">
+        <ul>
+          <li>
+            <a href="{{url_for('auth.cart')}}">Cart</a>
+          </li>
+          <li>
+            <a href="{{url_for('views.home')}}">Back</a>
+          </li>
+          <li>
+            <a href="{{url_for('auth.login')}}">Logout</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <h1>My profile</h1>
+    <p>Manage and protect your accoount</p>
+    <hr style="border: 1px solid black; width:600px;">
+    <main>
+      <form method="POST" action="/save-profile" class="personal-info">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+        
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+        
+        <label for="number">Number</label>
+        <input type="text" id="number" name="number" required>
+        
+        <label for="date_of_birth">Date of Birth</label>
+        <input type="date" id="date_of_birth" name="date_of_birth" required>
+        <br>
+        <br>
+        <button type="submit">Save</button>
+    </form>
+    </main>
+    
+
+    <nav class="nav-bar">
+      <a href="#" class="profile-icon" id="edit-profile">
+        <img
+          src="{{url_for('static', filename='pictures/saka.jpeg')}}"
+          alt="saka"
+          height="60"
+        />
+      </a>
+      <input type="file" name="profile" id="update-profile" accept="image/*" />
+      <h2>My Account</h2>
+      <a href="profile">Profile</a>
+      <a href="address">Address</a>
+      <a href="{{url_for('auth.change_password')}}">Change password</a>
+    </nav>
+  </nav>
+</body>
+<script>
+  // Get the input and image elements
+  const input = document.getElementById('update-profile');
+  const profileImg = document.querySelector('#edit-profile img');
+
+  // Add an event listener for when a file is selected
+  input.addEventListener('change', function(event) {
+    const file = event.target.files[0]; // Get the selected file
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        profileImg.src = e.target.result; // Update the image src with the new file
+      };
+      reader.readAsDataURL(file); // Read the file as a data URL
+    }
+  });
+</script>
+</html>
+  </body>
+</html>
+{% endblock %}

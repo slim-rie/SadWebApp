@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Seller</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='contact_seller.css') }}"
+    />
+  </head>
+  <body>
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Contact Seller</title>
+        <link
+          rel="stylesheet"
+          href="{{ url_for('static', filename='contact_seller.css') }}"
+        />
+      </head>
+      <body>
+        <header>
+          <h1>Contact a Seller</h1>
+        </header>
+        <main>
+          <form
+            action="/send-message"
+            method="POST"
+            class="contact-seller-form"
+          >
+            <label for="seller">Select Seller:</label>
+            <select id="seller" name="seller" required>
+              <option value="john_doe">John Doe</option>
+              <option value="jane_smith">Jane Smith</option>
+              <option value="vendor_x">Vendor X</option>
+            </select>
+
+            <label for="subject">Subject:</label>
+            <input
+              type="text"
+              id="subject"
+              name="subject"
+              placeholder="Subject of your message"
+              required
+            />
+
+            <label for="issue">Select Common Issue:</label>
+            <select id="issue" name="issue" required>
+              <option value="">-- Select an Issue --</option>
+              <option value="machine-jamming">Sewing Machine Jamming</option>
+              <option value="needle-breakage">Needle Breakage</option>
+              <option value="thread-tension">Thread Tension Problems</option>
+              <option value="foot-pedal-malfunction">
+                Foot Pedal Malfunction
+              </option>
+              <option value="balance-wheel-issues">
+                Balance Wheel Problems
+              </option>
+              <option value="part-incompatibility">
+                Parts Compatibility Issues
+              </option>
+              <option value="general-inquiry">Other General Inquiry</option>
+            </select>
+
+            <label for="message">Message:</label>
+            <textarea
+              id="message"
+              name="message"
+              rows="8"
+              placeholder="Describe the issue or inquiry in detail"
+              required
+            ></textarea>
+
+            <button type="submit">Send Message</button><br>
+            <a href="{{url_for('views.home')}}">Back</a>
+          </form>
+        </main>
+        
+      </body>
+    </html>
+    </main>
+  </body>
+</html>

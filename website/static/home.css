@@ -1,0 +1,247 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  position: relative;
+  line-height: 1.6;
+  background-color: white;
+}
+
+.product-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px;
+  padding: 10px;
+  max-width: 1200px;
+  margin: 30px;
+  justify-items: center; /* Center the boxes within their grid cells */
+  justify-content: center; /* Center the entire grid within the container */
+}
+
+.box {
+  margin: 2rem;
+  background-color: wheat;
+  padding: 15px;
+  border-radius: 10px;
+  width: 100%; /* Make the box fill the grid cell */
+  max-width: 200px; /* Optional: cap the width at 200px */
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px -10px 20px rgba(56, 27, 31),
+    /* Reduced white shadow intensity */ 10px 10px 20px rgba(100, 100, 120, 0.5); /* Darker, more opaque shadow for depth */
+  text-align: center;
+  overflow-y: scroll;
+  box-sizing: border-box;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.box:hover {
+  transform: perspective(1000px) translateY(-5px) rotateX(2deg) rotateY(2deg); /* Slight 3D tilt on hover */
+  box-shadow: -12px -12px 25px #f05f73,
+    /* Enhanced light shadow */ 12px 12px 25px rgba(100, 100, 120, 0.6); /* Enhanced dark shadow */
+}
+
+.box h6 {
+  font-weight: bold;
+  margin: 10px 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Style the "Option" link */
+.dropdown-item {
+  padding: 2px;
+  text-align: right;
+  display: block;
+  text-decoration: none;
+  color: #666;
+  font-size: 0.9rem;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+/* Style the container to align the button and dropdown trigger side by side */
+.box-actions {
+  display: flex;
+  align-items: center; /* Vertically center the button and dropdown trigger */
+  gap: 10px; /* Add space between the button and dropdown trigger */
+  position: relative; /* For positioning the dropdown menu */
+}
+
+/* Style the "Buy now" button */
+.btn-buy {
+  padding: 10px 10px;
+  background-color: white; /* Light background like in the image */
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  height: 40px; /* Set a fixed height for consistency */
+  line-height: 1; /* Ensure text is vertically centered */
+  white-space: nowrap;
+}
+
+/* Style the "Option" link to look like a dropdown trigger */
+.dropdown-item {
+  padding: 10px 10px;
+  background-color: white; /* White background to match the image */
+  border: 1px solid white; /* Light border for visibility */
+  border-radius: 5px;
+  font-size: 16px;
+  text-decoration: none; /* Remove underline from the link */
+  color: #333; /* Text color */
+  height: 40px; /* Match the button's height */
+  line-height: 1; /* Ensure text is vertically centered */
+  display: inline-flex; /* Use flex to center the text vertically */
+  align-items: center; /* Center the text vertically */
+  cursor: pointer; /* Pointer cursor for interaction */
+}
+
+/* Show the dropdown menu when the "Option" link is hovered or clicked */
+.dropdown-item:hover + .box-dropdown,
+.box-dropdown:hover {
+  display: block;
+}
+
+/* Style the dropdown menu items */
+.box-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.box-dropdown li {
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.box-dropdown li:hover {
+  background-color: #f0f0f0; /* Light hover effect */
+}
+
+.box-dropdown {
+  position: absolute; /* Position it relative to .box-actions */
+  bottom: 100%; /* Place below the trigger */
+  right: 0; /* Align to the left edge */
+  display: none; /* Initially hidden */
+  background-color: #fff; /* Dropdown background */
+  border: 1px solid #ccc; /* Add a border for visibility */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
+  padding: 10px; /* Add spacing for dropdown items */
+  border-radius: 5px; /* Rounded corners */
+  z-index: 10; /* Ensure it appears above other elements */
+}
+
+/* Show the dropdown when the "active" class is added */
+.box-dropdown.active {
+  display: block;
+}
+
+.profile-container {
+  position: absolute;
+  top: 15px;
+  left: 30px;
+}
+
+.profile-icon img {
+  border-radius: 50%; /* Makes the image circular */
+  cursor: pointer; /* Indicates it's clickable */
+}
+
+.profile-container:hover .dropdown-menu {
+  display: block;
+  text-align: center;
+  position: absolute;
+  top: 100%; /* Adjusts position below the trigger element */
+  right: 0; /* Aligns it to the right edge of the parent container */
+  z-index: 1000; /* Ensures it stays above other elements */
+}
+
+.dropdown-menu ul li a:hover {
+  background-color: #ba0000; /* Light gray hover effect */
+}
+
+.dropdown-menu ul {
+  list-style: none;
+}
+
+.search {
+  border-radius: 5px;
+  display: flex;
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 30px;
+  width: 300px;
+  z-index: 10;
+}
+
+.search input {
+  height: 100%;
+  width: 300px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.search input::placeholder {
+  color: #999;
+}
+
+.search input:hover {
+  border-color: #f05f73;
+  box-shadow: 0 0 5px rgba(240, 95, 115, 0.5);
+  background-color: #fff1f1;
+}
+
+.product-container {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(200px, 1fr)
+  ); /* Adjusted for better spacing */
+  gap: 1rem;
+  padding: 1rem;
+  justify-items: center;
+}
+
+.categories-dropdown {
+  margin-top: 50px;
+  margin-left: 40px;
+}
+
+@media (max-width: 360px) {
+  .container {
+    grid-template-columns: repeat(auto-fit, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    grid-template-columns: repeat(
+      auto-fit,
+      minmax(200px, 1fr)
+    ); /* Let auto-fit handle the columns */
+  }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
