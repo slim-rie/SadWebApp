@@ -73,6 +73,9 @@ body {
   font-weight: bold;
   transition: all 0.3s ease;
   margin: 5px;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
 }
 
 .btn-buy {
@@ -85,9 +88,20 @@ body {
   color: white;
 }
 
+.btn-contact {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.btn-feedback {
+  background-color: #ffd700;
+  color: #333;
+}
+
 .btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  opacity: 0.9;
 }
 
 .btn:active {
@@ -289,6 +303,10 @@ body {
   margin-bottom: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  width: 100%; /* Ensure it spans width to center content */
+  max-width: 800px; /* Optional: Set a max width for the filter section */
+  margin-left: auto; /* Center the section itself */
+  margin-right: auto; /* Center the section itself */
 }
 
 .categories-dropdown {
@@ -299,12 +317,14 @@ body {
   background-color: white;
   cursor: pointer;
   min-width: 200px;
+  margin: 0; /* Remove specific margins */
 }
 
 .search {
-  position: relative;
+  position: relative; /* Keep relative for clear button */
   flex-grow: 1;
   max-width: 500px;
+  /* Remove absolute positioning styles from previous rules */
 }
 
 .search input {

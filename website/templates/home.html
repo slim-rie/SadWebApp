@@ -48,12 +48,7 @@
         <form action="{{ url_for('views.add_to_cart', product_id=product.id) }}" method="POST" style="display: inline;">
           <button type="submit" class="btn btn-add-cart">Add to Cart</button>
         </form>
-        <div class="box-dropdown">
-          <ul>
-            <li><a href="{{ url_for('auth.feedback') }}">Feedback</a></li>
-            <li><a href="{{ url_for('auth.contact_seller') }}">Contact Seller</a></li>
-          </ul>
-        </div>
+        <a href="{{ url_for('auth.contact_seller', product_id=product.id) }}" class="btn btn-contact">Contact Seller</a>
       </div>
     </div>
     {% endfor %}

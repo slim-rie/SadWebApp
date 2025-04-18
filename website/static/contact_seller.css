@@ -64,3 +64,168 @@ button:hover {
 button:active {
   background-color: #004494;
 }
+
+.contact-form-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.contact-form-container h2 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.product-info {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 1rem;
+}
+
+.product-details h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.product-details .price {
+    color: #2ecc71;
+    font-weight: bold;
+    margin: 0.5rem 0 0 0;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.form-group textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    background-color: #e1e1e1;
+    color: #666;
+    text-decoration: none;
+}
+
+.btn-cancel:hover {
+    background-color: #d1d1d1;
+    text-decoration: none;
+    color: #666;
+}
+
+.btn-send {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.btn-send:hover {
+    background-color: #357abd;
+    transform: translateY(-1px);
+}
+
+.note {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #fff8e1;
+    border-radius: 4px;
+    color: #856404;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.issue-select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    background-color: white;
+    cursor: pointer;
+}
+
+.issue-select:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.issue-select option {
+    padding: 0.5rem;
+}
+
+#other-issue-group {
+    margin-top: 1rem;
+}
+
+#other-issue {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+#other-issue:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
