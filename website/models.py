@@ -4,10 +4,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model, UserMixin):
     user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True)
     first_name = db.Column(db.String(100))
     middle_name = db.Column(db.String(100), nullable=True)
     last_name = db.Column(db.String(100))
+    address = db.Column(db.String(200), nullable=False)
+    profile_image = db.Column(db.String(500), nullable=True, default='default_profile.jpg')
     _password = db.Column('password', db.String(225))  # Map to 'password' column in DB
     role = db.Column(db.String(100), nullable=False, default='user')
 
