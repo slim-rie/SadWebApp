@@ -27,26 +27,22 @@ def create_app():
 
     db.init_app(app)
 
-
     from .views import views
     from .auth import auth
     from .models import User
-
 
     app.register_blueprint(views, url_prefix="/")
     app.register_blueprint(auth, url_prefix="/")
     
     create_database(app)
    
+    login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
 
-    login_manager = LoginManager() #this create a librarian
-    login_manager.login_view = 'auth.login' #this is the main login
-    login_manager.init_app(app) #helps with the app(flask app)
-
-    @login_manager.user_loader #this will go to a specific user 
-    def load_user(user_id): #where to get the specific
-        return User.query.get(int(user_id)) #this is when they get the id and will give it to you
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
     
-
     return app
 
