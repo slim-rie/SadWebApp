@@ -1,6 +1,7 @@
 from . import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 class User(db.Model, UserMixin):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -51,3 +52,16 @@ class CartItem(db.Model):
     # Relationships
     user = db.relationship('User', backref=db.backref('cart_items', lazy=True))
     product = db.relationship('Product', backref=db.backref('cart_items', lazy=True))
+
+class SupplyRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    staff_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+    quantity_requested = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='pending')  # pending, approved, completed
+    request_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    notes = db.Column(db.Text, nullable=True)
+    
+    # Relationships
+    product = db.relationship('Product', backref=db.backref('supply_requests', lazy=True))
+    staff = db.relationship('User', backref=db.backref('supply_requests', lazy=True))

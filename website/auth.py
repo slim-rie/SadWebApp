@@ -42,6 +42,10 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@auth.route('/')
+def index():
+    return redirect(url_for('auth.login'))
+
 @auth.route('/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
@@ -73,6 +77,7 @@ def change_password():
     return render_template('change_password.html')
 
 @auth.route('/add-item')
+@login_required
 def add_item():
     return render_template('example_add.html')
 
@@ -109,35 +114,55 @@ def add_to_cart(product_id):
 
 @auth.route('/admin', methods=['GET', 'POST'])
 @login_required
-def admin(): #authenticate admin
-    return render_template("admin.html", user=current_user) #this will render the html of admin
+def admin():
+    if current_user.role != 'admin':
+        flash('Access denied. Admin only.', category='error')
+        return redirect(url_for('views.home'))
+    return render_template("admin.html", user=current_user)
 
 @auth.route('/staff', methods=['GET', 'POST'])
 @login_required
-def staff(): #authenticate admin
+def staff():
+    if current_user.role != 'staff':
+        flash('Access denied. Staff only.', category='error')
+        return redirect(url_for('views.home'))
     return render_template("staff.html", user=current_user)
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
+    # State before root route changes
+    if current_user.is_authenticated:
+        if current_user.role == 'admin':
+            return redirect(url_for('auth.admin'))
+        elif current_user.role == 'staff':
+            return redirect(url_for('auth.staff'))
+        elif current_user.role == 'supplier':
+            return redirect(url_for('auth.supplier'))
+        else:
+            return redirect(url_for('views.home'))
+
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-
-        user = User.query.filter_by(email=email).first() #indent is important to align to which you want it connected
+        user = User.query.filter_by(email=email).first()
         if user:
             if user.verify_password(password):
+                login_user(user, remember=False)
                 flash('Logged in successfully', category='success')
-                login_user(user, remember=True)
+                next_url = request.args.get('next')
+                if next_url:
+                    return redirect(next_url)
+                # Redirect based on role
                 if user.role == 'admin':
-                    return redirect(url_for('auth.admin', user=current_user))  #if the role is admin, will go to authenticate admin
-                if user.role == 'staff':
-                    return redirect(url_for('auth.staff', user=current_user)) #if the role is staff, will go to authenticate staff
-                if user.role == 'supplier':
-                    return redirect(url_for('auth.supplier', user=current_user)) #if the role is staff, will go to authenticate supplier
-                else: 
-                    return redirect(url_for('views.home', user=current_user)) #if only user, will go views.home which is default page of user
+                    return redirect(url_for('auth.admin'))
+                elif user.role == 'staff':
+                    return redirect(url_for('auth.staff'))
+                elif user.role == 'supplier':
+                    return redirect(url_for('auth.supplier'))
+                else:
+                    return redirect(url_for('views.home'))
             else:
-                flash('Incorrect password!', category='error') 
+                flash('Incorrect password!', category='error')
         else:
             flash('Email does not exist', category='error')
 
@@ -146,8 +171,13 @@ def login():
 @auth.route('/logout')
 @login_required
 def logout():
+    # Explicitly clear the session first
+    session.clear()
+    # Then log out the user via Flask-Login
     logout_user()
-    return redirect(url_for('auth.login'))
+    flash('You have been logged out successfully.', 'success') # Updated message
+    # Redirect to login page, forcing external URL generation
+    return redirect(url_for('auth.login', _external=True))
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
@@ -199,13 +229,13 @@ def sign_up():
             )
             db.session.add(new_user)
             db.session.commit()
-            login_user(new_user, remember=True)
+            login_user(new_user, remember=False)  # Set remember to False
             flash('Account created successfully!', category='success')
             return redirect(url_for('views.home'))
 
     return render_template("sign_up.html", user=current_user)
 
-@auth.route('/auth/google-oauth-login')
+@auth.route('/google-oauth-login')
 def google_oauth_login():
     try:
         # Generate state token
@@ -230,7 +260,7 @@ def google_oauth_login():
         flash('Failed to initiate Google login', category='error')
         return redirect(url_for('auth.login'))
 
-@auth.route('/auth/google-oauth-callback')
+@auth.route('/google-oauth-callback')
 def google_oauth_callback():
     try:
         # Verify state
@@ -297,9 +327,12 @@ def google_oauth_callback():
             db.session.add(user)
             db.session.commit()
 
-        login_user(user, remember=True)
+        login_user(user, remember=False)
+
         flash('Successfully signed in with Google!', category='success')
-        return redirect(url_for('views.home' if user.role != 'admin' else 'auth.admin'))
+        
+        redirect_url = url_for('views.home' if user.role != 'admin' else 'auth.admin')
+        return redirect(redirect_url)
 
     except Exception as e:
         import traceback

@@ -1,0 +1,66 @@
+{% extends "auth_base.html" %}
+{% block title %}Supply Requests{% endblock %}
+{% block content %}
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='supplier.css') }}" />
+{% endblock %}
+
+<div class="supplier-container">
+    <h2>Supply Requests</h2>
+    
+    <!-- Request Form -->
+    <div class="request-form">
+        <h3>New Supply Request</h3>
+        <form method="POST" action="{{ url_for('views.create_supply_request') }}">
+            <div class="form-group">
+                <label for="product">Product:</label>
+                <select name="product_id" id="product" required>
+                    <option value="">Select a product</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Quantity Needed:</label>
+                <input type="number" name="quantity" id="quantity" min="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Notes (Optional):</label>
+                <textarea name="notes" id="notes" rows="3"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Submit Request</button>
+        </form>
+    </div>
+    
+    <!-- Existing Requests Table -->
+    <div class="requests-table">
+        <h3>Your Supply Requests</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                    <th>Date Requested</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in supply_requests %}
+                <tr>
+                    <td>{{ request.product.name }}</td>
+                    <td>{{ request.quantity_requested }}</td>
+                    <td class="status-{{ request.status }}">{{ request.status }}</td>
+                    <td>{{ request.request_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ request.notes or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

@@ -1,15 +1,14 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem
+from .models import Product, CartItem, SupplyRequest
 
 views = Blueprint('views', __name__)
 
-@views.route('/')
+@views.route('/home')
 @login_required
 def home():
     products = Product.query.all()
-    # Get unique categories from products
     categories = sorted(list(set(p.category for p in products)))
     return render_template("home.html", user=current_user, products=products, categories=categories)
 
@@ -68,3 +67,45 @@ def remove_from_cart(item_id):
 def get_cart_count():
     count = CartItem.query.filter_by(user_id=current_user.user_id).count()
     return jsonify({'count': count})
+
+@views.route('/supplier-requests')
+@login_required
+def supplier_requests():
+    if current_user.role != 'staff':
+        flash('Access denied. Staff members only.', 'error')
+        return redirect(url_for('views.home'))
+    
+    products = Product.query.all()
+    supply_requests = SupplyRequest.query.filter_by(staff_id=current_user.user_id).order_by(SupplyRequest.request_date.desc()).all()
+    return render_template('supplier_requests.html', user=current_user, products=products, supply_requests=supply_requests)
+
+@views.route('/create-supply-request', methods=['POST'])
+@login_required
+def create_supply_request():
+    if current_user.role != 'staff':
+        flash('Access denied. Staff members only.', 'error')
+        return redirect(url_for('views.home'))
+    
+    product_id = request.form.get('product_id')
+    quantity = request.form.get('quantity')
+    notes = request.form.get('notes')
+    
+    if not product_id or not quantity:
+        flash('Please fill in all required fields.', 'error')
+        return redirect(url_for('views.supplier_requests'))
+    
+    try:
+        new_request = SupplyRequest(
+            product_id=product_id,
+            staff_id=current_user.user_id,
+            quantity_requested=int(quantity),
+            notes=notes
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        flash('Supply request submitted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('An error occurred while submitting the request.', 'error')
+    
+    return redirect(url_for('views.supplier_requests'))
