@@ -3,46 +3,13 @@
 
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='admin.css') }}">
-<<<<<<< HEAD
 <div class="dashboard">
     <!-- Sidebar -->
-=======
-<style>
-/* Ensure only the active section is visible */
-.content-section { display: none; }
-.content-section.active { display: block; }
-</style>
-<div class="dashboard">
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
     <div class="sidebar">
         <div class="logo">
             <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR Logo">
         </div>
         <div class="nav-items">
-<<<<<<< HEAD
-            <a href="#" class="nav-item active">Dashboard</a>
-            <a href="#" class="nav-item">Supplier</a>
-            <a href="#" class="nav-item">Inventory</a>
-            <a href="#" class="nav-item">Sales</a>
-            <a href="#" class="nav-item">Customer Order</a>
-            <a href="#" class="nav-item">Customer Purchase</a>
-            <a href="#" class="nav-item">Personnel</a>
-            <a href="#" class="nav-item">Reports</a>
-            <!-- Settings navigation item - Uses nav-item class for consistent styling
-                 The nav-item class provides:
-                 - Padding and margins for proper spacing
-                 - Hover effects for better interactivity
-                 - Text color and font styling to match design
-                 - Cursor pointer for better UX
-            -->
-            <a href="#" class="nav-item">Setting</a>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Dashboard Section -->
-=======
             <a href="#" class="nav-item active" onclick="showSection('dashboard')">Dashboard</a>
             <a href="#" class="nav-item" onclick="showSection('supplier')">Supplier</a>
             <a href="#" class="nav-item" onclick="showSection('inventory')">Inventory</a>
@@ -56,7 +23,6 @@
     <!-- Main Content (ADMIN MAIN CONTENT) -->
     <div class="main-content">
         <!-- Dashboard Section (ADMIN DASHBOARD SECTION) -->
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
         <div id="dashboard-section" class="content-section active">
             <div class="header">
                 <h1>DASHBOARD</h1>
@@ -65,10 +31,6 @@
                     <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
                 </div>
             </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
             <div class="dashboard-cards">
                 <!-- Critical Stock Card -->
                 <div class="card">
@@ -434,16 +396,6 @@
                                 <th>ID</th>
                                 <th>Product Name</th>
                                 <th>Product Code</th>
-<<<<<<< HEAD
-                                <th>Category</th>
-                                <th>Cost Price</th>
-                                <th>Selling Price</th>
-                                <th>Stock Level</th>
-                                <th>Min Order</th>
-                                <th>Max Order</th>
-                                <th>Supplier</th>
-                                <th>Last Updated</th>
-=======
                                 <th>Category ID</th>
                                 <th>Category Name</th>
                                 <th>Cost Price</th>
@@ -459,25 +411,11 @@
                                 <th>Min Supplier Order</th>
                                 <th>Max Supplier Order</th>
                                 <th>Supplier Update Date</th>
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-<<<<<<< HEAD
-                                <td>36</td>
-                                <td>SF-1020 - Speed master high-speed machine</td>
-                                <td>SH-020</td>
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>50</td>
-                                <td>10</td>
-                                <td>8</td>
-                                <td>Shunfa</td>
-                                <td>2025-03-10 20:45:43</td>
-=======
                                 <td>35</td>
                                 <td>SF-5550 - Single needle high-speed machine</td>
                                 <td>SH-001</td>
@@ -521,7 +459,6 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
                                 <td>
                                     <button class="edit-btn">Edit</button>
                                     <button class="delete-btn">Delete</button>
@@ -530,18 +467,6 @@
                             </tr>
                             <tr>
                                 <td>37</td>
-<<<<<<< HEAD
-                                <td>SF-562 - Button hole machine</td>
-                                <td>SH-023</td>
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>8</td>
-                                <td>5</td>
-                                <td>2</td>
-                                <td>Shunfa</td>
-                                <td>2025-03-10 20:45:43</td>
-=======
                                 <td>SF-562-O2BB - Piping machine</td>
                                 <td>SH-003</td>
                                 <td>4</td> 
@@ -584,7 +509,6 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
                                 <td>
                                     <button class="edit-btn">Edit</button>
                                     <button class="delete-btn">Delete</button>
@@ -593,54 +517,6 @@
                             </tr>
                             <tr>
                                 <td>38</td>
-<<<<<<< HEAD
-                                <td>SF-781 - Button holder machine</td>
-                                <td>SH-004</td>
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>2</td>
-                                <td>5</td>
-                                <td>2</td>
-                                <td>Shunfa</td>
-                                <td>2025-03-10 20:45:43</td>
-                                <td>
-                                    <button class="edit-btn">Edit</button>
-                                    <button class="delete-btn">Delete</button>
-                                    <button class="contact-btn">Contact Supplier</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>39</td>
-                                <td>SF-8700 - High-speed lockstitch machine</td>
-                                <td>SH-005</td>
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>100</td>
-                                <td>20</td>
-                                <td>10</td>
-                                <td>Shunfa</td>
-                                <td>2025-03-10 20:45:43</td>
-                                <td>
-                                    <button class="edit-btn">Edit</button>
-                                    <button class="delete-btn">Delete</button>
-                                    <button class="contact-btn">Contact Supplier</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>40</td>
-                                <td>SF-767 - 4-threads overlock machine</td>
-                                <td>SH-056</td>
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>18</td>
-                                <td>20</td>
-                                <td>10</td>
-                                <td>Shunfa</td>
-                                <td>2025-03-10 20:45:43</td>
-=======
                                 <td>SF-781 - Buttonholler machine</td>
                                 <td>SH-004</td>
                                 <td>4</td> 
@@ -658,7 +534,6 @@
                                 <td></td>
                                 <td></td>
                                 <td></td>
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
                                 <td>
                                     <button class="edit-btn">Edit</button>
                                     <button class="delete-btn">Delete</button>
@@ -670,213 +545,7 @@
                 </div>
             </div>
         </div>
-
-<<<<<<< HEAD
-        <!-- Settings Section -->
-        <div id="setting-section" class="content-section">
-            <div class="header">
-                <h1>SETTINGS MANAGEMENT</h1>
-                <div class="user-profile">
-                    <span>ADMIN</span>
-                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-                </div>
-            </div>
-
-            <div class="dashboard-cards">
-                <div class="card"><h2 class="section-title">ACCOUNT DETAILSs</h2>
-                    <div class="settings-header">
-                        <div class="dropdown-container">
-                            <input type="text" value="ADMIN" class="dropdown-input" readonly>
-                            <button class="dropdown-toggle">▼</button> 
-                        </div>
-                        <div class="action-buttons">
-                            <button class="action-btn new-btn">New</button>
-                            <button class="action-btn edit-btn">Edit</button>
-                            <button class="action-btn delete-btn">Delete</button>
-                        </div>
-                    </div>
-                    <div class="filter-section">
-                        
-                        <div class="settings-form">
-                            <div class="filter-group">
-                                <label>User ID</label>
-                                <div class="input-with-status">
-                                    <input type="text" value="ADMIN" readonly class="filter-input">
-                                    <div class="active-status">
-                                        <input type="checkbox" id="active-checkbox" checked>
-                                        <label for="active-checkbox">Active</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="filter-group">
-                                <label>Password</label>
-                                <input type="password" value="******" class="filter-input">
-                            </div>
-                            <div class="filter-group">
-                                <label>Username</label>
-                                <input type="text" value="*****" class="filter-input">
-                            </div>
-                            <div class="filter-buttons">
-                                <button class="filter-btn save-btn">Save Changes</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sales Section -->
-        <div id="sales-section" class="content-section">
-        <div class="header">
-            <h1>SALES MANAGEMENT</h1>
-            <div class="user-profile">
-                <span>ADMIN</span>
-                <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-            </div>
-        </div>
-
-        <div class="dashboard-cards">
-            <!-- Sales Filter Card -->
-            <div class="card">
-                <div class="filter-section sales-filters">
-                    <div class="filter-group">
-                        <label>Filter by Customer:</label>
-                        <select class="filter-select">
-                            <option value="">Select an option</option>
-                            <option value="sunghoon">Sunghoon Park</option>
-                            <option value="minji">Minji Kim</option>
-                            <option value="jihoon">Lee Jihoon</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Filter by Item:</label>
-                        <select class="filter-select">
-                            <option value="">Select an option</option>
-                            <option value="sf-747">SF-747 - 4 threads overlock machine</option>
-                            <option value="sf-372">SF-372 - Buttonsew machine</option>
-                            <option value="sf-781">SF-781 - Buttonhole machine</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Start Date:</label>
-                        <input type="date" class="date-input">
-                    </div>
-                    <div class="filter-group">
-                        <label>End Date:</label>
-                        <input type="date" class="date-input">
-                    </div>
-                    <div class="filter-buttons">
-                        <button class="filter-btn">Filter</button>
-                        <button class="add-btn">Add</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sales List Card -->
-            <div class="card">
-                <table class="table sales-table">
-                    <thead>
-                        <tr>
-                            <th>Sale ID</th>
-                            <th>Customer</th>
-                            <th>Item</th>
-                            <th>Quantity</th>
-                            <th>Total Amount</th>
-                            <th>Payment Method</th>
-                            <th>Order Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>Sunghoon Park</td>
-                            <td>B1835-012-000 - Positioning finger</td>
-                            <td>1</td>
-                            <td>₱850.00</td>
-                            <td><span class="payment-method">PayPal</span></td>
-                            <td class="status-cell status-to-ship">To Ship</td>
-                            <td>2025-03-08 16:00:00</td>
-                            <td>
-                                <button class="edit-btn">Edit</button>
-                                <button class="delete-btn">Delete</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td>Minji Kim</td>
-                            <td>SF-747 - 4 threads overlock machine</td>
-                            <td>4</td>
-                            <td>₱475.00</td>
-                            <td><span class="payment-method">Bank Transfer</span></td>
-                            <td class="status-cell status-to-receive">To Receive</td>
-                            <td>2025-03-07 09:00:00</td>
-                            <td>
-                                <button class="edit-btn">Edit</button>
-                                <button class="delete-btn">Delete</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td>Lee Jihoon</td>
-                            <td>SF-372 - Buttonsew machine</td>
-                            <td>3</td>
-                            <td>₱440.00</td>
-                            <td><span class="payment-method">PayPal</span></td>
-                            <td class="status-cell status-completed">Completed</td>
-                            <td>2025-03-05 14:30:00</td>
-                            <td>
-                                <button class="edit-btn">Edit</button>
-                                <button class="delete-btn">Delete</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>4</td>
-                            <td>Wonyoung Jang</td>
-                            <td>SF-757-5 - threads overlock machine</td>
-                            <td>1</td>
-                            <td>₱250.00</td>
-                            <td><span class="payment-method">PayPal</span></td>
-                            <td class="status-cell status-to-pay">To Pay</td>
-                            <td>2025-03-03 15:00:00</td>
-                            <td>
-                                <button class="edit-btn">Edit</button>
-                                <button class="delete-btn">Delete</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Get all nav items and content sections
-        const navItems = document.querySelectorAll('.nav-item');
-        const contentSections = document.querySelectorAll('.content-section');
-
-        // Add click event listeners to nav items
-        navItems.forEach((item, index) => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                
-                // Remove active class from all nav items and add to clicked item
-                navItems.forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
-
-                // Hide all sections
-                contentSections.forEach(section => section.classList.remove('active'));
-
-                // Show the corresponding section based on the clicked nav item's text
-                const sectionId = item.textContent.trim().toLowerCase().replace(' ', '-') + '-section';
-                const targetSection = document.getElementById(sectionId);
-                if (targetSection) {
-                    targetSection.classList.add('active');
-                }
-            });
-        });
-=======
+        
          <!-- Sales Section -->
         <div id="sales-section" class="content-section">
             <div class="header">
@@ -1447,7 +1116,6 @@ function showSection(sectionName) {
                 return null;
             };
         }
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
     </script>
 </div>
 {% endblock %}

@@ -6,11 +6,6 @@
     box-sizing: border-box;
 }
 
-<<<<<<< HEAD
-/* ===== LAYOUT COMPONENTS ===== */
-/* Main Dashboard Layout */
-.dashboard {
-=======
 /* ===== SHARED COMPONENTS ===== */
 /* Common Button Styles */
 .btn {
@@ -100,7 +95,6 @@
 /* ===== LAYOUT COMPONENTS ===== */
 /* Main Dashboard Layout */
 .dashboard { /* SideBar Line */
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
     display: flex;
     min-height: 100vh;
     background-color: rgb(255, 255, 255);
@@ -206,13 +200,6 @@
     font-size: 14px;
 }
 
-<<<<<<< HEAD
-/* ===== DASHBOARD STATISTICS ===== */
-.dashboard-cards {
-    width: 100%;
-    margin: 0 auto 20px;
-    max-width: 1400px;
-=======
 /* ==========================================================
    DASHBOARD MANAGEMENT STYLES
    Styles for dashboard statistics, cards, and layout
@@ -226,7 +213,6 @@
     margin: 0 0 20px 0;
     padding: 0;
     box-sizing: border-box;
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 }
 
 .total-stocks-container {
@@ -247,21 +233,12 @@
     color: #888;
 }
 
-<<<<<<< HEAD
-.total-orders {
-    float: right;
-}
-
-=======
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 .total-stocks-number,
 .total-orders-number {
     font-size: 28px;
     font-weight: bold;
     color: black;
 }
-<<<<<<< HEAD
-=======
 /* ===== DASHBOARD MANAGEMENT ===== */
 /* Removed duplicate .dashboard-cards definition (already defined above) */
 
@@ -390,7 +367,6 @@
    SALES MANAGEMENT STYLES
    Styles for sales filters, table, and status
    ========================================================== */
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 /* ===== SALES MANAGEMENT ===== */
 .sales-header {
     display: flex;
@@ -406,8 +382,6 @@
     margin-bottom: 20px;
 }
 
-<<<<<<< HEAD
-=======
 .sales-table td:nth-child(5),
 .sales-table td:nth-child(6) {
     font-family: monospace;
@@ -637,7 +611,6 @@
     margin-bottom: 20px;
 }
 
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 .sales-filters .filter-group {
     min-width: 200px;
 }
@@ -678,11 +651,7 @@
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-<<<<<<< HEAD
-}
-=======
 } /* Kept only one definition for .card */
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 
 .card h2 {
     margin: 0 0 20px 0;
@@ -697,11 +666,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
-<<<<<<< HEAD
-}
-=======
 } /* Kept only one definition for .table */
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 
 .table th,
 .table td {
@@ -763,31 +728,18 @@
     background-color: #1a73e8;
     color: white;
     padding: 8px 20px;
-<<<<<<< HEAD
-}
-=======
 } /* Kept only one definition for .filter-btn */
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 
 .add-btn {
     background-color: #34a853;
     color: white;
     padding: 8px 20px;
-<<<<<<< HEAD
-}
-=======
 } /* Kept only one definition for .add-btn */
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 
 /* Button hover states */
 .notify-btn:hover { background-color: #0056b3; }
 .edit-btn:hover { background-color: #e6c200; }
 .delete-btn:hover { background-color: #c82333; }
-<<<<<<< HEAD
-.contact-btn:hover { background-color: #1557b0; }
-.filter-btn:hover { background-color: #1557b0; }
-
-=======
 .contact-btn:hover { background-color: #1557b0; } /* Kept only one set of hover states for button classes */
 .filter-btn:hover { background-color: #1557b0; }
 
@@ -975,7 +927,6 @@ body {
   }
   
 
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 /* ===== CONTENT SECTIONS ===== */
 .content-section {
     display: none;
@@ -985,13 +936,10 @@ body {
     display: block;
 }
 
-<<<<<<< HEAD
-=======
 /* ==========================================================
    SETTINGS MANAGEMENT STYLES
    Styles for settings/profile/security forms and actions
    ========================================================== */
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 /* ===== SETTINGS SECTION ===== */
 .settings-header {
     display: flex;
@@ -1143,10 +1091,9 @@ body {
     color: white;
     text-decoration: none;
 }
-<<<<<<< HEAD
-.add-btn:hover { background-color: #2d8d47; }
-=======
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
+.add-btn:hover {
+    background-color: #2d8d47; 
+}
 
 /* ===== FILTER SECTION ===== */
 .filter-section {
@@ -1388,15 +1335,12 @@ td:nth-child(7) {  /* Stock Level column */
     min-width: 150px;
 }
 
-<<<<<<< HEAD
 /* Table header for inventory */
 .inventory-table th {
     white-space: nowrap;
     padding: 12px 15px;
 }
 
-=======
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
 /* Product name column */
 td:nth-child(2) {
     max-width: 250px;
