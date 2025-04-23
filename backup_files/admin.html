@@ -3,23 +3,13 @@
 
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='admin.css') }}">
-<<<<<<< HEAD
 <div class="dashboard">
     <!-- Sidebar -->
-=======
-<style>
-/* Ensure only the active section is visible */
-.content-section { display: none; }
-.content-section.active { display: block; }
-</style>
-<div class="dashboard">
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
     <div class="sidebar">
         <div class="logo">
             <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR Logo">
         </div>
         <div class="nav-items">
-<<<<<<< HEAD
             <a href="#" class="nav-item active">Dashboard</a>
             <a href="#" class="nav-item">Supplier</a>
             <a href="#" class="nav-item">Inventory</a>
@@ -42,21 +32,6 @@
     <!-- Main Content -->
     <div class="main-content">
         <!-- Dashboard Section -->
-=======
-            <a href="#" class="nav-item active" onclick="showSection('dashboard')">Dashboard</a>
-            <a href="#" class="nav-item" onclick="showSection('supplier')">Supplier</a>
-            <a href="#" class="nav-item" onclick="showSection('inventory')">Inventory</a>
-            <a href="#" class="nav-item" onclick="showSection('sales')">Sales</a>
-            <a href="#" class="nav-item" onclick="showSection('customer-orders')">Customer Order</a>
-            <a href="#" class="nav-item" onclick="showSection('personnel')">Personnel</a>
-            <a href="#" class="nav-item" onclick="showSection('reports')">Reports</a>
-            <a href="#" class="nav-item" onclick="showSection('setting')">Setting</a>
-        </div>
-    </div>
-    <!-- Main Content (ADMIN MAIN CONTENT) -->
-    <div class="main-content">
-        <!-- Dashboard Section (ADMIN DASHBOARD SECTION) -->
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
         <div id="dashboard-section" class="content-section active">
             <div class="header">
                 <h1>DASHBOARD</h1>
@@ -65,10 +40,7 @@
                     <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
                 </div>
             </div>
-<<<<<<< HEAD
 
-=======
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
             <div class="dashboard-cards">
                 <!-- Critical Stock Card -->
                 <div class="card">
@@ -434,7 +406,6 @@
                                 <th>ID</th>
                                 <th>Product Name</th>
                                 <th>Product Code</th>
-<<<<<<< HEAD
                                 <th>Category</th>
                                 <th>Cost Price</th>
                                 <th>Selling Price</th>
@@ -443,29 +414,11 @@
                                 <th>Max Order</th>
                                 <th>Supplier</th>
                                 <th>Last Updated</th>
-=======
-                                <th>Category ID</th>
-                                <th>Category Name</th>
-                                <th>Cost Price</th>
-                                <th>Selling Price</th>
-                                <th>Reorder Level</th>
-                                <th>Stock Quantity</th>
-                                <th>Min Order</th>
-                                <th>Max Order</th>
-                                <th>Last Updated</th>
-                                <th>Supplier Name</th>
-                                <th>Supplier Price</th>
-                                <th>Available Stock</th>
-                                <th>Min Supplier Order</th>
-                                <th>Max Supplier Order</th>
-                                <th>Supplier Update Date</th>
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-<<<<<<< HEAD
                                 <td>36</td>
                                 <td>SF-1020 - Speed master high-speed machine</td>
                                 <td>SH-020</td>
@@ -477,51 +430,6 @@
                                 <td>8</td>
                                 <td>Shunfa</td>
                                 <td>2025-03-10 20:45:43</td>
-=======
-                                <td>35</td>
-                                <td>SF-5550 - Single needle high-speed machine</td>
-                                <td>SH-001</td>
-                                <td>4</td> 
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>1</td>
-                                <td>50</td>
-                                <td>10</td>
-                                <td>5</td>
-                                <td>2025-03-10 21:40:45</td>
-                                <td>Shunfa</td>
-                                <td>₱1500.00</td>
-                                <td>8</td>
-                                <td>10</td>
-                                <td>5</td>
-                                <td>2025-03-10 21:33:08</td>
-                                <td>
-                                    <button class="edit-btn">Edit</button>
-                                    <button class="delete-btn">Delete</button>
-                                    <button class="contact-btn">Contact Supplier</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>36</td>
-                                <td>SF-562-O2BB - Piping machine</td>
-                                <td>SH-002</td>
-                                <td>4</td> 
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>1</td>
-                                <td>8</td>
-                                <td>10</td>
-                                <td>5</td>
-                                <td>2025-03-10 21:40:45</td>
-                                <td>Shunfa</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
                                 <td>
                                     <button class="edit-btn">Edit</button>
                                     <button class="delete-btn">Delete</button>
@@ -530,7 +438,6 @@
                             </tr>
                             <tr>
                                 <td>37</td>
-<<<<<<< HEAD
                                 <td>SF-562 - Button hole machine</td>
                                 <td>SH-023</td>
                                 <td>Industrial Machines</td>
@@ -541,50 +448,6 @@
                                 <td>2</td>
                                 <td>Shunfa</td>
                                 <td>2025-03-10 20:45:43</td>
-=======
-                                <td>SF-562-O2BB - Piping machine</td>
-                                <td>SH-003</td>
-                                <td>4</td> 
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>1</td>
-                                <td>8</td>
-                                <td>10</td>
-                                <td>5</td>
-                                <td>2025-03-10 21:40:45</td>
-                                <td>Shunfa</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>
-                                    <button class="edit-btn">Edit</button>
-                                    <button class="delete-btn">Delete</button>
-                                    <button class="contact-btn">Contact Supplier</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>37</td>
-                                <td>SF-372 Buttonsew machine</td>
-                                <td>SH-003</td>
-                                <td>4</td> 
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>1</td>
-                                <td>5</td>
-                                <td>5</td>
-                                <td>2</td>
-                                <td>2025-03-10 21:40:45</td>
-                                <td>Shunfa</td>
-                                <td>₱2,000.00</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
                                 <td>
                                     <button class="edit-btn">Edit</button>
                                     <button class="delete-btn">Delete</button>
@@ -593,7 +456,6 @@
                             </tr>
                             <tr>
                                 <td>38</td>
-<<<<<<< HEAD
                                 <td>SF-781 - Button holder machine</td>
                                 <td>SH-004</td>
                                 <td>Industrial Machines</td>
@@ -640,25 +502,6 @@
                                 <td>10</td>
                                 <td>Shunfa</td>
                                 <td>2025-03-10 20:45:43</td>
-=======
-                                <td>SF-781 - Buttonholler machine</td>
-                                <td>SH-004</td>
-                                <td>4</td> 
-                                <td>Industrial Machines</td>
-                                <td>₱0.00</td>
-                                <td>₱0.00</td>
-                                <td>1</td>
-                                <td>2</td>
-                                <td>5</td>
-                                <td>2</td>
-                                <td>2025-03-10 21:40:45</td>
-                                <td>Shunfa</td>
-                                <td>₱2,500.00</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
                                 <td>
                                     <button class="edit-btn">Edit</button>
                                     <button class="delete-btn">Delete</button>
@@ -671,7 +514,6 @@
             </div>
         </div>
 
-<<<<<<< HEAD
         <!-- Settings Section -->
         <div id="setting-section" class="content-section">
             <div class="header">
@@ -876,578 +718,6 @@
                 }
             });
         });
-=======
-         <!-- Sales Section -->
-        <div id="sales-section" class="content-section">
-            <div class="header">
-              <h1>SALES MANAGEMENT</h1>
-              <div class="user-profile">
-                <span>ADMIN</span>
-                <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-              </div>
-            </div>
-            <div class="dashboard-cards">
-              <div class="card">
-                <div class="filter-section">
-                  <div class="filter-group">
-                    <label>Filter by Date:</label>
-                    <input type="date" class="date-input" value="2025-04-09">
-                  </div>
-                  <div class="filter-group">
-                    <label>Filter by Status:</label>
-                    <select class="filter-select">
-                      <option value="">All Status</option>
-                      <option value="paid">Paid</option>
-                      <option value="pending">Pending</option>
-                      <option value="to-ship">To Ship</option>
-                      <option value="to-receive">To Receive</option>
-                    </select>
-                  </div>
-                  <div class="filter-group">
-                    <label>Filter by Customer:</label>
-                    <select class="filter-select">
-                      <option value="">All Customers</option>
-                    </select>
-                  </div>
-                  <div class="filter-buttons">
-                    <button class="filter-btn">Apply Filters</button>
-                    <button class="add-btn">New Sale</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <table class="table sales-table">
-                  <thead>
-                    <tr>
-                      <th>Sale ID</th>
-                      <th>Customer</th>
-                      <th>Item</th>
-                      <th>Quantity</th>
-                      <th>Total Amount</th>
-                      <th>Payment Method</th>
-                      <th>Payment Ref #</th>
-                      <th>Delivery Ref #</th>
-                      <th>Order Status</th>
-                      <th>Date</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>1</td>
-                      <td>Sunghoon Park</td>
-                      <td>• BI835-012-000-Positioning finger</td>
-                      <td>1</td>
-                      <td>₱850.00</td>
-                      <td>GCash</td>
-                      <td>GC123456</td>
-                      <td>Pending</td>
-                      <td>Pending</td>
-                      <td>2025-03-08 16:00:00</td>
-                      <td>
-                        <button class="accept-btn">Accept</button>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tbody>
-                    <tr>
-                      <td>2</td>
-                      <td>Minji Kim</td>
-                      <td>• SF-747-4 threads overlock machine</td>
-                      <td>4</td>
-                      <td>₱475.00</td>
-                      <td>Bank</td>
-                      <td>BN847561</td>
-                      <td>Pending</td>
-                      <td>Pending</td>
-                      <td>2025-03-07 09:00:00</td>
-                      <td>
-                        <button class="accept-btn">Accept</button>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tbody>
-                    <tr>
-                      <td>3</td>
-                      <td>Lee Jihoon</td>
-                      <td>• SF-372 Buttonsew machine</td>
-                      <td>3</td>
-                      <td>₱440.00</td>
-                      <td>GCash</td>
-                      <td>GC675432</td>
-                      <td>DL789003</td>
-                      <td>To Ship</td>
-                      <td>2025-03-05 14:30:00</td>
-                      <td>
-                        <button class="accept-btn">Accept</button>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tbody>
-                    <tr>
-                      <td>4</td>
-                      <td>Sunghoon Park</td>
-                      <td>• B1917-012-000-Bobbin case <br>• BI837-012-000-Bobbin </br> </td>
-                      <td>5</td>
-                      <td>₱1,180.00</td>
-                      <td>Bank</td>
-                      <td>BN284931</td>
-                      <td>DL789004</td>
-                      <td>Cancelled</td>
-                      <td>2025-03-04 11:00:00</td>
-                      <td>
-                        <button class="accept-btn">Accept</button>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-  
-          <!-- Customer Orders Section -->
-          <div id="customer-orders-section" class="content-section">
-            <div class="header">
-              <h1>CUSTOMER ORDERS</h1>
-              <div class="user-profile">
-                <span>ADMIN</span>
-                <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-              </div>
-            </div>
-            <div class="dashboard-cards">
-              <div class="card">
-                <div class="filter-section">
-                  <div class="filter-group">
-                    <label>Filter by Status:</label>
-                    <select class="filter-select">
-                      <option value="">All Status</option>
-                      <option value="paid">Paid</option>
-                      <option value="pending">Pending</option>
-                      <option value="to-ship">To Ship</option>
-                      <option value="to-receive">To Receive</option>
-                    </select>
-                  </div>
-                  <div class="filter-group">
-                    <label>Filter by Customer:</label>
-                    <select class="filter-select">
-                      <option value="">All Customers</option>
-                    </select>
-                  </div>
-                  <div class="filter-group">
-                    <label>Date Range:</label>
-                    <input type="date" class="date-input" value="2025-04-09">
-                  </div>
-                  <div class="filter-buttons">
-                    <button class="filter-btn">Apply Filters</button>
-                    <button class="add-btn">New Order</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <table class="table">
-                  <thead>
-                    <tr>
-                      <th>Order ID</th>
-                      <th>Customer Name</th>
-                      <th>Item ID</th>
-                      <th>Product Name</th>
-                      <th>Quantity</th>
-                      <th>Amount</th>
-                      <th>MOP</th>
-                      <th>Payment Reference Number</th>
-                      <th>Delivery Reference Number</th>
-                      <th>Order Status</th>
-                      <th>Order Date</th>
-                      <th>Customer Issue</th>
-                      <th>Message</th>
-                      <th>Feedback</th>
-                      <th>Rate</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>ORD-001</td>
-                      <td>Sunghoon Park</td>
-                      <td>SM-3000</td>
-                      <td>•Positioning finger<br>•Button hole machine</td>
-                      <td>x1, x2</td>
-                      <td>₱1,750.00</td>
-                      <td>Gcash</td>
-                      <td>PAY12345</td>
-                      <td>REF12345</td>
-                      <td><span class="status-cell status-completed">Completed</span></td>
-                      <td>2025-03-08</td>
-                      <td></td>
-                      <td></td>
-                      <td>Exellent quality, Fast delivery</td>
-                      <td> 5 ★</td>
-                      <td>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Cancel</button>
-                      </td>
-                    </tr>
-                    <tr>
-                        <td>ORD-002</td>
-                        <td>Maria Lopez</td>
-                        <td>FAB-COT-001</td>
-                        <td>•Button hole machine</td>
-                        <td>x5</td>
-                        <td>₱1,200.00</td>
-                        <td>Bank</td>
-                        <td>PAY54231</td>
-                        <td>REF09876</td>
-                        <td><span class="status-cell status-pending">Pending</span></td>
-                        <td>2025-03-08</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                          <button class="edit-btn">Edit</button>
-                          <button class="delete-btn">Cancel</button>
-                        </td>
-                    </tr>
-                    <td>ORD-003</td>
-                      <td>John Doe</td>
-                      <td>SM-2000</td>
-                      <td>•Positioning finger</td>
-                      <td>x1</td>
-                      <td>₱25,000.00</td>
-                      <td>COD</td>
-                      <td>PAY22556</td>
-                      <td>REF66552</td>
-                      <td><span class="status-cell status-completed">Completed</span></td>
-                      <td>2025-03-08</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Cancel</button>
-                      </td>
-                      </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Personnel Section -->
-          <div id="personnel-section" class="content-section">
-            <div class="header">
-              <h1>PERSONNEL MANAGEMENT</h1>
-              <div class="user-profile">
-                <span>ADMIN</span>
-                <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-              </div>
-            </div>
-            <div class="personnel-actions">
-              <a href="#" class="personnel-add-btn">Add Personnel</a>
-              <a href="#" class="personnel-edit-btn">Edit Personnel</a>
-              <a href="#" class="personnel-delete-btn">Delete Personnel</a>
-            </div>
-            <div class="dashboard-cards">
-              <div class="card">
-                <div class="filter-section">
-                  <div class="filter-group">
-                    <label>Role</label>
-                    <select class="filter-select">
-                      <option>All Roles</option>
-                      <option>Admin</option>
-                      <option>Staff</option>
-                    </select>
-                  </div>
-                  <div class="filter-group">
-                    <label>Status</label>
-                    <select class="filter-select">
-                      <option>All Status</option>
-                      <option>Active</option>
-                      <option>Inactive</option>
-                    </select>
-                  </div>
-                  <div class="filter-buttons">
-                    <button class="personnel-filter-btn">Apply Filters</button>
-                    <button class="personnel-reset-btn">Reset</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <table class="personnel-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Name</th>
-                      <th>Password</th>
-                      <th>Role</th>
-                      <th>Status</th>
-                      <th>Last Login</th>
-                      <th>Email</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>1</td>
-                      <td>Jerriehl Pontino</td>
-                      <td>*******</td>
-                      <td>Admin</td>
-                      <td class="personnel-status-active">Active</td>
-                      <td>2025-04-08 01:04PM</td>
-                      <td>johnjerriehp@gmail.com</td>
-                    </tr>
-                    <tr>
-                      <td>2</td>
-                      <td>Ariane Sudaria</td>
-                      <td>*******</td>
-                      <td>Admin</td>
-                      <td class="personnel-status-active">Active</td>
-                      <td>2025-04-09 03:30PM</td>
-                      <td>ariensudaria@gmail.com</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <div class="pagination">
-                  <button class="page-btn">Previous</button>
-                  <span>Page 1 of 1</span>
-                  <button class="page-btn">Next</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Reports Section -->
-          <div id="reports-section" class="content-section">
-            <div class="header">
-              <h1>REPORTS MANAGEMENT</h1>
-              <div class="user-profile">
-                <span>ADMIN</span>
-                <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-              </div>
-            </div>
-            <div class="reports-actions">
-              <button class="reports-generate-btn">Generate Report</button>
-              <button class="reports-reset-btn">Reset</button>
-            </div>
-            <div class="reports-cards">
-              <div class="card">
-                <div class="reports-filter-section">
-                  <div class="report-filter-group">
-                    <label>Report Type</label>
-                    <select class="filter-select">
-                      <option>Select Report Type</option>
-                    </select>
-                  </div>
-                  <div class="report-date-group">
-                    <label>Date Range</label>
-                    <input type="date" class="date-input" value="2025-04-16">
-                    <input type="date" class="date-input" value="2025-04-16">
-                  </div>
-                  <div class="report-frequency-group">
-                    <label>Frequency</label>
-                    <select class="filter-select">
-                      <option>Daily</option>
-                      <option>Weekly</option>
-                      <option>Monthly</option>
-                    </select>
-                  </div>
-                  <div class="report-filter-buttons">
-                    <button class="filter-btn">Apply Filters</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <h2>Report Preview</h2>
-                <div class="reports-dashboard-stats">
-                  <div class="total-stats">
-                    <span>Total Sales</span>
-                    <span class="stats-number">₱158,450.00</span>
-                  </div>
-                  <div class="total-stats">
-                    <span>Total Orders</span>
-                    <span class="stats-number">245</span>
-                  </div>
-                  <div class="total-stats">
-                    <span>Average Order Value</span>
-                    <span class="stats-number">₱646.73</span>
-                  </div>
-                </div>
-                <div class="report-chart-placeholder">
-                  <span>📈 Chart will be displayed here</span>
-                </div>
-                <table class="reports-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Order ID</th>
-                      <th>Customer</th>
-                      <th>Product</th>
-                      <th>Quantity</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>2025-03-08</td>
-                      <td>ORD-001</td>
-                      <td>Sunghoon Park</td>
-                      <td>Positioning finger</td>
-                      <td>1</td>
-                      <td>₱858.88</td>
-                      <td>Completed</td>
-                    </tr>
-                    <tr>
-                      <td>2025-03-07</td>
-                      <td>ORD-002</td>
-                      <td>Minji Kim</td>
-                      <td>Overlock machine</td>
-                      <td>4</td>
-                      <td>₱475.88</td>
-                      <td>To Ship</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Settings Section -->
-          <div id="setting-section" class="content-section">
-            <div class="header">
-              <h1>SETTINGS MANAGEMENT</h1>
-              <div class="user-profile">
-                <span>ADMIN</span>
-                <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-              </div>
-            </div>
-            <div class="dashboard-cards">
-              <div class="card">
-                <h2 class="section-title">PROFILE SETTINGS</h2>
-                <div class="filter-section">
-                  <div class="settings-form">
-                    <div class="filter-group">
-                      <label>Full Name</label>
-                      <input type="text" value="Ariane Regis Sudaria" readonly class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                      <label>Email</label>
-                      <input type="password" value="ari@gmail.com" class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                      <label>Phone Number</label>
-                      <input type="text" value="09123456789" class="filter-input">
-                    </div>
-                    <div class="filter-buttons">
-                      <button class="filter-btn save-btn">Save Changes</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <h2 class="section-title">SECURITY SETTINGS</h2>
-                <div class="filter-section">
-                  <div class="settings-form-second">
-                    <div class="filter-group">
-                      <label>Current Password</label>
-                      <input type="text" value="ADMIN" readonly class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                      <label>New Password</label>
-                      <input type="password" value="******" class="filter-input">
-                    </div>
-                    <div class="filter-group">
-                      <label>Confirm New Password</label>
-                      <input type="password" value="******" class="filter-input">
-                    </div>
-                    <div class="filter-buttons">
-                      <button class="filter-btn save-btn">Save Changes</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-  
-    </div> <!--end of main-content-->
-
-</div> <!--end of admin-dashboard-->
-
-<script>
-// Sidebar navigation: show only the selected section
-function showSection(sectionName) {
-    // Get all nav items and content sections
-    const navItems = document.querySelectorAll('.nav-item');
-    const contentSections = document.querySelectorAll('.content-section');
-
-    // Remove active class from all nav items and sections
-    navItems.forEach(nav => nav.classList.remove('active'));
-    contentSections.forEach(section => section.classList.remove('active'));
-
-    // Add active class to clicked nav item and target section
-    const clickedNav = document.querySelector(`.nav-item[onclick*="${sectionName}"]`);
-    if (clickedNav) clickedNav.classList.add('active');
-    const targetSection = document.getElementById(sectionName + '-section');
-    if (targetSection) targetSection.classList.add('active');
-}
-
-        function showSection(sectionName) {
-            // Get all nav items and content sections
-            const navItems = document.querySelectorAll('.nav-item');
-            const contentSections = document.querySelectorAll('.content-section');
-
-            // Remove active class from all nav items
-            navItems.forEach(nav => nav.classList.remove('active'));
-
-            // Add active class to clicked nav item
-            const clickedNav = document.querySelector(`.nav-item[onclick*="${sectionName}"]`) || 
-                             document.querySelector(`.nav-item:not([onclick]):contains('${sectionName.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}')`);
-            if (clickedNav) {
-                clickedNav.classList.add('active');
-            }
-
-            // Hide all sections
-            contentSections.forEach(section => section.classList.remove('active'));
-
-            // Show the target section
-            const targetSection = document.getElementById(sectionName + '-section');
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-        }
-
-        // Add click event listeners to nav items without onclick attribute
-        document.querySelectorAll('.nav-item:not([onclick])').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const sectionName = item.textContent.trim().toLowerCase().replace(' ', '-');
-                showSection(sectionName);
-            });
-        });
-
-        // Add contains polyfill for older browsers
-        if (!Element.prototype.matches) {
-            Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
-        }
-        if (!Element.prototype.closest) {
-            Element.prototype.closest = function(s) {
-                var el = this;
-                do {
-                    if (el.matches(s)) return el;
-                    el = el.parentElement || el.parentNode;
-                } while (el !== null && el.nodeType === 1);
-                return null;
-            };
-        }
->>>>>>> 2f84426b954e3df8f8de3624525eb3285576594b
     </script>
 </div>
 {% endblock %}
