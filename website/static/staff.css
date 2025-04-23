@@ -1,4 +1,115 @@
 /* ===== COMMON STYLES ===== */
+.content-section { display: none; }
+.content-section.active { display: block; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 0;
+  }
+/* ===== CARDS ===== */
+.card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.dashboard-cards {
+    margin-bottom: 30px;
+}
+
+/* ===== TABLES ===== */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.table th,
+.table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.table th {
+    font-weight: 600;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* ===== FILTERS ===== */
+.filter-section {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-weight: 500;
+    color: #333;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* ===== BUTTONS ===== */
+.btn, .action-btn, .edit-btn, .view-btn, .delete-btn, .save-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.edit-btn {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.view-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.save-btn {
+    background-color: #007bff;
+    color: white;
+}
+
 /* Reset and base styles */
 * {
     margin: 0;
@@ -6,19 +117,127 @@
     box-sizing: border-box;
 }
 
-/* ===== LAYOUT COMPONENTS ===== */
-/* Main Dashboard Layout */
-.dashboard {
+/* ===== STAFF DASHBOARD LAYOUT ===== */
+.staff-dashboard {
     display: flex;
     min-height: 100vh;
-    background-color: rgb(255, 255, 255);
+    background-color: #fff;
     width: 150%;
     position: relative;
     left: 50%;
     transform: translateX(-50%);
 }
 
-/* Main Content Area */
+/* ===== MANAGEMENT CARDS ===== */
+.management-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(21,101,192,0.07);
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    border-left: 4px solid #1976d2;
+    transition: box-shadow 0.2s;
+}
+.management-card:hover {
+    box-shadow: 0 4px 16px rgba(21,101,192,0.15);
+}
+
+/* ===== MANAGEMENT TABLES ===== */
+.management-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+    background: #f2f8fd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.management-table th, .management-table td {
+    padding: 14px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e3f2fd;
+}
+.management-table th {
+    background: #e3f2fd;
+    color: #1976d2;
+    font-weight: 600;
+}
+.management-table tbody tr:hover {
+    background: #eaf4fb;
+}
+
+/* ===== MANAGEMENT BUTTONS ===== */
+.management-btn, .management-card .action-btn {
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-right: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.management-btn:hover, .management-card .action-btn:hover {
+    background: #1565c0;
+}
+
+.management-btn.delete-btn {
+    background: #e53935;
+}
+.management-btn.delete-btn:hover {
+    background: #b71c1c;
+}
+
+.management-btn.edit-btn {
+    background: #ffc107;
+    color: #333;
+}
+.management-btn.edit-btn:hover {
+    background: #ffb300;
+}
+
+.management-btn.save-btn {
+    background: #43a047;
+}
+.management-btn.save-btn:hover {
+    background: #388e3c;
+}
+
+/* ===== MANAGEMENT FILTERS ===== */
+.management-filter-section {
+    display: flex;
+    gap: 18px;
+    padding: 14px 0 18px 0;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+.management-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+.management-filter-group label {
+    font-weight: 500;
+    color: #1976d2;
+}
+.management-filter-select {
+    padding: 7px 10px;
+    border: 1px solid #b3d1f7;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 180px;
+}
+
+/* Section separation for clarity */
+.management-section:not(:last-child) {
+    margin-bottom: 40px;
+    border-bottom: 2px dashed #e3f2fd;
+}
+
+
+/* ===== STAFF MAIN CONTENT AREA ===== */
 .main-content {
     flex: 1;
     padding: 24px;
@@ -27,8 +246,11 @@
     overflow-y: auto;
 }
 
+
+
+
 /* ===== NAVIGATION ===== */
-/* Sidebar Navigation */
+/* ===== STAFF SIDEBAR ===== */
 .sidebar {
     width: 250px;
     background-color: white;
@@ -41,6 +263,7 @@
     top: 0;
     overflow-y: auto;
 }
+
 
 /* Logo Styling */
 .logo {
@@ -60,10 +283,32 @@
     margin: 0 auto;
 }
 
-/* Navigation Menu */
+/* ===== STAFF NAVIGATION MENU ===== */
 .nav-items {
     padding: 0 10px;
     margin-top: 10px;
+}
+
+.nav-item {
+    display: block;
+    padding: 12px 20px;
+    margin: 4px 0;
+    color: #555;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.nav-item:hover {
+    background-color: #e9ecef;
+    color: #007bff;
+}
+
+.nav-item.active {
+    background-color: #e4edff;
+    color: #007bff;
 }
 
 .nav-item {
@@ -346,46 +591,194 @@
 }
 
 /* Form styles */
+/* ==========================================================
+   SETTINGS MANAGEMENT STYLES
+   Styles for settings/profile/security forms and actions
+   ========================================================== */
+/* ===== SETTINGS SECTION ===== */
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.dropdown-container {
+    position: relative;
+    width: 200px;
+}
+
+.dropdown-input {
+    width: 100%;
+    padding: 6px 25px 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+}
+
+.dropdown-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    font-size: 10px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.new-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.edit-btn {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.filter-section {
+    padding: 15px;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+}
+
 .settings-form {
-    max-width: 600px;
+    max-width: 400px;
 }
 
-.form-group {
-    margin-bottom: 20px;
+.filter-group {
+    margin-bottom: 15px;
 }
 
-.form-group label {
+.filter-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #333;
+}
+
+.input-with-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-input {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    width: 100%;
+}
+
+.active-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.active-status input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.active-status label {
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+}
+
+.filter-buttons {
+    margin-top: 20px;
+}
+
+.save-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* Logout Link */
+.logout-link {
+    color: #dc3545;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.logout-link:hover {
+    background-color: #dc3545;
+    color: white;
+    text-decoration: none;
+}
+
+/* ===== FILTER SECTION ===== */
+.filter-section {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.filter-group label {
     font-weight: 500;
     color: #333;
 }
 
-.form-input {
-    width: 100%;
+.filter-select {
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    min-width: 200px;
 }
 
-.form-buttons {
-    margin-top: 30px;
-}
-
-.save-btn {
-    background-color: #1a73e8;
-    color: white;
-    padding: 10px 24px;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.save-btn:hover {
-    background-color: #1557b0;
+.filter-buttons {
+    display: flex;
+    gap: 10px;
 }
 
 .report-summary {
@@ -413,6 +806,62 @@
     font-size: 24px;
     font-weight: bold;
     color: #333;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    color: #5f6368;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #202124;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.cancel-btn {
+    background-color: #fff;
+    color: #5f6368;
+    border: 1px solid #dadce0;
+    padding: 10px 24px;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+    background-color: #f1f3f4;
 }
 
 /* Pagination */
