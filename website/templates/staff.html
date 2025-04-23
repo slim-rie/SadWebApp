@@ -7,5 +7,624 @@
 {% endblock %}
 
 {% block content %}
-<h1>Staff</h1>
+<div class="staff-dashboard">
+    <!-- Sidebar (STAFF SIDEBAR) -->
+    <div class="sidebar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR Logo">
+        </div>
+        <div class="nav-items">
+            <a href="#" class="nav-item active" onclick="showSection('dashboard')">Dashboard</a>
+            <a href="#" class="nav-item" onclick="showSection('inventory')">Inventory</a>
+            <a href="#" class="nav-item" onclick="showSection('sales')">Sales</a>
+            <a href="#" class="nav-item" onclick="showSection('customer-orders')">Customer Order</a>
+            <a href="#" class="nav-item" onclick="showSection('setting')">Settings</a>
+        </div>
+    </div>
+    <!-- Main Content (STAFF MAIN CONTENT) -->
+    <div class="main-content">
+        <!-- Dashboard Section (STAFF DASHBOARD SECTION) -->
+        <div id="dashboard-section" class="content-section active">
+            <div class="header">
+                <h1>DASHBOARD MANAGEMENT</h1>
+                <div class="user-profile">
+                    <span>STAFF</span>
+                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+                </div>
+            </div>
+            <!-- Dashboard Management Actions -->
+<div class="dashboard-cards">
+    <!-- Critical Stock Card -->
+<div class="card">
+    <h2>
+        Critical Stock
+        <div class="total-stocks">
+            <span class="total-stocks-number">6</span>
+            Total of Critical Stocks
+        </div>
+    </h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>PRODUCT ID</th>
+                <th>PRODUCT NAME</th>
+                <th>SUPPLIER</th>
+                <th>CURRENT STOCK</th>
+                <th>ALERT LEVEL</th>
+                <th>CONTACT</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>JH563</td>
+                <td>Portable sewing machine</td>
+                <td>Shunfa</td>
+                <td>3</td>
+                <td class="alert-level">⚠ 10</td>
+                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+            </tr>
+            <tr>
+                <td>B9117-012-000</td>
+                <td>Bobbin case</td>
+                <td>Shunfa</td>
+                <td>5</td>
+                <td class="alert-level">⚠ 15</td>
+                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+            </tr>
+            <tr>
+                <td>59219</td>
+                <td>China Cotton 165 GSM</td>
+                <td>Guifang Manufacturing</td>
+                <td>3</td>
+                <td class="alert-level">⚠ 8</td>
+                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+            </tr>
+            <tr>
+                <td>MO-6700</td>
+                <td>Series Edger Machine</td>
+                <td>Tai-Sing Industrial</td>
+                <td>2</td>
+                <td class="alert-level">⚠ 10</td>
+                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+            </tr>
+            <tr>
+                <td>W582-02BB</td>
+                <td>Piping Machine</td>
+                <td>Tai-Sing Industrial</td>
+                <td>5</td>
+                <td class="alert-level">⚠ 15</td>
+                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+            </tr>
+            <tr>
+                <td>B3421-552-000</td>
+                <td>Presser foot</td>
+                <td>Shunfa</td>
+                <td>3</td>
+                <td class="alert-level">⚠ 8</td>
+                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+   <!-- New Orders Card -->
+ <div class="card">
+    <h2>
+        New Orders
+        <div class="total-orders">
+            <span class="total-orders-number">20</span>
+            Total of New Orders
+        </div>
+    </h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ORDER ID</th>
+                <th>ORDER NUMBER</th>
+                <th>ITEM</th>
+                <th>CUSTOMER NAME</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>59217</td>
+                <td>59217342</td>
+                <td>1</td>
+                <td>Cody Fisher</td>
+            </tr>
+            <tr>
+                <td>59213</td>
+                <td>59217343</td>
+                <td>2</td>
+                <td>Kristin Watson</td>
+            </tr>
+            <tr>
+                <td>59219</td>
+                <td>59217344</td>
+                <td>12</td>
+                <td>Esther Howard</td>
+            </tr>
+            <tr>
+                <td>59220</td>
+                <td>59217345</td>
+                <td>22</td>
+                <td>Jenny Wilson</td>
+            </tr>
+            <tr>
+                <td>59223</td>
+                <td>59217346</td>
+                <td>32</td>
+                <td>John Smith</td>
+            </tr>
+            <tr>
+                <td>592182</td>
+                <td>59217346</td>
+                <td>41</td>
+                <td>Cameron Williamson</td>
+            </tr>
+            <tr>
+                <td>592182</td>
+                <td>59217346</td>
+                <td>41</td>
+                <td>Cameron Williamson</td>
+            </tr>
+            <tr>
+                <td>592182</td>
+                <td>59217347</td>
+                <td>41</td>
+                <td>Cameron Williamson</td>
+            </tr>
+            <tr>
+                <td>592182</td>
+                <td>59217347</td>
+                <td>41</td>
+                <td>Cameron Williamson</td>
+            </tr>
+            <tr>
+                <td>592182</td>
+                <td>59217347</td>
+                <td>44</td>
+                <td>Cameron Williamson</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+    <!-- For Delivery Card -->
+    <div class="card">
+        <h2>
+            For Delivery
+            <div class="total-orders">
+                <span class="total-orders-number">10</span>
+                Orders to Deliver
+            </div>
+        </h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ORDER ID</th>
+                    <th>ORDER NUMBER</th>
+                    <th>ITEM</th>
+                    <th>SHIPPING SERVICE</th>
+                    <th>TRACKING CODE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>59217</td>
+                    <td>59217342</td>
+                    <td>1</td>
+                    <td>Standard</td>
+                    <td>94001001093611300113</td>
+                </tr>
+                <!-- More rows as needed -->
+            </tbody>
+        </table>
+    </div>
+</div>
+        </div>
+        <!-- Inventory Section (STAFF INVENTORY SECTION) -->
+        <div id="inventory-section" class="content-section">
+            <div class="header">
+                <h1>INVENTORY MANAGEMENT</h1>
+                <div class="user-profile">
+                    <span>STAFF</span>
+                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+                </div>
+            </div>
+            <!-- Inventory Management Actions -->
+<div class="dashboard-cards">
+    <!-- Inventory Filter Card -->
+    <div class="card">
+        <div class="filter-section">
+            <div class="filter-group">
+                <label>Filter by Category:</label>
+                <select class="filter-select">
+                    <option value="">Select an option</option>
+                    <option value="industrial">Industrial Machines</option>
+                    <option value="sewing">Sewing Machines</option>
+                    <option value="parts">Machine Parts</option>
+                    <option value="accessories">Accessories</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Filter by Item:</label>
+                <select class="filter-select">
+                    <option value="">Select an option</option>
+                    <option value="sf-1020">SF-1020 - Speed master high-speed machine</option>
+                    <option value="sf-562">SF-562 - Button hole machine</option>
+                    <option value="sf-781">SF-781 - Button holder machine</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Filter by Stock Quantity:</label>
+                <select class="filter-select">
+                    <option value="">Select an option</option>
+                    <option value="out">Out of Stock (0)</option>
+                    <option value="low">Low Stock (1-10)</option>
+                    <option value="medium">Medium Stock (11-50)</option>
+                    <option value="high">High Stock (50+)</option>
+                </select>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn">Filter</button>
+                <button class="add-btn">Add</button>
+            </div>
+        </div>
+    </div>
+    <!-- Inventory List Card -->
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product Name</th>
+                    <th>Product Code</th>
+                    <th>Category Name</th>
+                    <th>Selling Price</th>
+                    <th>Min Order</th>
+                    <th>Max Order</th>
+                    <th>Last Updated</th>
+                    <th>Supplier Name</th>
+                    <th>Available Stock</th>
+                    <th>Stock Status</th>
+                    <th>Status</th>  
+                    <th>Memo</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>35</td>
+                    <td>SF-1020 - Speed master high-speed machine</td>
+                    <td>SH-020</td>
+                    <td>Industrial Machines</td>
+                    <td>₱0.00</td>
+                    <td>10</td>
+                    <td>50</td>
+                    <td>2025-03-10 21:40:4</td>
+                    <td>Shunfa</td>
+                    <td>₱1500.00</td>
+                    <td>8</td>
+                    <td>In Stock</td>
+                    <td>Good</td>
+                    <td></td>
+                    <td>
+                        <button class="edit-btn">Edit</button>
+                        <button class="delete-btn">Delete</button>
+                        <button class="contact-btn">Contact Supplier</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>36</td>
+                    <td>SF-562-02BB-Piping machine</td>
+                    <td>SH-002</td>
+                    <td>Industrial Machines</td>
+                    <td>₱0.00</td>
+                    <td>10</td>
+                    <td>5</td>
+                    <td>2025-03-10 21:40:45</td>
+                    <td>Shunfa</td>
+                    <td>₱1800.00</td>
+                    <td>1</td>
+                    <td>Low Stock</td>
+                    <td>Defective</td>
+                    <td>Needle jam issue</td>
+                    <td>
+                        <button class="edit-btn">Edit</button>
+                        <button class="delete-btn">Delete</button>
+                        <button class="contact-btn">Contact Supplier</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>37</td>
+                    <td>SF-1020 - Speed master high-speed machine</td>
+                    <td>SH-020</td>
+                    <td>Industrial Machines</td>
+                    <td>₱0.00</td>
+                    <td>10</td>
+                    <td>50</td>
+                    <td>2025-03-10 21:40:4</td>
+                    <td>Shunfa</td>
+                    <td>₱1500.00</td>
+                    <td>8</td>
+                    <td>In Stock</td>
+                    <td>Good</td>
+                    <td></td>
+                    <td>
+                        <button class="edit-btn">Edit</button>
+                        <button class="delete-btn">Delete</button>
+                        <button class="contact-btn">Contact Supplier</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>38</td>
+                    <td>SF-372-Buttonsnew machine</td>
+                    <td>SH-003</td>
+                    <td>Industrial Machines</td>
+                    <td>₱0.00</td>
+                    <td>5</td>
+                    <td>2</td>
+                    <td>2025-03-10 21:40:45</td>
+                    <td>Shunfa</td>
+                    <td>₱2000.00</td>
+                    <td>5</td>
+                    <td>In Stock</td>
+                    <td>Good</td>
+                    <td></td>
+                    <td>
+                        <button class="edit-btn">Edit</button>
+                        <button class="delete-btn">Delete</button>
+                        <button class="contact-btn">Contact Supplier</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>39</td>
+                    <td>SF-781 - Buttonholer machine</td>
+                    <td>SH-004</td>
+                    <td>Industrial Machines</td>
+                    <td>₱0.00</td>
+                    <td>2</td>
+                    <td>2</td>
+                    <td>2025-03-10 21:40:45</td>
+                    <td>Shunfa</td>
+                    <td>₱2500.00</td>
+                    <td>3</td>
+                    <td>Low Stock</td>
+                    <td>Return</td>
+                    <td>Returned due size mismatch</td>
+                    <td>
+                        <button class="edit-btn">Edit</button>
+                        <button class="delete-btn">Delete</button>
+                        <button class="contact-btn">Contact Supplier</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>40</td>
+                    <td>SF-8700-High-speed lockstitch machine</td>
+                    <td>SH-005</td>
+                    <td>Industrial Machines</td>
+                    <td>₱0.00</td>
+                    <td>20</td>
+                    <td>10</td>
+                    <td>2025-03-10 21:40:45</td>
+                    <td>Shunfa</td>
+                    <td>₱3000.00</td>
+                    <td>10</td>
+                    <td>In Stock</td>
+                    <td>Good</td>
+                    <td></td>
+                    <td>
+                        <button class="edit-btn">Edit</button>
+                        <button class="delete-btn">Delete</button>
+                        <button class="contact-btn">Contact Supplier</button>
+                    </td>
+                </tr>
+                <!-- More rows as needed -->
+            </tbody>
+        </table>
+    </div>
+</div>
+        </div>
+        <!-- Sales Section (STAFF SALES SECTION) -->
+        <div id="sales-section" class="content-section">
+            <div class="header">
+                <h1>SALES MANAGEMENT</h1>
+                <div class="user-profile">
+                    <span>STAFF</span>
+                    <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+                </div>
+            </div>
+            <!-- Sales Management Actions -->
+<div class="dashboard-cards">
+    <!-- Sales Filter Card -->
+    <div class="card">
+        <div class="filter-section">
+            <div class="filter-group">
+                <label>Filter by Date:</label>
+                <input type="date" class="filter-date" />
+            </div>
+            <div class="filter-group">
+                <label>Filter by Status:</label>
+                <select class="filter-select">
+                    <option value="">All</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn">Filter</button>
+            </div>
+        </div>
+    </div>
+    <!-- Sales List Card -->
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Sale ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1001</td>
+                    <td>2024-06-01</td>
+                    <td>Cody Fisher</td>
+                    <td>₱10,000</td>
+                    <td>Completed</td>
+                    <td><button class="view-btn">View</button></td>
+                </tr>
+                <!-- More rows as needed -->
+            </tbody>
+        </table>
+    </div>
+</div>
+        </div>
+        <!-- Customer Order Section (STAFF CUSTOMER ORDER SECTION) -->
+<div id="customer-orders-section" class="content-section">
+    <div class="header">
+        <h1>CUSTOMER ORDERS MANAGEMENT</h1>
+        <div class="user-profile">
+            <span>STAFF</span>
+            <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+        </div>
+    </div>
+    <!-- Customer Orders Management Actions -->
+<div class="dashboard-cards">
+<div class="card">
+<table class="table">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Products</th>
+            <th>Total Amount</th>
+            <th>Payment Status</th>
+            <th>Order Status</th>
+            <th>Order Date</th>
+            <th>Customer Issue</th>
+            <th>Message</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>ORD-001</td>
+            <td>Sunghoon Park</td>
+            <td>
+                <ul>
+                    <li>Positioning finger (x1)</li>
+                    <li>Button hole machine (x2)</li>
+                </ul>
+            </td>
+            <td>₱1,750.00</td>
+            <td class="paid">Paid</td>
+            <td class="to-ship">To Ship</td>
+            <td>2025-03-08</td>
+            <td>
+                <button class="view-btn">View</button>
+                <button class="edit-btn">Edit</button>
+                <button class="cancel-btn">Cancel</button>
+            </td>
+        </tr>
+        <tbody>
+            <tr>
+                <td>ORD-002</td>
+                <td>Minji Kim</td>
+                <td>
+                    <ul>
+                        <li>Overlock machine (x4)</li>
+                    </ul>
+                </td>
+                <td>₱1,900.00</td>
+                <td class="pending">Pending</td>
+                <td class="to-receive">To Receive</td>
+                <td>2025-03-07</td>
+                <td>
+                    <button class="view-btn">View</button>
+                    <button class="edit-btn">Edit</button>
+                    <button class="cancel-btn">Cancel</button>
+                </td>               
+            </tr>
+            </thead>
+    </tbody>
+</table>
+</div>
+</div>
+        </div>
+        <!-- Settings Section (STAFF SETTINGS SECTION) -->
+        <div id="setting-section" class="content-section">
+            <div class="header">
+              <h1>SETTINGS MANAGEMENT</h1>
+              <div class="user-profile">
+                <span>STAFF</span>
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+              </div>
+            </div>
+            <div class="dashboard-cards">
+              <div class="card">
+                <h2 class="section-title">PROFILE SETTINGS</h2>
+                <div class="filter-section">
+                  <div class="settings-form">
+                    <div class="filter-group">
+                      <label>Full Name</label>
+                      <input type="text" value="Ariane Regis Sudaria" readonly class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                      <label>Email</label>
+                      <input type="password" value="ari@gmail.com" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                      <label>Phone Number</label>
+                      <input type="text" value="09123456789" class="filter-input">
+                    </div>
+                    <div class="filter-buttons">
+                      <button class="filter-btn save-btn">Save Changes</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <h2 class="section-title">SECURITY SETTINGS</h2>
+                <div class="settings-header-second"></div>
+                <div class="filter-section">
+                  <div class="settings-form-second">
+                    <div class="filter-group">
+                      <label>Current Password</label>
+                      <input type="password" value="******" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                      <label>New Password</label>
+                      <input type="password" value="******" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                      <label>Confirm New Password</label>
+                      <input type="password" value="******" class="filter-input">
+                    </div>
+                    <div class="filter-buttons">
+                      <button class="filter-btn save-btn">Save Changes</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+</div>
+<script>
+// Sidebar navigation for staff
+function showSection(sectionName) {
+    const navItems = document.querySelectorAll('.nav-item');
+    const contentSections = document.querySelectorAll('.content-section');
+    navItems.forEach(nav => nav.classList.remove('active'));
+    contentSections.forEach(section => section.classList.remove('active'));
+    const clickedNav = document.querySelector(`.nav-item[onclick*="${sectionName}"]`);
+    if (clickedNav) clickedNav.classList.add('active');
+    const targetSection = document.getElementById(sectionName + '-section');
+    if (targetSection) targetSection.classList.add('active');
+}
+</script>
 {% endblock %}
