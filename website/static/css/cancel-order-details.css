@@ -1,0 +1,150 @@
+.account-content {
+    padding: 20px;
+    background-color: #fff; 
+    border-radius: 8px;
+}
+
+.account-wrapper {
+    display: flex;
+    box-shadow: none; 
+}
+
+.header {
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.back-button a {
+    display: flex;
+    align-items: center;
+    color: #666;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.back-button a i {
+    margin-right: 5px;
+}
+
+.requested-date {
+    color: #888;
+    font-size: 14px;
+}
+
+.cancellation-header {
+    padding: 25px 20px;
+    background-color: #f5f5f5; 
+    border-bottom: 1px solid #eee;
+}
+
+.cancellation-title {
+    color: #ff4d4f;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.cancellation-date {
+    color: #888;
+    font-size: 14px;
+}
+
+.cancelled-product {
+    padding: 20px;
+    display: flex;
+    border-bottom: 1px solid #eee;
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    margin-right: 15px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-details {
+    flex-grow: 1;
+}
+
+.product-name {
+    font-size: 15px;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.product-variation, .product-quantity {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 3px;
+}
+
+.product-price {
+    width: 120px;
+    text-align: right;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #888;
+    font-size: 14px;
+}
+
+.discounted-price {
+    color: #ff4d4f;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.order-info {
+    padding: 15px 20px;
+    background-color: #fafafa;
+    border-bottom: 1px solid #eee;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.info-label {
+    color: #888;
+}
+
+.info-value {
+    font-weight: 500;
+}
+
+.order-id {
+    color: #1890ff;
+}
+
+.cancellation-reason {
+    padding: 20px;
+    background-color: #fff;
+}
+
+.cancellation-reason h4 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.cancellation-reason p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #666;
+}

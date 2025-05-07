@@ -1,51 +1,458 @@
-{% extends "auth_base.html" %} {% block title %}Supplier{% endblock %}{% block
-content%} {% block head %}
-<link
-  rel="stylesheet"
-  href="{{ url_for('static', filename='supplier.css') }}"
-/>
-{% endblock %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Supplier</title>
-  </head>
-  <body>
-    <header>
-      <h1>Supplier Stock Management</h1>
-      <a href="{{ url_for('auth.logout') }}" class="logout-button">Logout</a>
-    </header>
-    <main>
-      <section class="request">
-        <h2>Supply Request</h2>
-        <div class="item">
-          <section class="supply-info">
-            <p>Item Requested: <strong>Fabric</strong></p>
-            <p>Quantity Requested: <strong>50</strong></p>
-          </section>
-          <div class="button-container">
-            <button class="accept">Accept</button>
-            <button class="reject">Reject</button>
-          </div>
+<head> <!-- revert back if something wrong. 2 times-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Stock Requests - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+        }
+        
+        /* Sidebar styling */
+        .sidebar {
+            width: 180px;
+            background-color: white;
+            height: 100vh;
+            padding: 20px 0;
+            border-right: 1px solid #e0e0e0;
+            position: fixed;
+        }
+        
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 20px;
+        }
+        
+        .logo img {
+            width: 80px;
+        }
+        
+        .nav-menu {
+            list-style: none;
+        }
+        
+        .nav-menu li {
+            padding: 12px 20px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        
+        .nav-menu li:hover {
+            background-color: #f8f8f8;
+        }
+        
+        .nav-menu li.active {
+            background-color: #e6f0ff;
+            color: #1a73e8;
+            border-left: 3px solid #1a73e8;
+        }
+        
+        /* Main content styling */
+        .main-content {
+            margin-left: 180px;
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-actions a {
+            text-decoration: none;
+        }
+        
+        /* Filter section */
+        .filter-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        
+        .filter-group {
+            flex: 1;
+        }
+        
+        .filter-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: #34a853;
+            color: white;
+        }
+        
+        /* Table styling */
+        .data-table {
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 15px;
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: bold;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .status-approved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-rejected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .status-to-ship {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        
+        .btn-approve {
+            background-color: #34a853;
+            color: white;
+        }
+        
+        .btn-reject {
+            background-color: #ea4335;
+            color: white;
+        }
+        
+        .btn-view {
+            background-color: #f1f3f4;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="images/logo.ico" alt="JBR Tanching C.O Logo">
         </div>
-      </section>
-      <br />
-      <section class="request">
-        <h2>Supply Request</h2>
-        <div class="item">
-          <section class="supply-info">
-            <p>Item Requested: <strong>Fabric</strong></p>
-            <p>Quantity Requested: <strong>50</strong></p>
-          </section>
-          <div class="button-container">
-            <button class="accept">Accept</button>
-            <button class="reject">Reject</button>
-          </div>
+        <ul class="nav-menu">
+            <li>Dashboard</li>
+            <li class="active">Request Managemet</li>
+            <li>Delivery Status</li>
+            <li>Reports</li>
+            <li>Settings</li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">STOCK REQUESTS</h1>
+            <div class="header-actions">
+                <span>SUPPLIER</span>
+                <a href="logout.html">Logout</a>
+            </div>
         </div>
-      </section>
-    </main>
-  </body>
+        
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="status">Filter by Status:</label>
+                    <select id="status">
+                        <option>All Status</option>
+                        <option>Pending</option>
+                        <option>Approved</option>
+                        <option>Rejected</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="supplier">Filter by Supplier:</label>
+                    <select id="supplier">
+                        <option>All Suppliers</option>
+                        <option>Fabric World Inc.</option>
+                        <option>MachineWorks Supply</option>
+                        <option>ThreadMaster Co.</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Date Range:</label>
+                    <input type="date" value="2025-04-23">
+                </div>
+                
+                <div class="filter-buttons">
+                    <button class="btn btn-primary">Apply Filters</button>
+                    <button class="btn btn-success">New Request</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Supplier</th>
+                        <th>Products</th>
+                        <th>Total Amount</th>
+                        <th>Payment Terms</th>
+                        <th>Request Status</th>
+                        <th>Request Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>REQ-001</td>
+                        <td>Fabric World Inc.</td>
+                        <td>
+                            <ul>
+                                <li>Cotton Fabric (50m)</li>
+                                <li>Silk Fabric (20m)</li>
+                            </ul>
+                        </td>
+                        <td>₱15,750.00</td>
+                        <td>Net 30</td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                        <td>2025-04-22</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-view">View</button>
+                                <button class="btn btn-sm btn-approve">Accept</button>
+                                <button class="btn btn-sm btn-reject">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>REQ-002</td>
+                        <td>MachineWorks Supply</td>
+                        <td>
+                            <ul>
+                                <li>Sewing Needles (100 pcs)</li>
+                                <li>Machine Oil (5L)</li>
+                            </ul>
+                        </td>
+                        <td>₱8,900.00</td>
+                        <td>Cash on Delivery</td>
+                        <td><span class="status-badge status-approved">Approved</span></td>
+                        <td>2025-04-21</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-view">View</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>REQ-003</td>
+                        <td>ThreadMaster Co.</td>
+                        <td>
+                            <ul>
+                                <li>Polyester Thread (200 spools)</li>
+                                <li>Cotton Thread (150 spools)</li>
+                            </ul>
+                        </td>
+                        <td>₱12,450.00</td>
+                        <td>Net 15</td>
+                        <td><span class="status-badge status-rejected">Rejected</span></td>
+                        <td>2025-04-20</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-view">View</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>REQ-004</td>
+                        <td>Fabric World Inc.</td>
+                        <td>
+                            <ul>
+                                <li>Denim Fabric (100m)</li>
+                                <li>Linen Fabric (50m)</li>
+                            </ul>
+                        </td>
+                        <td>₱24,500.00</td>
+                        <td>Net 30</td>
+                        <td><span class="status-badge status-to-ship">To Ship</span></td>
+                        <td>2025-04-19</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-view">View</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click event listeners to all approve buttons
+            const approveButtons = document.querySelectorAll('.btn-approve');
+            approveButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to accept this stock request?')) {
+                        // Get the closest row to find the request ID
+                        const row = this.closest('tr');
+                        const requestId = row.querySelector('td:first-child').textContent;
+                        
+                        // Find the status cell and update it
+                        const statusCell = row.querySelector('.status-badge');
+                        statusCell.textContent = 'Approved';
+                        statusCell.className = 'status-badge status-approved';
+                        
+                        // Remove approve and reject buttons, keep only view
+                        const actionCell = row.querySelector('.action-buttons');
+                        actionCell.innerHTML = '<button class="btn btn-sm btn-view">View</button>';
+                        
+                        alert(`Stock request ${requestId} has been approved successfully!`);
+                    }
+                });
+            });
+            
+            // Add click event listeners to all reject buttons
+            const rejectButtons = document.querySelectorAll('.btn-reject');
+            rejectButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const reason = prompt('Please provide a reason for rejecting this request:');
+                    if (reason) {
+                        // Get the closest row to find the request ID
+                        const row = this.closest('tr');
+                        const requestId = row.querySelector('td:first-child').textContent;
+                        
+                        // Find the status cell and update it
+                        const statusCell = row.querySelector('.status-badge');
+                        statusCell.textContent = 'Rejected';
+                        statusCell.className = 'status-badge status-rejected';
+                        
+                        // Remove approve and reject buttons, keep only view
+                        const actionCell = row.querySelector('.action-buttons');
+                        actionCell.innerHTML = '<button class="btn btn-sm btn-view">View</button>';
+                        
+                        alert(`Stock request ${requestId} has been rejected successfully!`);
+                    }
+                });
+            });
+            
+            // Add click event listeners to all view buttons
+            const viewButtons = document.querySelectorAll('.btn-view');
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Get the closest row to find the request ID
+                    const row = this.closest('tr');
+                    const requestId = row.querySelector('td:first-child').textContent;
+                    
+                    alert(`Viewing details for stock request ${requestId}`);
+                    // In a real application, this would open a modal or navigate to a details page
+                });
+            });
+        });
+    </script>
+</body>
 </html>
-{% endblock %}

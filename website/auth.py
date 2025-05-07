@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session, current_app
-from .models import User, CartItem, Product
+from flask import Blueprint, render_template, request, flash, redirect, url_for, session, current_app, jsonify
+from .models import User, CartItem, Product, Address
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -8,6 +8,9 @@ import json
 from requests_oauthlib import OAuth2Session
 from werkzeug.utils import secure_filename
 import uuid
+import re
+from werkzeug.security import generate_password_hash
+from datetime import datetime
 
 auth = Blueprint('auth', __name__)
 
@@ -17,13 +20,13 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
 
 try:
-    from .config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+    from .config import GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL
 except ImportError:
     GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID"
     GOOGLE_CLIENT_SECRET = "YOUR_CLIENT_SECRET"
+    GOOGLE_CALLBACK_URL = "http://127.0.0.1:5000/google-oauth-callback"
 
 # Google OAuth endpoints
-GOOGLE_CALLBACK_URL = "http://127.0.0.1:5000/auth/google-oauth-callback"
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -42,6 +45,21 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def validate_email(email):
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def validate_password(password):
+    if len(password) < 8:
+        return False, 'Password must be at least 8 characters long'
+    if not re.search(r'[A-Z]', password):
+        return False, 'Password must contain at least one uppercase letter'
+    if not re.search(r'[a-z]', password):
+        return False, 'Password must contain at least one lowercase letter'
+    if not re.search(r'\d', password):
+        return False, 'Password must contain at least one number'
+    return True, ''
+
 @auth.route('/')
 def index():
     return redirect(url_for('auth.login'))
@@ -50,30 +68,51 @@ def index():
 @login_required
 def change_password():
     if request.method == 'POST':
-        current_password = request.form.get('current_password')
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_new_password')  
-
-        # Verify current password
+        data = request.get_json() if request.is_json else request.form
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+        
         if not current_user.verify_password(current_password):
-            flash('Current password is incorrect!', category='error')
+            message = 'Current password is incorrect'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
             return render_template('change_password.html')
-
-        # Validate new password
-        if len(new_password) < 7:
-            flash('New password must be at least 7 characters long!', category='error')
-            return render_template('change_password.html')
-
+        
         if new_password != confirm_password:
-            flash('New passwords don\'t match!', category='error')
+            message = 'New passwords do not match'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
             return render_template('change_password.html')
-
-        # Update password in database
-        current_user.password = new_password
-        db.session.commit()
-        flash('Password updated successfully!', category='success')
-        return redirect(url_for('auth.profile'))
-
+        
+        is_valid, message = validate_password(new_password)
+        if not is_valid:
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
+            return render_template('change_password.html')
+        
+        try:
+            current_user.password = new_password
+            db.session.commit()
+            
+            if request.is_json:
+                return jsonify({
+                    'success': True,
+                    'message': 'Password changed successfully',
+                    'redirect': url_for('auth.my_account')
+                })
+            flash('Password changed successfully', 'success')
+            return redirect(url_for('auth.my_account'))
+        except Exception as e:
+            db.session.rollback()
+            message = 'An error occurred while changing your password'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 500
+            flash(message, 'error')
+    
     return render_template('change_password.html')
 
 @auth.route('/add-item')
@@ -130,110 +169,133 @@ def staff():
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    # State before root route changes
     if current_user.is_authenticated:
-        if current_user.role == 'admin':
-            return redirect(url_for('auth.admin'))
-        elif current_user.role == 'staff':
-            return redirect(url_for('auth.staff'))
-        elif current_user.role == 'supplier':
-            return redirect(url_for('auth.supplier'))
-        else:
-            return redirect(url_for('views.home'))
-
+        if request.is_json:
+            return jsonify({'success': True, 'redirect': url_for('views.home')}), 200
+        return redirect(url_for('views.home'))
+    
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        user = User.query.filter_by(email=email).first()
-        if user:
-            if user.verify_password(password):
-                login_user(user, remember=False)
-                flash('Logged in successfully', category='success')
-                next_url = request.args.get('next')
-                if next_url:
-                    return redirect(next_url)
-                # Redirect based on role
-                if user.role == 'admin':
-                    return redirect(url_for('auth.admin'))
-                elif user.role == 'staff':
-                    return redirect(url_for('auth.staff'))
-                elif user.role == 'supplier':
-                    return redirect(url_for('auth.supplier'))
-                else:
-                    return redirect(url_for('views.home'))
-            else:
-                flash('Incorrect password!', category='error')
-        else:
-            flash('Email does not exist', category='error')
-
-    return render_template("login.html", user=current_user)
+        data = request.get_json() if request.is_json else request.form
+        username = data.get('username')
+        password = data.get('password')
+        remember = data.get('remember', False)
+        
+        user = User.query.filter((User.username == username) | (User.email == username)).first()
+        
+        if user and user.verify_password(password):
+            if not user.is_active:
+                if request.is_json:
+                    return jsonify({'success': False, 'message': 'Account is deactivated'}), 403
+                return redirect(url_for('views.home'))
+            
+            login_user(user, remember=remember)
+            user.update_last_login()
+            
+            if request.is_json:
+                return jsonify({
+                    'success': True,
+                    'message': 'Login successful',
+                    'redirect': url_for('views.home')
+                })
+            return redirect(url_for('views.home'))
+        
+        if request.is_json:
+            return jsonify({'success': False, 'message': 'Invalid username or password'}), 401
+        flash('Invalid username or password', 'error')
+    
+    if request.is_json:
+        return jsonify({'success': False, 'message': 'Invalid request'}), 400
+    return redirect(url_for('views.home'))
 
 @auth.route('/logout')
 @login_required
 def logout():
-    # Explicitly clear the session first
-    session.clear()
-    # Then log out the user via Flask-Login
     logout_user()
-    flash('You have been logged out successfully.', 'success') # Updated message
-    # Redirect to login page, forcing external URL generation
-    return redirect(url_for('auth.login', _external=True))
+    return redirect(url_for('views.home'))
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
+    if current_user.is_authenticated:
+        return redirect(url_for('views.home'))
+    
     if request.method == 'POST':
-        email = request.form.get('email')
-        username = request.form.get('username')
-        first_name = request.form.get('first_name')
-        middle_name = request.form.get('middle_name')
-        last_name = request.form.get('last_name')
-        address = request.form.get('address')
-        password1 = request.form.get('password1')
-        password2 = request.form.get('password2')
-        role = request.form.get('role', 'user')
-
-        # Check if email or username already exists
-        email_exists = User.query.filter_by(email=email).first()
-        username_exists = User.query.filter_by(username=username).first()
-
-        if email_exists:
-            flash('Email already exists', category='error')
-        elif username_exists:
-            flash('Username already taken', category='error')
-        elif len(email) < 4:
-            flash('Email must be greater than 3 characters', category='error')
-        elif len(username) < 3:
-            flash('Username must be at least 3 characters', category='error')
-        elif len(first_name) < 2:
-            flash('First name must be greater than 1 character', category='error')
-        elif middle_name and len(middle_name) < 2:
-            flash('Middle name must be greater than 1 character', category='error')
-        elif len(last_name) < 2:
-            flash('Last name must be greater than 1 character', category='error')
-        elif len(address.strip()) < 5:
-            flash('Please enter a valid address', category='error')
-        elif len(password1) < 7:
-            flash('Password must be at least 7 characters', category='error')
-        elif password1 != password2:
-            flash('Passwords don\'t match!', category='error')
-        else:
-            new_user = User(
-                email=email,
-                username=username,
-                first_name=first_name,
-                middle_name=middle_name,
-                last_name=last_name,
-                address=address,
-                password=password1,
-                role=role
-            )
+        data = request.get_json() if request.is_json else request.form
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+        
+        # Validation
+        if not all([username, email, password, confirm_password]):
+            message = 'All fields are required'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
+            return render_template('signup.html')
+        
+        if password != confirm_password:
+            message = 'Passwords do not match'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
+            return render_template('signup.html')
+        
+        if not validate_email(email):
+            message = 'Invalid email format'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
+            return render_template('signup.html')
+        
+        is_valid, message = validate_password(password)
+        if not is_valid:
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
+            return render_template('signup.html')
+        
+        # Check if username or email already exists
+        if User.query.filter_by(username=username).first():
+            message = 'Username already exists'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
+            return render_template('signup.html')
+        
+        if User.query.filter_by(email=email).first():
+            message = 'Email already exists'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 400
+            flash(message, 'error')
+            return render_template('signup.html')
+        
+        # Create new user
+        new_user = User(
+            username=username,
+            email=email,
+            password=password
+        )
+        
+        try:
             db.session.add(new_user)
             db.session.commit()
-            login_user(new_user, remember=False)  # Set remember to False
-            flash('Account created successfully!', category='success')
-            return redirect(url_for('views.home'))
-
-    return render_template("sign_up.html", user=current_user)
+            
+            if request.is_json:
+                return jsonify({
+                    'success': True,
+                    'message': 'Account created successfully',
+                    'redirect': url_for('auth.login')
+                })
+            flash('Account created successfully', 'success')
+            return redirect(url_for('auth.login'))
+        except Exception as e:
+            db.session.rollback()
+            message = 'An error occurred while creating your account'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 500
+            flash(message, 'error')
+    
+    return render_template('signup.html')
 
 @auth.route('/google-oauth-login')
 def google_oauth_login():
@@ -254,6 +316,10 @@ def google_oauth_login():
         }
         
         auth_url = f"{GOOGLE_AUTH_URL}?{'&'.join(f'{k}={v}' for k, v in params.items())}"
+        print('\n=== Google OAuth Login Initiated ===')
+        print(f'Redirect URI being used: {GOOGLE_CALLBACK_URL}')
+        print(f'Full auth URL: {auth_url}')
+        print('='*50 + '\n')
         return redirect(auth_url)
     except Exception as e:
         print(f"Login Error: {str(e)}")
@@ -263,15 +329,26 @@ def google_oauth_login():
 @auth.route('/google-oauth-callback')
 def google_oauth_callback():
     try:
+        print('\n=== Google OAuth Callback Started ===')
+        print(f'Request args: {request.args}')
+        print(f'Session data: {dict(session)}')
+        
         # Verify state
         state = session.get('oauth_state')
-        if not state or state != request.args.get('state'):
+        request_state = request.args.get('state')
+        print(f'State verification - Session state: {state}, Request state: {request_state}')
+        
+        if not state or state != request_state:
+            print('[Google OAuth] Invalid state')
             flash('Invalid state parameter', category='error')
             return redirect(url_for('auth.login'))
 
         # Get authorization code
         code = request.args.get('code')
+        print(f'Authorization code received: {code[:10]}...' if code else 'No code received')
+        
         if not code:
+            print('[Google OAuth] No code received')
             flash('No authorization code received', category='error')
             return redirect(url_for('auth.login'))
 
@@ -284,60 +361,84 @@ def google_oauth_callback():
             'grant_type': 'authorization_code'
         }
         
+        print('Attempting to exchange code for token...')
         token_response = requests.post(GOOGLE_TOKEN_URL, data=token_data)
+        print(f'Token response status: {token_response.status_code}')
+        
         if not token_response.ok:
-            print(f"Token Error: {token_response.text}")
+            print(f"[Google OAuth] Token Error: {token_response.text}")
             flash('Failed to get access token', category='error')
             return redirect(url_for('auth.login'))
 
         access_token = token_response.json().get('access_token')
+        print(f'Access token received: {access_token[:10]}...')
         
         # Get user info
         headers = {'Authorization': f'Bearer {access_token}'}
+        print('Fetching user info from Google...')
         userinfo_response = requests.get(GOOGLE_USERINFO_URL, headers=headers)
+        print(f'Userinfo response status: {userinfo_response.status_code}')
         
         if not userinfo_response.ok:
-            print(f"Userinfo Error: {userinfo_response.text}")
+            print(f"[Google OAuth] Userinfo Error: {userinfo_response.text}")
             flash('Failed to get user info', category='error')
             return redirect(url_for('auth.login'))
 
         userinfo = userinfo_response.json()
+        print(f'User info received: {userinfo}')
+        
         email = userinfo.get('email')
+        print(f'Email from userinfo: {email}')
         
         if not email:
+            print('[Google OAuth] No email in userinfo')
             flash('Could not get email from Google', category='error')
             return redirect(url_for('auth.login'))
 
         # Create or get user
         user = User.query.filter_by(email=email).first()
+        print(f'Existing user found: {user is not None}')
+        
         if not user:
+            print('Creating new user...')
             username = email.split('@')[0] + str(uuid.uuid4())[:8]
-            # Create user instance without setting password
+            profile_image_url = userinfo.get('picture', None)
             user = User(
                 email=email,
                 username=username,
                 first_name=userinfo.get('given_name', ''),
                 middle_name='',
                 last_name=userinfo.get('family_name', ''),
-                role='user',
-                address='Please update your address'
+                role='customer',
+                address='Please update your address',
+                profile_image=profile_image_url
             )
-            # Set password field directly to avoid hashing None
             user._password = None
             db.session.add(user)
             db.session.commit()
+            print(f'New user created: {user.email}, id={user.user_id}, role={user.role}')
+            # Re-fetch user to ensure session attachment
+            user = User.query.filter_by(email=email).first()
+            print(f'Re-fetched user: {user.email}, id={user.user_id}, role={user.role}')
+        else:
+            print(f'Existing user: {user.email}, id={user.user_id}, role={user.role}')
 
+        print('Attempting to log in user...')
         login_user(user, remember=False)
+        print(f'User logged in: is_authenticated={user.is_authenticated}, id={user.user_id}, role={user.role}')
+        print(f'Current user after login: {current_user.is_authenticated if current_user else None}')
 
         flash('Successfully signed in with Google!', category='success')
-        
         redirect_url = url_for('views.home' if user.role != 'admin' else 'auth.admin')
+        print(f'Redirecting to: {redirect_url}')
         return redirect(redirect_url)
 
     except Exception as e:
         import traceback
-        print(f"Callback Error: {str(e)}")
-        print(f"Traceback: {traceback.format_exc()}")
+        print(f"\n=== Google OAuth Error ===")
+        print(f"Error type: {type(e).__name__}")
+        print(f"Error message: {str(e)}")
+        print(f"Traceback:\n{traceback.format_exc()}")
         flash(f'Failed to sign in with Google: {str(e)}', category='error')
         return redirect(url_for('auth.login'))
 
@@ -421,4 +522,197 @@ def contact_seller(product_id):
             flash('Message sent successfully! Staff will process your request.', category='success')
             return redirect(url_for('views.home'))
     
-    return render_template('contact_seller.html', user=current_user, product=product) 
+    return render_template('contact_seller.html', user=current_user, product=product)
+
+@auth.route('/my-account', methods=['GET', 'POST'])
+@login_required
+def my_account():
+    if request.method == 'POST':
+        # Get form data
+        first_name = request.form.get('fullName')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        gender = request.form.get('gender')
+        day = request.form.get('day')
+        month = request.form.get('month')
+        year = request.form.get('year')
+
+        # Update user fields
+        current_user.first_name = first_name
+        current_user.email = email
+        current_user.phone = phone
+        current_user.gender = gender
+        # Handle date of birth
+        if day and month and year:
+            try:
+                current_user.date_of_birth = datetime(int(year), int(month), int(day))
+            except Exception:
+                pass
+        # Handle profile image upload
+        if 'profile_image' in request.files:
+            file = request.files['profile_image']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                ext = filename.rsplit('.', 1)[1].lower()
+                new_filename = f"{current_user.user_id}_{int(datetime.utcnow().timestamp())}.{ext}"
+                save_path = os.path.join('SadWebApp/website/static/profile_images', new_filename)
+                file.save(save_path)
+                current_user.profile_image = new_filename
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('auth.my_account'))
+    return render_template('my_account.html', user=current_user)
+
+@auth.route('/orders')
+@login_required
+def orders():
+    return render_template('orders.html')
+
+@auth.route('/chat')
+@login_required
+def chat():
+    return render_template('chat.html')
+
+@auth.route('/api/sign-up', methods=['POST'])
+def api_sign_up():
+    data = request.get_json()
+    firstname = data.get('firstname')
+    lastname = data.get('lastname')
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not all([firstname, lastname, username, email, password]):
+        return jsonify({'success': False, 'message': 'All fields are required'}), 400
+
+    if User.query.filter_by(username=username).first():
+        return jsonify({'success': False, 'message': 'Username already exists'}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({'success': False, 'message': 'Email already exists'}), 400
+
+    try:
+        new_user = User(
+            username=username,
+            email=email,
+            first_name=firstname,
+            last_name=lastname
+        )
+        new_user.password = password  # This will hash the password
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Account created successfully!'}), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f"Database error: {e}")
+        return jsonify({'success': False, 'message': 'Database error: ' + str(e)}), 500
+
+@auth.route('/addresses')
+@login_required
+def addresses():
+    return render_template('addresses.html')
+
+@auth.route('/privacy-settings')
+@login_required
+def privacy_settings():
+    return render_template('privacysettings.html')
+
+@auth.route('/add-address', methods=['POST'])
+@login_required
+def add_address():
+    data = request.get_json() or request.form
+    print('Received address data:', data)
+    try:
+        address = Address(
+            user_id=current_user.user_id,
+            first_name=data.get('firstName'),
+            last_name=data.get('lastName'),
+            phone_number=data.get('phoneNumber'),
+            postal_code=data.get('postalCode'),
+            complete_address=data.get('completeAddress'),
+            label=data.get('label'),
+            is_default=data.get('isDefault', False)
+        )
+        db.session.add(address)
+        db.session.commit()
+        print('Address saved successfully!')
+        return jsonify({'success': True, 'message': 'Address saved successfully!'})
+    except Exception as e:
+        db.session.rollback()
+        print('Error saving address:', str(e))
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth.route('/api/addresses', methods=['GET'])
+@login_required
+def api_get_addresses():
+    addresses = Address.query.filter_by(user_id=current_user.user_id).all()
+    address_list = []
+    for addr in addresses:
+        address_list.append({
+            'id': addr.id,
+            'firstName': addr.first_name,
+            'lastName': addr.last_name,
+            'phoneNumber': addr.phone_number,
+            'postalCode': addr.postal_code,
+            'complete_address': addr.complete_address,
+            'label': addr.label,
+            'isDefault': addr.is_default
+        })
+    return jsonify({'success': True, 'addresses': address_list})
+
+@auth.route('/api/address/<int:address_id>', methods=['DELETE'])
+@login_required
+def delete_address(address_id):
+    address = Address.query.filter_by(id=address_id, user_id=current_user.user_id).first()
+    if not address:
+        return jsonify({'success': False, 'message': 'Address not found'}), 404
+    try:
+        db.session.delete(address)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Address deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth.route('/api/address/<int:address_id>', methods=['PUT'])
+@login_required
+def update_address(address_id):
+    address = Address.query.filter_by(id=address_id, user_id=current_user.user_id).first()
+    if not address:
+        return jsonify({'success': False, 'message': 'Address not found'}), 404
+    data = request.get_json() or request.form
+    try:
+        address.first_name = data.get('firstName', address.first_name)
+        address.last_name = data.get('lastName', address.last_name)
+        address.phone_number = data.get('phoneNumber', address.phone_number)
+        address.postal_code = data.get('postalCode', address.postal_code)
+        address.complete_address = data.get('completeAddress', address.complete_address)
+        address.label = data.get('label', address.label)
+        address.is_default = data.get('isDefault', address.is_default)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Address updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth.route('/api/delete-account', methods=['DELETE'])
+@login_required
+def delete_account():
+    try:
+        # TODO: Check for pending purchases, sales, or legal matters here
+        # Example: if Order.query.filter_by(user_id=current_user.user_id, status='pending').count() > 0:
+        #     return jsonify({'success': False, 'message': 'Cannot delete account with pending orders.'}), 400
+
+        # Delete all addresses
+        Address.query.filter_by(user_id=current_user.user_id).delete()
+        # Delete all cart items
+        CartItem.query.filter_by(user_id=current_user.user_id).delete()
+        # Optionally: delete other related data (orders, etc.)
+        # Finally, delete the user
+        user = User.query.get(current_user.user_id)
+        db.session.delete(user)
+        db.session.commit()
+        logout_user()
+        return jsonify({'success': True, 'message': 'Account deleted successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500 

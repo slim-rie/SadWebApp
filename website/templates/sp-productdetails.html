@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sp-productdetails.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="{{ url_for('views.home') }}" class="nav-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
+                    <h2 class="logo-text">JBR Tanching C.O</h2>
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <select class="search-dropdown">
+                    <option>All</option>
+                    <option>Fabrics</option>
+                    <option>Sewing Machines</option>
+                    <option>Sewing Parts</option>
+                </select>
+                <input type="text" class="search-input" placeholder="What can we help you find?">
+                <button class="search-btn">
+                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
+                </button>
+            </div>
+
+            <div class="nav-icons">
+                <span class="phone-info">
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
+                <a href="#" class="chat-link" id="chatLink">
+                    <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
+                </a>
+                <a href="cart.html" class="cart-link">
+                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
+                </a>
+
+                <div class="user-dropdown">
+                    <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
+                    <span class="username"></span> 
+                    <div class="dropdown-container" id="dropdownMenu">
+                    </div>
+                </div>
+            </div> 
+        </nav>
+    </header>
+
+    <div class="breadcrumb container" id="breadcrumbNav">
+        <a href="{{ url_for('views.home') }}">Home</a> &gt;
+        <a href="{{ url_for('views.sewing_machines') }}">Sewing Machines</a> &gt;
+        <span id="productBreadcrumb">Product</span>
+    </div>
+
+    <div class="product-details-container container">
+        <div class="product-details-wrapper">
+            <div class="product-gallery">
+                <div class="main-image">
+                    <img id="mainProductImage" src="{{ url_for('static', filename='images/B9117-012-000.jpg') }}" alt="Product Image">
+                    <div class="image-slider-controls">
+                        <button class="slider-btn prev" id="prevImage">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-btn next" id="nextImage">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="thumbnail-gallery" id="thumbnailGallery">
+                </div>
+            </div>
+
+            <div class="product-info-details">
+                <h1 id="productTitle" class="product-title">Product Title</h1>
+                <div class="product-meta">
+                    <div class="rating-container">
+                        <div class="stars" id="productRating">
+                        </div>
+                        <span id="ratingValue">0.0</span>
+                        <span id="reviewCount">0 reviews</span>
+                        <span id="soldCount">0 sold</span>
+                    </div>
+                </div>
+
+                <div class="product-price-section">
+                    <span class="price-label">Price:</span>
+                    <h2 class="product-price" id="productPrice">₱ 0.00</h2>
+                </div>
+
+                <div class="product-options">
+                    <div class="option-row">
+                        <span class="option-label">Model</span>
+                        <div class="option-value">
+                        </div>
+                    </div>
+                    <div class="option-row">
+                        <span class="option-label">Quantity</span>
+                        <div class="quantity-selector">
+                            <button class="quantity-btn minus">-</button>
+                            <input type="text" class="quantity-input" value="1" id="quantityInput">
+                            <button class="quantity-btn plus">+</button>
+                            <span class="stock-info" id="stockInfo">5 pieces available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-actions">
+                    <button class="add-to-cart-btn" id="addToCartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        Add To Cart
+                    </button>
+                    <button class="buy-now-btn" id="buyNowBtn">Buy Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-tabs container">
+        <div class="tab-header">
+            <button class="tab-btn active" data-tab="description">Description</button>
+            <button class="tab-btn" data-tab="specifications">Specifications</button>
+            <button class="tab-btn" data-tab="reviews">Reviews</button>
+        </div>
+        <div class="tab-content active" id="descriptionTab">
+            <h3>Product Description</h3>
+            <div id="productDescription">
+            </div>
+        </div>
+        <div class="tab-content" id="specificationsTab">
+            <h3>Specifications</h3>
+            <table class="specs-table">
+                <tbody id="specsTableBody">
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-content" id="reviewsTab">
+            <h3>Customer Reviews</h3>
+            <div class="reviews-container" id="reviewsContainer">
+            </div>
+        </div>
+    </div>
+
+    <div class="related-products container">
+        <h2>Related Products</h2>
+        <div class="product-grid" id="relatedProductsGrid">
+        </div>
+    </div>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('views.home') }}">Home</a></li>
+                    <li><a href="{{ url_for('views.sewing_parts') }}">Shop</a></li>
+                    <li><a href="{{ url_for('views.about') }}">About</a></li>
+                    <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section payment-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
+                </div>
+            </div>
+
+            <div class="footer-section contact-section">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                </div>
+                <div class="contact-info">
+                    <h3>JBR Tanching C.O</h3>
+                    <p class="contact-phone">(02) 8123-4567</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <div class="modal" id="loginModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Login to Your Account</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form class="login-form">
+                    <div class="form-group">
+                        <label for="username">Username/Email</label>
+                        <input type="text" id="usernameInput" placeholder="Enter your username or email">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="passwordInput" placeholder="Enter your password">
+                    </div>
+                    <button type="submit" class="submit-btn">LOGIN</button>
+                </form>
+                <p class="signup-link">Don't have an account? <a href="{{ url_for('auth.sign_up') }}">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/sp-productdetails.js') }}" defer></script>
+
+      
+</body>
+</html>

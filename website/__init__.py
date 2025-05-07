@@ -3,52 +3,40 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 from os import path
 from functools import wraps
+from flask_migrate import Migrate
+from flask_cors import CORS
+from .config import Config
 
 db = SQLAlchemy()
+login_manager = LoginManager()
+migrate = Migrate()
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'SADPROJECT'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost/SADprojectdb'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_POOL_SIZE'] = 20
-    app.config['SQLALCHEMY_POOL_RECYCLE'] = 3600
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,
-        'pool_timeout': 30,
-        'connect_args': {
-            'connect_timeout': 30
-        }
-    }
-
-    # Initialize database
+    app.config.from_object(config_class)
+    
+    # Initialize extensions
     db.init_app(app)
-
-    # Add explicit redirect for the root URL
-    @app.route('/')
-    def root_redirect():
-        return redirect(url_for('auth.login'))
-
+    login_manager.init_app(app)
+    migrate.init_app(app, db)
+    CORS(app)
+    
+    # Configure login manager
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
+    
+    # Register blueprints
     from .views import views
     from .auth import auth
-
-    # Standard blueprint registration
-    app.register_blueprint(views, url_prefix='/') # Views now handles /home, /add-to-cart etc.
-    app.register_blueprint(auth, url_prefix='/auth')
-
-    from .models import User
-
-    create_database(app)
-
-    # Configure Login Manager (basic setup)
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-    login_manager.login_view = 'auth.login' # Endpoint name for login view
-
-    @login_manager.user_loader
-    def load_user(id):
-        return User.query.get(int(id))
-
+    
+    app.register_blueprint(views, url_prefix='/')
+    app.register_blueprint(auth, url_prefix='/')
+    
+    # Create database tables
+    with app.app_context():
+        db.create_all()
+    
     return app
 
 def create_database(app):

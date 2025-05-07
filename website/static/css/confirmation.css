@@ -1,0 +1,72 @@
+.confirmation-container {
+    max-width: 600px;
+    margin: 50px auto;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+.confirmation-container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.confirmation-box {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.payment-summary {
+    margin-bottom: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.total-payment {
+    font-weight: bold;
+    color: #e63946;
+}
+
+.payment-method {
+    font-weight: bold;
+    color: #333;
+}
+
+.email-input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+    background-color: #f9f9f9;
+}
+
+.confirmation-note {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.pay-btn {
+    background-color: #e63946;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.pay-btn:hover {
+    background-color: #d62828;
+}

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancellation Details - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_account.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cancel-order-details.css') }}">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="index.html" class="nav-logo">
+                    <img src="images/logo.ico" alt="Logo" class="logo-image">
+                    <h2 class="logo-text">JBR Tanching C.O</h2>
+                </a>
+            </div>
+            <div class="search-bar">
+                <select class="search-dropdown">
+                    <option>All</option>
+                    <option>Fabrics</option>
+                    <option>Sewing Machines</option>
+                    <option>Sewing Parts</option>
+                </select>
+                <input type="text" class="search-input" placeholder="What can we help you find?">
+                <button class="search-btn">
+                    <img src="images/search.png" alt="Search" class="icon-img">
+                </button>
+            </div>
+            <div class="nav-icons">
+                <span class="phone-info">
+                    <img src="images/contact.png" alt="Contact" class="icon-img non-clickable"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
+                <a href="cart.html" class="cart-link">
+                    <img src="images/cart.png" alt="Cart" class="icon-img">
+                </a>
+                <div class="user-dropdown">
+                    <div class="user-info">
+                        <img src="images/user.png" alt="User" class="icon-img" id="user-icon">
+                        <span class="username" id="usernameDisplay"></span>
+                    </div>
+                    <div class="dropdown-container" id="dropdownMenu">
+                    </div>
+                </div>
+            </div> 
+        </nav>
+    </header>
+
+    <main class="my-account-container">
+        <div class="container">
+            <div class="account-wrapper">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <img src="images/user-circle.png" alt="Profile" id="profileImage" class="profile-image">
+                        <div class="user-info">
+                            <div class="user-name-section">
+                                <h3 id="sidebarUsername"></h3>
+                                <div class="green-line">
+                                    <button class="edit-profile-btn" id="editProfileBtn">✏️ Edit Profile</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li class="parent-menu"><a href="{{ url_for('auth.my_account') }}"><i class="fas fa-user"></i> My Account</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-lock"></i> Change Password</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.privacy_settings') }}"><i class="fas fa-shield-alt"></i> Privacy Settings</a></li>
+                        <li class="active"><a href="{{ url_for('auth.orders') }}"><i class="fas fa-shopping-bag"></i> Orders</a></li>
+                    </ul>
+                </div>
+                <div class="account-content">
+                    <div class="header">
+                        <div class="back-button">
+                            <a href="/orders"><i class="fas fa-arrow-left"></i> BACK</a>
+                        </div>
+                        <span class="requested-date">Requested at: 04/29/2025 16:17</span>
+                    </div>
+                    
+                    <div class="cancellation-header">
+                        <h2 class="cancellation-title">Cancellation Completed</h2>
+                        <p class="cancellation-date">on 04/29/2025 16:17.</p>
+                    </div>
+                    
+                    <div class="cancelled-product">
+                        <div class="product-image">
+                            <img src="images/fabric-sample.png" alt="Product Image">
+                        </div>
+                        <div class="product-details">
+                            <h4 class="product-name">Polyester Fabrics</h4>
+                            <p class="product-variation">Variation: Teal - White</p>
+                            <p class="product-quantity">x1</p>
+                        </div>
+                        <div class="product-price">
+                            <p class="original-price">₱999</p>
+                            <p class="discounted-price">₱139</p>
+                        </div>
+                    </div>
+                    
+                    <div class="order-info">
+                        <div class="info-row">
+                            <span class="info-label">Requested by</span>
+                            <span class="info-value">Buyer</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Payment method</span>
+                            <span class="info-value">Unpaid</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Order ID</span>
+                            <span class="info-value order-id">250429HUMB153Q</span>
+                        </div>
+                    </div>
+                    
+                    <div class="cancellation-reason">
+                        <h4>Reason: Don't want to buy anymore</h4>
+                        <p>The order was cancelled by the buyer. No payment has been made for this order.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="#" id="footerShopLink">Shop</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section payment-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <img src="images/bank-icon.png" alt="Bank Transfer" class="payment-icon">
+                    <img src="images/gcash-icon.png" alt="GCash" class="payment-icon">
+                    <img src="images/cod-icon.png" alt="Cash on Delivery" class="payment-icon">
+                </div>
+            </div>
+            <div class="footer-section contact-section">
+                <div class="footer-logo">
+                    <img src="images/logo.ico" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                </div>
+                <div class="contact-info">
+                    <h3>JBR Tanching C.O</h3>
+                    <p class="contact-phone">(02) 8123-4567</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/cancel-order-details.js') }}" defer></script>
+
+</body>
+</html>

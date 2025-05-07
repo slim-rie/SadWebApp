@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Addresses - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_account.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/addresses.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="{{ url_for('views.home') }}" class="nav-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
+                    <h2 class="logo-text">JBR Tanching C.O</h2>
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <select class="search-dropdown">
+                    <option>All</option>
+                    <option>Fabrics</option>
+                    <option>Sewing Machines</option>
+                    <option>Sewing Parts</option>
+                </select>
+                <input type="text" class="search-input" placeholder="What can we help you find?">
+                <button class="search-btn">
+                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
+                </button>
+            </div>
+
+            <div class="nav-icons">
+                <span class="phone-info">
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
+                <a href="#" class="chat-link" id="chatLink">
+                    <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
+                </a>
+                <a href="cart.html" class="cart-link">
+                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
+                </a>
+
+                <div class="user-dropdown">
+                    <div class="header-user-info">
+                        <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
+                        <span class="username" id="usernameDisplay">John Doe</span>
+                    </div>
+                    <div class="dropdown-container" id="dropdownMenu">
+                    </div>
+                </div>
+            </div> 
+        </nav>
+    </header>
+
+    <main class="my-account-container">
+        <div class="container">
+            <div class="account-wrapper">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <img src="{{ url_for('static', filename='pictures/user-circle.png') }}" alt="Profile" id="profileImage" class="profile-image">
+                        <div class="user-info">
+                            <h3 id="sidebarUsername"></h3>
+                            <button class="edit-profile-btn" id="editProfileBtn">✏️ Edit Profile</button>
+                        </div>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li class="parent-menu"><a href="{{ url_for('auth.my_account') }}"><i class="fas fa-user"></i> My Account</a></li>
+                        <li class="sub-menu active"><a href="{{ url_for('auth.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-lock"></i> Change Password</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.privacy_settings') }}"><i class="fas fa-shield-alt"></i> Privacy Settings</a></li>
+                        <li><a href="{{ url_for('auth.orders') }}"><i class="fas fa-shopping-bag"></i> Orders</a></li>
+                    </ul>
+                </div>
+                
+                <div class="account-content">
+                    <div class="addresses-header">
+                        <div class="header-left">
+                            <h2 class="page-title">My Addresses</h2>
+                            <button id="addNewAddressBtn" class="add-address-btn">+ Add New Address</button>
+                        </div>
+                    </div>
+                    <div class="addresses-list-container">
+                        <div class="addresses-list" id="addressesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="#" id="footerShopLink">Shop</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section payment-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
+                </div>
+            </div>
+
+            <div class="footer-section contact-section">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                </div>
+                <div class="contact-info">
+                    <h3>JBR Tanching C.O</h3>
+                    <p class="contact-phone">(02) 8123-4567</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <div class="modal-overlay" id="addressModal">
+        <div class="modal-content address-modal">
+            <span class="modal-close" id="closeAddressModal">&times;</span>
+            <div class="modal-header">
+                <h3 id="addressModalTitle">Add New Address</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group half">
+                        <input type="text" id="firstName" placeholder="First Name">
+                    </div>
+                    <div class="form-group half">
+                        <input type="text" id="lastName" placeholder="Last Name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="phoneNumber" placeholder="Phone Number">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="completeAddress" placeholder="Region, Province, City, Barangay">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="postalCode" placeholder="Postal Code">
+                </div>
+                <div class="form-group autocomplete-wrapper">
+                    <input type="text" id="streetAddress" placeholder="Street Name, Building, House No." autocomplete="off">
+                    <div class="autocomplete-results" id="addressSuggestions"></div>
+                </div>
+                <div class="form-group">
+                    <label>Label As:</label>
+                    <div class="label-options">
+                        <div class="label-option active" data-value="home" id="homeLabel">Home</div>
+                        <div class="label-option" data-value="work" id="workLabel">Work</div>
+                    </div>
+                    <input type="hidden" id="addressLabel" value="home">
+                </div>
+                <div class="form-group default-address-group">
+                    <label class="default-address-label">
+                        <input type="checkbox" id="defaultAddress" class="default-checkbox">
+                        <span class="custom-checkbox"></span>
+                        <span class="default-text">Set as Default Address</span>
+                    </label>
+                </div>
+            </div>
+            <div id="statusMessage" style="color: red; margin-bottom: 10px; display: none;"></div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-primary" id="saveAddressModal">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/addresses.js') }}" defer></script>
+</body>
+</html>
