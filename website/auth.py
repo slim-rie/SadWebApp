@@ -289,11 +289,15 @@ def sign_up():
             flash('Account created successfully', 'success')
             return redirect(url_for('auth.login'))
         except Exception as e:
+            import traceback
             db.session.rollback()
-            message = 'An error occurred while creating your account'
+            tb = traceback.format_exc()
+            print(f"\n[SignUp Error] {str(e)}\nTraceback:\n{tb}")
+            message = f'An error occurred while creating your account: {str(e)}\nTraceback:\n{tb}'
             if request.is_json:
                 return jsonify({'success': False, 'message': message}), 500
             flash(message, 'error')
+            return render_template('signup.html', error=message)
     
     return render_template('signup.html')
 
@@ -715,4 +719,34 @@ def delete_account():
         return jsonify({'success': True, 'message': 'Account deleted successfully.'})
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500 
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth.route('/test-db')
+def test_db():
+    try:
+        # Test database connection
+        db.session.execute('SELECT 1')
+        
+        # Check if users table exists and get its structure
+        result = db.session.execute('DESCRIBE users')
+        columns = [row[0] for row in result]
+        
+        # Get sample data (first user if exists)
+        sample_user = User.query.first()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Database connection successful',
+            'table_exists': True,
+            'columns': columns,
+            'sample_user': {
+                'id': sample_user.user_id if sample_user else None,
+                'username': sample_user.username if sample_user else None,
+                'email': sample_user.email if sample_user else None
+            } if sample_user else None
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500 

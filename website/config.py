@@ -19,7 +19,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'SADPROJECT'
     
     # Database settings
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'mysql+pymysql://root:password@localhost/sadprojectdb'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'mysql+pymysql://root:SADPROJECT2024@localhost/sadprojectdb'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_POOL_SIZE = 20
     SQLALCHEMY_POOL_RECYCLE = 3600
