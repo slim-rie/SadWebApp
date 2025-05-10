@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.setItem('cartItems', JSON.stringify(cartItems));
 
         alert('Product added to cart!');
-        window.location.href = 'cart.html';
+        window.location.href = '/cart';
     });
 
     buyNowBtn.addEventListener('click', function () {
