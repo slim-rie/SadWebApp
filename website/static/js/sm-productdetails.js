@@ -359,9 +359,15 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = 'cart.html';
     });
 
-    buyNowBtn.addEventListener('click', function () {
-        window.location.href = 'transaction.html';
-    });
+    if (buyNowBtn) {
+        buyNowBtn.addEventListener('click', function () {
+            if (productName) {
+                window.location.href = `/transaction?product=${encodeURIComponent(productName)}`;
+            } else {
+                window.location.href = '/transaction';
+            }
+        });
+    }
     
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const username = localStorage.getItem('username');
