@@ -20,7 +20,6 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     first_name = db.Column(db.String(100))
     last_name = db.Column(db.String(100))
-    phone = db.Column(db.String(20))
     gender = db.Column(db.String(10))
     date_of_birth = db.Column(db.Date)
     profile_image = db.Column(db.String(255))
@@ -128,7 +127,6 @@ class Address(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     first_name = db.Column(db.String(100))
     last_name = db.Column(db.String(100))
-    phone_number = db.Column(db.String(20))
     postal_code = db.Column(db.String(20))
     complete_address = db.Column(db.String(255))
     label = db.Column(db.String(20))  # home or work

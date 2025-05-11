@@ -145,10 +145,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    username: firstName + lastName, // combine first and last name for uniqueness
+                    firstname: firstName,
+                    lastname: lastName,
                     email: email,
-                    password: password,
-                    confirm_password: confirmPassword
+                    'new-password': password,
+                    'confirm-password': confirmPassword
                 })
             })
             .then(response => response.json())
