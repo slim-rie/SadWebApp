@@ -271,15 +271,31 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function initializeButtons(productName, product) {
-        const addToCartBtn = document.getElementById('addToCartBtn');
         const buyNowBtn = document.getElementById('buyNowBtn');
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const quantityInput = document.getElementById('quantityInput');
 
-        addToCartBtn.addEventListener('click', function () {
-            window.location.href = `cart.html?product=${encodeURIComponent(productName)}`;
+        buyNowBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const quantity = parseInt(quantityInput.value);
+            const productData = {
+                name: productName,
+                price: product.price,
+                quantity: quantity,
+                image: product.mainImage
+            };
+            
+            // Store the product data in sessionStorage
+            sessionStorage.setItem('buyNowProduct', JSON.stringify(productData));
+            
+            // Redirect to transaction page
+            window.location.href = buyNowBtn.href;
         });
 
-        buyNowBtn.addEventListener('click', function () {
-            window.location.href = `transaction.html?product=${encodeURIComponent(productName)}`;
+        addToCartBtn.addEventListener('click', function() {
+            const quantity = parseInt(quantityInput.value);
+            // Add to cart logic here
+            console.log('Adding to cart:', productName, quantity);
         });
     }
 
