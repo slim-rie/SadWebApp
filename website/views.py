@@ -11,7 +11,10 @@ views = Blueprint('views', __name__)
 @views.route('/home')
 def home():
     products = Product.query.all()
-    categories = sorted(list(set(p.category for p in products)))
+    categories = sorted(
+        [c for c in set(p.category for p in products) if c],
+        key=lambda c: c.category_name
+    )
     return render_template("index.html", user=current_user, products=products, categories=categories)
 
 @views.route('/products')
