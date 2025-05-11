@@ -39,7 +39,7 @@
                 <a href="chat.html" class="chat-link">
                     <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                 </a>
-                <a href="cart.html" class="cart-link">
+                <a href="{{ url_for('views.cart') }}" class="cart-link">
                     <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
                 </a>
 
@@ -94,6 +94,7 @@
             {% if user.is_authenticated %}
             <!-- Show cart content here -->
             {% endif %}
+            <a href="{{ url_for('views.sewing_machines') }}" class="continue-shopping-btn">Continue Shopping</a>
         </div>
     </div>
 

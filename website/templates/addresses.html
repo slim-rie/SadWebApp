@@ -50,6 +50,9 @@
                         <span class="username" id="usernameDisplay">John Doe</span>
                     </div>
                     <div class="dropdown-container" id="dropdownMenu">
+                        <a href="{{ url_for('auth.my_account') }}" class="dropdown-item">My Account</a>
+                        <a href="{{ url_for('auth.orders') }}" class="dropdown-item">Orders</a>
+                        <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
                     </div>
                 </div>
             </div> 

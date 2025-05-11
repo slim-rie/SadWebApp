@@ -34,14 +34,14 @@
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
-                    <form class="d-flex search-form me-3" action="{{ url_for('views.products') }}" method="GET">
+                    <form class="d-flex search-form me-3" action="{{ url_for('views.search') }}" method="GET">
                         <select class="form-select me-2" name="category">
-                            <option value="">All Categories</option>
-                            {% for category in categories %}
-                            <option value="{{ category }}">{{ category }}</option>
-                            {% endfor %}
+                            <option value="All">All</option>
+                            <option value="Sewing Machines">Sewing Machines</option>
+                            <option value="Sewing Parts">Sewing Parts</option>
+                            <option value="Fabrics">Fabrics</option>
                         </select>
-                        <input class="form-control me-2" type="search" name="search" placeholder="Search">
+                        <input class="form-control me-2" type="search" name="q" placeholder="What can we help you find?">
                         <button class="btn btn-outline-primary" type="submit">Search</button>
                     </form>
                     {% if current_user.is_authenticated %}

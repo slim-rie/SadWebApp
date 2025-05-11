@@ -237,3 +237,15 @@ def confirmation():
 @views.route('/deleteinfo')
 def delete_info():
     return render_template('deleteinfo.html')
+
+@views.route('/search')
+def search():
+    query = request.args.get('q', '')
+    category = request.args.get('category', 'All')
+    products = Product.query
+    if category and category != 'All':
+        products = products.join(Product.category_obj).filter_by(name=category)
+    if query:
+        products = products.filter(Product.name.ilike(f'%{query}%'))
+    products = products.all()
+    return render_template('search_results.html', user=current_user, products=products, query=query, category=category)

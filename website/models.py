@@ -48,23 +48,20 @@ class User(UserMixin, db.Model):
         self.last_login = datetime.utcnow()
         db.session.commit()
 
-class Product(db.Model):
-    __tablename__ = 'products'
-    
-    product_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+class Brand(db.Model):
+    __tablename__ = 'brands'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text)
-    price = db.Column(db.Float, nullable=False)
-    stock = db.Column(db.Integer, default=0)
-    category = db.Column(db.String(50), nullable=False)
-    image_url = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    # Relationships
-    cart_items = db.relationship('CartItem', backref='product', lazy=True)
-    order_items = db.relationship('OrderItem', backref='product', lazy=True)
-    supply_requests = db.relationship('SupplyRequest', backref='product', lazy=True)
+    products = db.relationship('Product', backref='brand_obj', lazy=True)
+
+    @property
+    def category(self):
+        return self.category_obj.name if self.category_obj else None
+
+    @property
+    def brand(self):
+        return self.brand_obj.name if self.brand_obj else None
 
 class CartItem(db.Model):
     __tablename__ = 'cart_items'
@@ -132,3 +129,55 @@ class Address(db.Model):
     label = db.Column(db.String(20))  # home or work
     is_default = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Category(db.Model):
+    __tablename__ = 'categories'
+
+    category_id = db.Column(db.Integer, primary_key=True)
+    category_name = db.Column(db.String(100), nullable=False)
+    parent_category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'))
+
+    # Relationships
+    parent = db.relationship('Category', remote_side=[category_id], backref='subcategories')
+    products = db.relationship('Product', backref='category', lazy=True)
+
+class Product(db.Model):
+    __tablename__ = 'products'
+
+    product_id = db.Column(db.Integer, primary_key=True)
+    product_name = db.Column(db.String(255), nullable=False)
+    model_number = db.Column(db.String(50), nullable=False)
+    description = db.Column(db.Text)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'), nullable=False)
+    brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'), nullable=True)
+    base_price = db.Column(db.Numeric(10, 2), nullable=False)
+    discount_percentage = db.Column(db.Numeric(5, 2), default=0)
+    stock_quantity = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    images = db.relationship('ProductImage', backref='product', lazy=True, cascade='all, delete-orphan')
+    specifications = db.relationship('ProductSpecification', backref='product', lazy=True, cascade='all, delete-orphan')
+    cart_items = db.relationship('CartItem', backref='product', lazy=True)
+    order_items = db.relationship('OrderItem', backref='product', lazy=True)
+    supply_requests = db.relationship('SupplyRequest', backref='product', lazy=True)
+
+class ProductImage(db.Model):
+    __tablename__ = 'product_images'
+
+    image_id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
+    image_url = db.Column(db.String(255), nullable=False)
+    image_type = db.Column(db.String(50), nullable=False)
+    display_order = db.Column(db.Integer, nullable=False)
+    alt_text = db.Column(db.String(255))
+
+class ProductSpecification(db.Model):
+    __tablename__ = 'product_specifications'
+
+    spec_id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
+    spec_name = db.Column(db.String(100), nullable=False)
+    spec_value = db.Column(db.String(255), nullable=False)
+    display_order = db.Column(db.Integer, default=0)
