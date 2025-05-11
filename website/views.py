@@ -11,7 +11,10 @@ views = Blueprint('views', __name__)
 @views.route('/home')
 def home():
     products = Product.query.all()
-    categories = sorted(list(set(p.category for p in products)))
+    categories = sorted(
+        [c for c in set(p.category for p in products) if c],
+        key=lambda c: c.category_name
+    )
     return render_template("index.html", user=current_user, products=products, categories=categories)
 
 @views.route('/products')
@@ -238,10 +241,14 @@ def confirmation():
 def delete_info():
     return render_template('deleteinfo.html')
 
-@views.route('/cancel-order-details')
-def cancel_order_details():
-    return render_template('cancel_order_details.html', user=current_user)
-
-@views.route('/trackorder')
-def track_order():
-    return render_template('trackorder.html', user=current_user)
+@views.route('/search')
+def search():
+    query = request.args.get('q', '')
+    category = request.args.get('category', 'All')
+    products = Product.query
+    if category and category != 'All':
+        products = products.join(Product.category_obj).filter_by(name=category)
+    if query:
+        products = products.filter(Product.name.ilike(f'%{query}%'))
+    products = products.all()
+    return render_template('search_results.html', user=current_user, products=products, query=query, category=category)

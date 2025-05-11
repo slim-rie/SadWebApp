@@ -42,7 +42,7 @@
                     <a href="#" class="chat-link" id="chatLink">
                         <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                     </a>
-                    <a href="#" class="cart-link">
+                    <a href="{% if user.is_authenticated %}{{ url_for('views.cart') }}{% else %}{{ url_for('auth.login') }}{% endif %}" class="cart-link">
                         <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
                     </a>
                 
