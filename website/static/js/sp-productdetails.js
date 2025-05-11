@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             
             productCard.addEventListener('click', function() {
-                window.location.href = `productdetails.html?product=${encodeURIComponent(product.name)}`;
+                window.location.href = `/productdetails?product=${encodeURIComponent(product.name)}`;
             });
             
             relatedProductsGrid.appendChild(productCard);
@@ -590,4 +590,8 @@ if (closeChatBtn) {
     }
 
     loadCustomerReviews(sampleReviews);
+
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        window.location.href = '/sign-up';
+    });
 });

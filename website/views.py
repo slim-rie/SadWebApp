@@ -237,3 +237,11 @@ def confirmation():
 @views.route('/deleteinfo')
 def delete_info():
     return render_template('deleteinfo.html')
+
+@views.route('/cancel-order-details')
+def cancel_order_details():
+    return render_template('cancel_order_details.html', user=current_user)
+
+@views.route('/trackorder')
+def track_order():
+    return render_template('trackorder.html', user=current_user)

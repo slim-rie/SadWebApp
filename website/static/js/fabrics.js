@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
             productLink.className = 'product-card product-link';
             productLink.setAttribute('data-authenticated', isLoggedIn ? '1' : '0');
             productLink.href = isLoggedIn ? 
-                `f-productdetails.html?product=${encodeURIComponent(product.name)}` : 
+                `/f-productdetails?product=${encodeURIComponent(product.name)}` : 
                 'javascript:void(0)'; // Use javascript:void(0) instead of # to prevent URL changes
 
             let starsHTML = '';
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             dropdownMenu.innerHTML = `
                 <button class="login-btn" id="loginBtn">LOGIN</button>
-                <button class="signup-btn" onclick="window.location.href='/sign-up'">SIGN UP</button>
+                <a href="${SIGNUP_URL}" class="signup-btn">SIGN UP</a>
             `;
 
             document.getElementById('loginBtn').addEventListener('click', openLoginModal);

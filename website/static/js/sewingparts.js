@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             dropdownMenu.innerHTML = `
                 <button class="login-btn" id="loginBtn">LOGIN</button>
-                <button class="signup-btn" onclick="window.location.href='/sign-up'">SIGN UP</button>
+                <a href="${SIGNUP_URL}" class="signup-btn">SIGN UP</a>
             `;
 
             document.getElementById('loginBtn').addEventListener('click', openLoginModal);

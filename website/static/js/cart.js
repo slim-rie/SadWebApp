@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <i class="fas fa-shopping-cart"></i>
                     <h2>Your cart is empty</h2>
                     <p>Looks like you haven't added any items to your cart yet.</p>
-                    <a href="sewingmachines.html" class="continue-shopping">Continue Shopping</a>
+                    <a href="/sewingmachines" class="continue-shopping">Continue Shopping</a>
                 </div>
             `;
         } else {
@@ -297,6 +297,10 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('username');
-        window.location.href = 'index.html'; 
+        window.location.href = '/'; 
+    });
+
+    document.getElementById('loginBtn').addEventListener('click', function() {
+        window.location.href = '/sign-up';
     });
 });

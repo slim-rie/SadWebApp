@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             dropdownMenu.innerHTML = `
                 <button class="login-btn" id="loginBtn">LOGIN</button>
-                <button class="signup-btn" onclick="window.location.href='/sign-up'">SIGN UP</button>
+                <a href="${SIGNUP_URL}" class="signup-btn">SIGN UP</a>
             `;
             
             document.getElementById('loginBtn').addEventListener('click', function() {
@@ -362,6 +362,20 @@ document.addEventListener('DOMContentLoaded', function() {
 // Global click handler for product links
 document.addEventListener('click', function(e) {
     const link = e.target.closest('.product-link');
+    // Don't intercept sign-up links
+    if (e.target.closest('a[href="/sign-up"]')) {
+        return true;
+    }
+    // --- BYPASS LOGIN MODAL FOR FABRICS OF THE SEASON SHOP NOW BUTTONS ---
+    if (link && link.closest('.fabrics-section')) {
+        // Let the redirect happen
+        return true;
+    }
+    // --- BYPASS LOGIN MODAL FOR PERFECT PARTS SHOP NOW BUTTONS ---
+    if (link && link.closest('.perfect-parts')) {
+        // Let the redirect happen
+        return true;
+    }
     if (link) {
         const isAuthenticated = link.getAttribute('data-authenticated') === '1';
         if (!isAuthenticated) {
@@ -375,7 +389,7 @@ document.addEventListener('click', function(e) {
             return false; // Prevent any further handling
         }
     }
-}, true); // Use capture phase to handle before other handlers
+}, true);
 
 document.addEventListener('click', function(e) {
     if (e.target && e.target.id === 'googleLoginBtn') {

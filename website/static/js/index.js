@@ -49,9 +49,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.stopPropagation();
                 return false;
             }
-            // No need to check localStorage for login state; backend controls access
-            // The href is already set by Jinja depending on user.is_authenticated
-            // So just follow the link
+            // If this Shop Now button is in the fabrics section, always allow redirect
+            if (this.closest('.fabrics-section')) {
+                // Let the link work normally (redirect to fabrics)
+                return;
+            }
+            // If this Shop Now button is in the Perfect Parts for Precision section, always allow redirect
+            if (this.closest('.perfect-parts')) {
+                // Let the link work normally (redirect to sp-productdetails)
+                return;
+            }
             // If the link is to login, show the modal instead
             const href = this.getAttribute('href');
             if (href && href.includes('/login')) {

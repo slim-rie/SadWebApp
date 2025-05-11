@@ -271,31 +271,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function initializeButtons(productName, product) {
-        const buyNowBtn = document.getElementById('buyNowBtn');
         const addToCartBtn = document.getElementById('addToCartBtn');
-        const quantityInput = document.getElementById('quantityInput');
+        const buyNowBtn = document.getElementById('buyNowBtn');
 
-        buyNowBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const quantity = parseInt(quantityInput.value);
-            const productData = {
-                name: productName,
-                price: product.price,
-                quantity: quantity,
-                image: product.mainImage
-            };
-            
-            // Store the product data in sessionStorage
-            sessionStorage.setItem('buyNowProduct', JSON.stringify(productData));
-            
-            // Redirect to transaction page
-            window.location.href = buyNowBtn.href;
+        addToCartBtn.addEventListener('click', function () {
+            window.location.href = `cart.html?product=${encodeURIComponent(productName)}`;
         });
 
-        addToCartBtn.addEventListener('click', function() {
-            const quantity = parseInt(quantityInput.value);
-            // Add to cart logic here
-            console.log('Adding to cart:', productName, quantity);
+        buyNowBtn.addEventListener('click', function () {
+            window.location.href = `transaction.html?product=${encodeURIComponent(productName)}`;
         });
     }
 
@@ -370,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
 
             productCard.addEventListener('click', function () {
-                window.location.href = `f-productdetails.html?product=${encodeURIComponent(product.name)}`;
+                window.location.href = `/f-productdetails?product=${encodeURIComponent(product.name)}`;
             });
 
             relatedProductsGrid.appendChild(productCard);

@@ -13,7 +13,7 @@
     <header>
         <nav class="navbar">
             <div class="nav-left">
-                <a href="/" class="nav-logo">
+                <a href="{{ url_for('views.home') }}" class="nav-logo">
                     <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
                     <h2 class="logo-text">JBR Tanching C.O</h2>
                 </a>
@@ -106,7 +106,7 @@
         </div>
     </div>
     <div class="breadcrumb container" id="breadcrumbNav">
-        <a href="/">Home</a> &gt;
+        <a href="{{ url_for('views.home') }}">Home</a> &gt;
         <span id="selectedCategory">Fabrics</span>
     </div>
 

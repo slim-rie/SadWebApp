@@ -85,7 +85,7 @@
                 <button id="googleLoginBtn" class="google-btn">
                     <i class="fab fa-google"></i> Continue with Google
                 </button>
-                <p class="signup-link">Don't have an account? <a href="{{ url_for('auth.sign_up') }}">Sign Up</a></p>
+                <p class="signup-link">Don't have an account? <a href="{{ url_for('auth.sign_up') }}" class="signup-link-text">Sign Up</a></p>
             </div>
         </div>
     </div>
@@ -142,7 +142,7 @@
                     <h3>Floral Fabric</h3>
                     <p>Beautiful floral patterns perfect for summer projects.</p>
                     <div class="product-footer">
-                        <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.f_productdetails') }}?product=Floral Fabric{% endif %}" class="shop-now-link product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-category="fabrics.html">Shop Now</a>
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link">Shop Now</a>
                     </div> 
                 </div>
             </div>
@@ -153,7 +153,7 @@
                     <h3>Cotton Fabric</h3>
                     <p>Soft and breathable cotton fabric for all your sewing needs.</p>
                     <div class="product-footer">
-                        <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.f_productdetails') }}?product=Cotton Fabric{% endif %}" class="shop-now-link product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-category="fabrics.html">Shop Now</a>
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link">Shop Now</a>
                     </div>
                 </div>
             </div>
@@ -164,7 +164,7 @@
                     <h3>Silk Fabric</h3>
                     <p>Luxurious silk fabric for elegant garments.</p>
                     <div class="product-footer">
-                        <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.f_productdetails') }}?product=Silk Fabric{% endif %}" class="shop-now-link product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-category="fabrics.html">Shop Now</a>
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link">Shop Now</a>
                     </div>
                 </div>
             </div>
@@ -253,7 +253,7 @@
                     <h3>Sewing Machine Needles</h3>
                     <p>High-quality needles for all types of fabrics.</p>
                     <div class="product-footer">
-                        <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_parts') }}{% endif %}" class="shop-now-link product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-category="sewingparts.html">Shop Now</a>
+                        <a href="{{ url_for('views.sewing_parts') }}" class="shop-now-link product-link">Shop Now</a>
                     </div>
                 </div>
             </div>
@@ -264,7 +264,7 @@
                     <h3>Sewing Machine Feet</h3>
                     <p>Versatile feet for various sewing techniques.</p>
                     <div class="product-footer">
-                        <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_parts') }}{% endif %}" class="shop-now-link product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-category="sewingparts.html">Shop Now</a>
+                        <a href="{{ url_for('views.sewing_parts') }}" class="shop-now-link product-link">Shop Now</a>
                     </div>
                 </div>
             </div>
@@ -275,7 +275,7 @@
                     <h3>Sewing Machine Bobbin</h3>
                     <p>Keep your stitches smooth and your machine humming with our premium sewing machine bobbins.</p>
                     <div class="product-footer">
-                        <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_parts') }}{% endif %}" class="shop-now-link product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-category="sewingparts.html">Shop Now</a>
+                        <a href="{{ url_for('views.sewing_parts') }}" class="shop-now-link product-link">Shop Now</a>
                     </div>
                 </div>
             </div>
@@ -357,6 +357,9 @@
             <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
         </div>
     </footer>
+    <script>
+        const SIGNUP_URL = "{{ url_for('auth.sign_up') }}";
+    </script>
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 </body>
 </html>

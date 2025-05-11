@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.querySelectorAll('.buy-again-btn').forEach(btn => {
             btn.addEventListener('click', function () {
-                window.location.href = 'cart.html';
+                window.location.href = '/cart';
             });
         });
         
@@ -250,20 +250,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.querySelectorAll('.track-order-btn').forEach(btn => {
             btn.addEventListener('click', function () {
-                window.location.href = 'trackorder.html';
+                window.location.href = '/trackorder';
             });
         });
 
         document.querySelectorAll('.payment-btn').forEach(btn => {
             btn.addEventListener('click', function () {
-                window.location.href = 'transaction.html';
+                window.location.href = '/transaction';
             });
         });
         
 document.querySelectorAll('.view-details-btn').forEach(btn => {
     btn.addEventListener('click', function() {
-        const orderId = this.closest('.order-card').dataset.orderId;
-        window.location.href = 'cancel-order-details.html?orderId=' + orderId;
+        window.location.href = '/cancel-order-details';
     });
         });
     
@@ -390,7 +389,7 @@ document.querySelectorAll('.view-details-btn').forEach(btn => {
         
         document.querySelectorAll('.buy-again-btn').forEach(btn => {
             btn.addEventListener('click', function () {
-                window.location.href = 'cart.html';
+                window.location.href = '/cart';
             });
         });
         
@@ -402,7 +401,7 @@ document.querySelectorAll('.view-details-btn').forEach(btn => {
         
         document.querySelectorAll('.track-order-btn').forEach(btn => {
             btn.addEventListener('click', function () {
-                window.location.href = 'trackorder.html';
+                window.location.href = '/trackorder';
             });
         });
         
