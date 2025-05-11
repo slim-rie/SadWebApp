@@ -5,22 +5,22 @@ app = create_app()
 
 with app.app_context():
     # Get categories
-    sewing_machines = Category.query.filter_by(name="Sewing Machines").first()
-    sewing_parts = Category.query.filter_by(name="Sewing Parts").first()
-    fabrics = Category.query.filter_by(name="Fabrics").first()
+    sewing_machines = Category.query.filter_by(category_name="Sewing Machines").first()
+    sewing_parts = Category.query.filter_by(category_name="Sewing Parts").first()
+    fabrics = Category.query.filter_by(category_name="Fabrics").first()
 
     # Example products
     products = [
-        Product(name="Brother CS6000i", description="Computerized sewing machine with 60 built-in stitches.", price=14599, stock=10, category_id=sewing_machines.id, image_url="https://example.com/brother_cs6000i.jpg"),
-        Product(name="Janome 2212", description="Mechanical sewing machine with 12 built-in stitches.", price=10999, stock=8, category_id=sewing_machines.id, image_url="https://example.com/janome_2212.jpg"),
-        Product(name="Universal Needle Set", description="Set of 10 universal sewing machine needles.", price=299, stock=50, category_id=sewing_parts.id, image_url="https://example.com/needle_set.jpg"),
-        Product(name="Bobbin Pack", description="Pack of 20 plastic bobbins for most machines.", price=199, stock=40, category_id=sewing_parts.id, image_url="https://example.com/bobbin_pack.jpg"),
-        Product(name="Cotton Fabric - Blue", description="1 yard of blue cotton fabric.", price=150, stock=100, category_id=fabrics.id, image_url="https://example.com/cotton_blue.jpg"),
-        Product(name="Silk Fabric - Red", description="1 yard of red silk fabric.", price=350, stock=30, category_id=fabrics.id, image_url="https://example.com/silk_red.jpg"),
+        Product(product_name="Brother CS6000i", model_number="CS6000i", description="Computerized sewing machine with 60 built-in stitches.", base_price=14599, stock_quantity=10, category_id=sewing_machines.category_id),
+        Product(product_name="Janome 2212", model_number="2212", description="Mechanical sewing machine with 12 built-in stitches.", base_price=10999, stock_quantity=8, category_id=sewing_machines.category_id),
+        Product(product_name="Universal Needle Set", model_number="UNS-10", description="Set of 10 universal sewing machine needles.", base_price=299, stock_quantity=50, category_id=sewing_parts.category_id),
+        Product(product_name="Bobbin Pack", model_number="BP-20", description="Pack of 20 plastic bobbins for most machines.", base_price=199, stock_quantity=40, category_id=sewing_parts.category_id),
+        Product(product_name="Cotton Fabric - Blue", model_number="CF-BLUE", description="1 yard of blue cotton fabric.", base_price=150, stock_quantity=100, category_id=fabrics.category_id),
+        Product(product_name="Silk Fabric - Red", model_number="SF-RED", description="1 yard of red silk fabric.", base_price=350, stock_quantity=30, category_id=fabrics.category_id),
     ]
 
     for prod in products:
-        if not Product.query.filter_by(name=prod.name).first():
+        if not Product.query.filter_by(product_name=prod.product_name).first():
             db.session.add(prod)
     db.session.commit()
     print("Example products seeded.") 

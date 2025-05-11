@@ -6,17 +6,17 @@ app = create_app()
 with app.app_context():
     # 1. Add categories if they don't exist
     categories = [
-        Category(name="Sewing Machines", description="All types of sewing machines"),
-        Category(name="Sewing Parts", description="Parts and accessories for sewing machines"),
-        Category(name="Fabrics", description="Various types of fabrics"),
+        Category(category_name="Sewing Machines"),
+        Category(category_name="Sewing Parts"),
+        Category(category_name="Fabrics"),
     ]
     for cat in categories:
-        if not Category.query.filter_by(name=cat.name).first():
+        if not Category.query.filter_by(category_name=cat.category_name).first():
             db.session.add(cat)
     db.session.commit()
 
     # 2. Map old category names to new category IDs
-    category_map = {cat.name: cat.id for cat in Category.query.all()}
+    category_map = {cat.category_name: cat.category_id for cat in Category.query.all()}
 
     # 3. Update existing products to use category_id
     for product in Product.query.all():
