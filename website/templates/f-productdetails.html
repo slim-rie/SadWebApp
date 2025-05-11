@@ -38,7 +38,7 @@
                 <a href="#" class="chat-link" id="chatLink">
                     <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                 </a>
-                <a href="cart.html" class="cart-link">
+                <a href="{{ url_for('views.cart') }}" class="cart-link">
                     <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
                 </a>
 
@@ -62,7 +62,7 @@
         <div class="product-details-wrapper">
             <div class="product-gallery">
                 <div class="main-image">
-                    <img id="mainProductImage" src="{{ url_for('static', filename='pictures/China Cotton 135 GSM.png') }}" alt="Product Image">
+                    <img id="mainProductImage" src="" alt="Product Image">
                     <div class="image-slider-controls">
                         <button class="slider-btn prev" id="prevImage">
                             <i class="fas fa-chevron-left"></i>
@@ -156,7 +156,7 @@
         <div class="container footer-grid">
             <div class="footer-section">
                 <h3>About Us</h3>
-                <p>JBR Tanching C.O has been providing quality sewing supplies since 0. We're committed to helping you create beautiful pieces.</p>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
             </div>
 
             <div class="footer-section">
@@ -217,7 +217,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/f-productdetails.js') }}" defer></script>
-
+    <script src="/static/js/f-productdetails.js"></script>
 </body>
 </html>

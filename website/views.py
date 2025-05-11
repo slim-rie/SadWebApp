@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest
+from .models import Product, CartItem, SupplyRequest, Category
 from .payment import process_payment, create_ewallet_source
+import os
 
 views = Blueprint('views', __name__)
 
@@ -51,19 +52,28 @@ def about():
 def contact():
     return render_template('contact.html')
 
-@views.route('/sm-productdetails.html')
+@views.route('/sm-productdetails')
 def sm_productdetails():
     return render_template('sm-productdetails.html')
 
-@views.route('/sp-productdetails.html')
+@views.route('/sp-productdetails')
 def sp_productdetails():
     return render_template('sp-productdetails.html')
 
-@views.route('/f-productdetails.html')
+@views.route('/f-productdetails')
 def f_productdetails():
     return render_template('f-productdetails.html')
 
 # Cart Routes
+def get_product_image_url(product_name):
+    base_path = os.path.join('SadWebApp', 'website', 'static', 'pictures')
+    for ext in ['.jpg', '.png']:
+        filename = f"{product_name}{ext}"
+        file_path = os.path.join(base_path, filename)
+        if os.path.exists(file_path):
+            return f"/static/pictures/{filename}"
+    return "/static/pictures/default.jpg"
+
 @views.route('/api/cart', methods=['GET'])
 @login_required
 def get_cart():
@@ -72,10 +82,10 @@ def get_cart():
         'items': [{
             'id': item.id,
             'product_id': item.product_id,
-            'name': item.product.name,
-            'price': item.product.price,
+            'name': item.product.product_name,
+            'price': float(item.product.base_price),
             'quantity': item.quantity,
-            'image_url': item.product.image_url
+            'image_url': get_product_image_url(item.product.product_name)
         } for item in cart_items]
     })
 
@@ -252,3 +262,55 @@ def search():
         products = products.filter(Product.name.ilike(f'%{query}%'))
     products = products.all()
     return render_template('search_results.html', user=current_user, products=products, query=query, category=category)
+
+@views.route('/api/products')
+def get_products():
+    category_name = request.args.get('category', 'Sewing Machines')
+    category = Category.query.filter_by(category_name=category_name).first()
+    
+    if not category:
+        return jsonify([])
+    
+    # Get all subcategory IDs
+    subcategories = Category.query.filter_by(parent_category_id=category.category_id).all()
+    category_ids = [category.category_id] + [subcat.category_id for subcat in subcategories]
+    
+    products = Product.query.filter(Product.category_id.in_(category_ids)).all()
+    product_list = []
+    
+    for product in products:
+        product_list.append({
+            'name': product.product_name,
+            'price': float(product.base_price),
+            'rating': 4.5,  # Default rating
+            'sold': "0",    # Default sold count
+            'image': f"/static/pictures/{product.product_name}.jpg",  # Assuming image naming convention
+            'discount': None,
+            'refurbished': False
+        })
+    
+    return jsonify(product_list)
+
+@views.route('/addresses')
+@login_required
+def addresses():
+    return render_template('addresses.html', user=current_user)
+
+@views.route('/api/productdetails')
+def get_product_details():
+    product_name = request.args.get('product')
+    if not product_name:
+        return jsonify({'error': 'No product specified'}), 400
+    product = Product.query.filter_by(product_name=product_name).first()
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    return jsonify({
+        'product_id': product.product_id,
+        'name': product.product_name,
+        'model_number': product.model_number,
+        'description': product.description,
+        'price': float(product.base_price),
+        'stock': product.stock_quantity,
+        'image': f"/static/pictures/{product.product_name}.jpg",
+        'category_id': product.category_id
+    })

@@ -1,48 +1,42 @@
 document.addEventListener('DOMContentLoaded', function () {
     const cartContent = document.getElementById('cartContent');
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
-    const sampleProducts = [
-        {
-            id: 1,
-            name: "SHUNFA SF-5550 Single needle highspeed machine",
-            price: 14599,
-            image: "/static/pictures/SHUNFA SF-5550 Single needle highspeed machine.png",
-            quantity: 1
-        },
-        {
-            id: 2,
-            name: "Singer Sewing Machine",
-            price: 15799,
-            image: "/static/pictures/singer-machine.jpg",
-            quantity: 1
-        },
-        {
-            id: 3,
-            name: "Janome Sewing Machine",
-            price: 10999,
-            image: "/static/pictures/janome-machine.jpg",
-            quantity: 1
-        },
-        {
-            id: 4,
-            name: "Juki Sewing Machine",
-            price: 19999,
-            image: "/static/pictures/juki-machine.jpg",
-            quantity: 1
-        }
-    ];
-
-    if (!localStorage.getItem('cartItems') || JSON.parse(localStorage.getItem('cartItems')).length === 0) {
-        localStorage.setItem('cartItems', JSON.stringify(sampleProducts));
+    function renderCart(cartItems) {
+        cartItems.forEach(item => {
+            if (item.selected === undefined) {
+                item.selected = true;
+            }
+        });
+        updateCartUI(cartItems);
     }
 
-    let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-
-    cartItems.forEach(item => {
-        if (item.selected === undefined) {
-            item.selected = true;
-        }
-    });
+    if (isLoggedIn) {
+        // Fetch cart items from backend
+        fetch('/api/cart')
+            .then(response => response.json())
+            .then(data => {
+                if (data.items) {
+                    // Map backend items to the format expected by updateCartUI
+                    const cartItems = data.items.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        image: item.image_url,
+                        quantity: item.quantity,
+                        selected: true
+                    }));
+                    renderCart(cartItems);
+                } else {
+                    renderCart([]);
+                }
+            })
+            .catch(() => renderCart([]));
+    } else {
+        // Use localStorage for guests
+        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        renderCart(cartItems);
+    }
 
     function updateCartUI(cartItems) {
         if (cartItems.length === 0) {
@@ -265,12 +259,28 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function removeCartItem(id) {
-        cartItems = cartItems.filter(item => item.id !== id);
-        localStorage.setItem('cartItems', JSON.stringify(cartItems));
-        updateCartUI(cartItems);
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        if (isLoggedIn) {
+            // Remove from backend
+            fetch(`/api/cart/${id}`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove from UI by re-fetching cart
+                    location.reload();
+                } else {
+                    alert('Failed to remove item from cart: ' + (data.message || 'Unknown error'));
+                }
+            });
+        } else {
+            // Remove from localStorage
+            cartItems = cartItems.filter(item => item.id !== id);
+            localStorage.setItem('cartItems', JSON.stringify(cartItems));
+            updateCartUI(cartItems);
+        }
     }
-
-    updateCartUI(cartItems);
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -293,12 +303,14 @@ document.addEventListener('DOMContentLoaded', function () {
         dropdownMenu.style.display = 'none';
     });
 
-    logoutBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('username');
-        window.location.href = '/'; 
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            window.location.href = '/'; 
+        });
+    }
 
     document.getElementById('loginBtn').addEventListener('click', function() {
         window.location.href = '/sign-up';

@@ -1,129 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const products = {
-        Shunfa: [
-            {
-                name: "SHUNFA SF-5550 Single needle highspeed machine",
-                price: 8450.75,
-                rating: 4.8,
-                sold: "800",
-                image: "/static/pictures/SHUNFA SF-5550 Single needle highspeed machine.jpg",
-                discount: "10%",
-                refurbished: false
-            },
-            {
-                name: "SHUNFA SF-562-O2BB Piping machine",
-                price: 6299.99,
-                rating: 4.2,
-                sold: "545",
-                image: "/static/pictures/SHUNFA SF-562-O2BB Piping machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "SHUNFA SF-372 Buttonsew machine",
-                price: 9999.99,
-                rating: 3.5,
-                sold: "320",
-                image: "/static/pictures/SHUNFA SF-372 Buttonsew machine.jpg",
-                discount: "5%",
-                refurbished: false
-            },
-            {
-                name: "SHUNFA SF-781 Buttonholer machine",
-                price: 4250.50,
-                rating: 4.0,
-                sold: "682",
-                image: "/static/pictures/SHUNFA SF-781 Buttonholer machine.jpg",
-                discount: "15%",
-                refurbished: false
-            },
-            {
-                name: "SHUNFA SF-737 3 threads overlock machine",
-                price: 18550.25,
-                rating: 4.7,
-                sold: "158",
-                image: "/static/pictures/SHUNFA SF-737 3 threads overlock machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "SHUNFA SF-747 4 threads overlock machine",
-                price: 12450.75,
-                rating: 3.8,
-                sold: "224",
-                image: "/static/pictures/SHUNFA SF-747 4 threads overlock machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "SHUNFA SF-757 5 threads overlock machine",
-                price: 12450.75,
-                rating: 3.8,
-                sold: "224",
-                image: "/static/pictures/SHUNFA SF-757 5 threads overlock machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "SHUNFA JA2-2 Household sewing machine",
-                price: 12450.75,
-                rating: 3.8,
-                sold: "224",
-                image: "/static/pictures/SHUNFA JA2-2 Household sewing machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "SHUNFA JH563 Portable sewing machine",
-                price: 12450.75,
-                rating: 3.8,
-                sold: "224",
-                image: "/static/pictures/SHUNFA JH563 Portable sewing machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "SHUNFA SF-26-1A Portable bag closer",
-                price: 12450.75,
-                rating: 3.8,
-                sold: "224",
-                image: "/static/pictures/SHUNFA SF-26-1A Portable bag closer.png",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "SHUNFA GK-9A Portable bag closer",
-                price: 12450.75,
-                rating: 3.8,
-                sold: "224",
-                image: "/static/pictures/SHUNFA GK-9A Portable bag closer.jpg",
-                discount: null,
-                refurbished: false
-            }
-        ],
-        Juki: [
-            {
-                name: "JUKI DDL 8100 Highspeed machine",
-                price: 24650.99,
-                rating: 5.0,
-                sold: "78",
-                image: "/static/pictures/JUKI DDL 8100 Highspeed machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "JUKI MO-6700 Series Edger machine",
-                price: 18750.45,
-                rating: 4.7,
-                sold: "102",
-                image: "/static/pictures/JUKI MO-6700 Series Edger machine.jpg",
-                discount: "8%",
-                refurbished: false
-            }
-        ]
-    };
-
-   
     const productGrid = document.getElementById('productGrid');
     const categoryItems = document.querySelectorAll('.category-list li');
     const ratingItems = document.querySelectorAll('.rating-item');
@@ -153,10 +28,32 @@ document.addEventListener('DOMContentLoaded', function() {
         sort: 'popular'
     };
 
+    let products = {
+        Shunfa: [],
+        Juki: []
+    };
+
+    // Load products from API
+    async function loadProducts() {
+        try {
+            const response = await fetch('/api/products?category=Sewing Machines');
+            const data = await response.json();
+            
+            // Group products by brand
+            products.Shunfa = data.filter(p => p.name.includes('SHUNFA'));
+            products.Juki = data.filter(p => p.name.includes('JUKI'));
+            
+            renderProducts();
+        } catch (error) {
+            console.error('Error loading products:', error);
+            productGrid.innerHTML = '<div class="no-products">Error loading products. Please try again later.</div>';
+        }
+    }
+
     function renderProducts() {
         productGrid.innerHTML = '';
         
-        let filteredProducts = [...products[currentFilters.category] || []];
+        let filteredProducts = [...(products[currentFilters.category] || [])];
         
         if (currentFilters.rating > 0) {
             filteredProducts = filteredProducts.filter(product => product.rating >= currentFilters.rating);
@@ -188,26 +85,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         filteredProducts.forEach(product => {
-            // Determine authentication status
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            // Build the product link (entire card is clickable)
             const productLink = document.createElement('a');
-            productLink.className = 'product-card product-link';
-            productLink.setAttribute('data-authenticated', isLoggedIn ? '1' : '0');
-            productLink.href = isLoggedIn ? 
-                `sm-productdetails.html?product=${encodeURIComponent(product.name)}` : 
-                'javascript:void(0)'; // Use javascript:void(0) instead of # to prevent URL changes
-            
-            let starsHTML = '';
-            for (let i = 1; i <= 5; i++) {
-                if (i <= Math.floor(product.rating)) {
-                    starsHTML += '<i class="fas fa-star"></i>';
-                } else if (i - 0.5 <= product.rating) {
-                    starsHTML += '<i class="fas fa-star-half-alt"></i>';
-                } else {
-                    starsHTML += '<i class="far fa-star"></i>';
-                }
-            }
+            productLink.href = `/sm-productdetails?product=${encodeURIComponent(product.name)}`;
+            productLink.className = 'product-card';
+
+            const starsHTML = generateStarsHTML(product.rating);
             
             productLink.innerHTML = `
                 <div class="product-badge">
@@ -235,7 +117,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    renderProducts();
+    function generateStarsHTML(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let starsHTML = '';
+        
+        for (let i = 0; i < fullStars; i++) {
+            starsHTML += '<i class="fas fa-star"></i>';
+        }
+        
+        if (hasHalfStar) {
+            starsHTML += '<i class="fas fa-star-half-alt"></i>';
+        }
+        
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        for (let i = 0; i < emptyStars; i++) {
+            starsHTML += '<i class="far fa-star"></i>';
+        }
+        
+        return starsHTML;
+    }
+
+    // Load products when page loads
+    loadProducts();
 
     categoryItems.forEach(item => {
         item.addEventListener('click', function(e) {
@@ -254,10 +158,7 @@ ratingItems.forEach(item => {
 item.addEventListener('click', function() {
 const rating = parseInt(this.getAttribute('data-rating'));
 
-ratingItems.forEach(ri => {
-    ri.classList.remove('active');
-});
-
+            ratingItems.forEach(el => el.classList.remove('active'));
 this.classList.add('active');
 
 currentFilters.rating = rating;
@@ -277,24 +178,11 @@ renderProducts();
         });
     });
 
-    priceDropdown.addEventListener('click', function(e) {
-        e.stopPropagation();
-        priceDropdownMenu.classList.toggle('show');
-    });
-
-    document.addEventListener('click', function() {
-        priceDropdownMenu.classList.remove('show');
-    });
-
     dropdownItems.forEach(item => {
         item.addEventListener('click', function() {
             const sort = this.getAttribute('data-sort');
-            
             currentFilters.sort = sort;
             renderProducts();
-            
-            priceDropdown.querySelector('.dropdown-toggle').innerHTML = 
-                this.textContent + ' <i class="fas fa-chevron-down"></i>';
         });
     });
 
@@ -307,56 +195,18 @@ renderProducts();
         renderProducts();
     });
 
-    allCategoriesBtn.addEventListener('click', function () {
-        const modalContent = document.querySelector('.categories-modal-content');
-        modalContent.innerHTML = '';
-
-        modalContent.innerHTML = `
-            <section class="categories container">
-                <h2>Categories</h2>
-                <div class="category-grid">
-                    <div class="category-card" id="sewingMachinesCard">
-                        <img src="https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?auto=format&fit=crop&q=80&w=600" alt="Sewing Machines">
-                        <div class="category-overlay">
-                            <div class="category-content">
-                                <span class="category-icon">✂️</span>
-                                <h3>Sewing Machines</h3>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="category-card" id="sewingPartsCard">
-                        <img src="https://images.unsplash.com/photo-1584992236310-6edddc08acff?auto=format&fit=crop&q=80&w=600" alt="Sewing Parts">
-                        <div class="category-overlay">
-                            <div class="category-content">
-                                <span class="category-icon">⚙️</span>
-                                <h3>Sewing Parts</h3>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="category-card" id="fabricsCard">
-                        <img src="https://images.unsplash.com/photo-1528458909336-e7a0adfed0a5?auto=format&fit=crop&q=80&w=600" alt="Fabrics">
-                        <div class="category-overlay">
-                            <div class="category-content">
-                                <span class="category-icon">🧵</span>
-                                <h3>Fabrics</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        `;
-
-        categoriesModal.classList.add('show-modal');
+    allCategoriesBtn.addEventListener('click', function() {
+        categoriesModal.style.display = 'block';
     });
 
     closeCategories.addEventListener('click', function() {
-        categoriesModal.classList.remove('show-modal');
+        categoriesModal.style.display = 'none';
     });
 
-    document.querySelector('#categoriesModal .modal-overlay').addEventListener('click', function() {
-        categoriesModal.classList.remove('show-modal');
+    window.addEventListener('click', function(e) {
+        if (e.target === categoriesModal) {
+            categoriesModal.style.display = 'none';
+        }
     });
 
     categoriesModalLinks.forEach(link => {
@@ -377,7 +227,7 @@ renderProducts();
                 renderProducts();
             }
             
-            categoriesModal.classList.remove('show-modal');
+            categoriesModal.style.display = 'none';
         });
     });
 

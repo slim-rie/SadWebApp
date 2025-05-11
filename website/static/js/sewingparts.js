@@ -1,73 +1,14 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const products = {
-        Shunfa: [
-            {
-                name: "Bobbin Case",
-                partCode: "B9117-012-000",
-                description: "High-quality bobbin case for sewing machines.",
-                origin: "China Made",
-                price: 150.00,
-                rating: 4.5,
-                sold: "120",
-                image: "/static/pictures/B9117-012-000.jpg",
-                discount: "5%",
-                refurbished: false
-            },
-            {
-                name: "Bobbin",
-                partCode: "B1837-012-000",
-                description: "Durable bobbin for smooth sewing operations.",
-                origin: "China Made",
-                price: 50.00,
-                rating: 4.2,
-                sold: "200",
-                image: "/static/pictures/B1837-012-000.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "Positioning Finger",
-                partCode: "B1835-012-000",
-                description: "Precision positioning finger for sewing machines.",
-                origin: "China Made",
-                price: 75.00,
-                rating: 4.0,
-                sold: "80",
-                image: "/static/pictures/B1835-012-000.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "Rotating Hook",
-                partCode: "B1830-127-000",
-                description: "Reliable rotating hook for efficient sewing.",
-                origin: "China Made",
-                price: 300.00,
-                rating: 4.8,
-                sold: "50",
-                image: "/static/pictures/B1830-127-000.jpg",
-                discount: "10%",
-                refurbished: false
-            },
-            {
-                name: "Presser Foot",
-                partCode: "B3421-552-000",
-                description: "Durable presser foot for various sewing applications.",
-                origin: "China Made",
-                price: 120.00,
-                rating: 4.6,
-                sold: "100",
-                image: "/static/pictures/B3421-552-000.png",
-                discount: null,
-                refurbished: false
-            }
-        ]
-    };
+document.addEventListener('DOMContentLoaded', async function () {
+    let products = [];
+    try {
+        const response = await fetch('/api/products?category=Sewing Parts');
+        products = await response.json();
+    } catch (error) {
+        console.error('Error loading products:', error);
+    }
 
-    
-
-   // DOM elements
-   const productGrid = document.getElementById('productGrid');
+    // DOM elements
+    const productGrid = document.getElementById('productGrid');
     const categoryLinks = document.querySelectorAll('.category-list li a, .categories-grid a');
     const ratingItems = document.querySelectorAll('.rating-item');
     const sortButtons = document.querySelectorAll('.sort-btn:not(.dropdown-toggle)');
@@ -92,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderProducts() {
         productGrid.innerHTML = '';
         
-        let filteredProducts = [...(products[currentFilters.category] || [])];
+        let filteredProducts = [...products];
         
         if (currentFilters.rating > 0) {
             filteredProducts = filteredProducts.filter(product => product.rating >= currentFilters.rating);
@@ -110,8 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'topsales':
                 filteredProducts.sort((a, b) => {
-                    const aSold = parseInt(a.sold.replace('K', '000'));
-                    const bSold = parseInt(b.sold.replace('K', '000'));
+                    const aSold = parseInt(a.sold || '0');
+                    const bSold = parseInt(b.sold || '0');
                     return bSold - aSold;
                 });
                 break;
@@ -131,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
             productLink.className = 'product-card product-link';
             productLink.setAttribute('data-authenticated', isLoggedIn ? '1' : '0');
             if (isLoggedIn) {
-                productLink.href = `sp-productdetails.html?product=${encodeURIComponent(product.name)}`;
+                productLink.href = `/sp-productdetails?product=${encodeURIComponent(product.name)}`;
             } else {
                 productLink.href = '#'; // Will be intercepted by global handler
             }
@@ -161,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="review-count">${product.sold} sold</span>
+                        <span class="review-count">${product.sold || '0'} sold</span>
                     </div>
                 </div>
             `;
@@ -195,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-  
     const defaultCategoryLink = document.querySelector(`.category-list li a[data-category="${currentFilters.category}"]`);
     if (defaultCategoryLink) {
         defaultCategoryLink.parentElement.classList.add('active');
@@ -214,21 +154,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    ratingItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
 
-ratingItems.forEach(item => {
-item.addEventListener('click', function() {
-const rating = parseInt(this.getAttribute('data-rating'));
+            ratingItems.forEach(ri => {
+                ri.classList.remove('active');
+            });
 
-ratingItems.forEach(ri => {
-    ri.classList.remove('active');
-});
+            this.classList.add('active');
 
-this.classList.add('active');
-
-currentFilters.rating = rating;
-renderProducts();
-});
-});
+            currentFilters.rating = rating;
+            renderProducts();
+        });
+    });
 
     sortButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -290,6 +229,7 @@ renderProducts();
     }
 });
 
+// User authentication UI
 document.addEventListener('DOMContentLoaded', function () {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const username = localStorage.getItem('username');

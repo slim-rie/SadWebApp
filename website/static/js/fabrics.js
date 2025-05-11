@@ -1,107 +1,14 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const products = {
-        Cotton: [
-            {
-                name: "China Cotton 135 GSM",
-                price: 89.75,
-                rating: 4.8,
-                sold: "800",
-                image: "/static/pictures/China Cotton 135 GSM.png",
-                discount: "10%",
-                refurbished: false
-            },
-            {
-                name: "China Cotton 165 GSM",
-                price: 6299.99,
-                rating: 4.2,
-                sold: "545",
-                image: "/static/pictures/China Cotton 165 GSM.png",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "China Cotton 185 GSM",
-                price: 150.99,
-                rating: 3.5,
-                sold: "320",
-                image: "/static/pictures/China Cotton 185 GSM.png",
-                discount: "5%",
-                refurbished: false
-            },
-            {
-                name: "China Cotton 200 GSM",
-                price: 22.50,
-                rating: 4.0,
-                sold: "682",
-                image: "/static/pictures/China Cotton 200 GSM.png",
-                discount: "15%",
-                refurbished: false
-            },
-            {
-                name: "CVC Cotton Fabric",
-                price: 18550.25,
-                rating: 4.7,
-                sold: "158",
-                image: "/static/pictures/CVC Cotton Fabric.jpg",
-                discount: null,
-                refurbished: false
-            }
-        ],
-        Polyester: [
-            {
-                name: "TC Fabric",
-                price: 24650.99,
-                rating: 5.0,
-                sold: "78",
-                image: "/static/pictures/JUKI DDL 8100 Highspeed machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "TR Lacoste Fabric",
-                price: 18750.45,
-                rating: 4.7,
-                sold: "102",
-                image: "/static/pictures/JUKI MO-6700 Series Edger machine.jpg",
-                discount: "8%",
-                refurbished: false
-            }
-        ],
-        Knitted: [
-            {
-                name: "Ribbing for Neckline",
-                price: 24650.99,
-                rating: 5.0,
-                sold: "78",
-                image: "/static/pictures/JUKI DDL 8100 Highspeed machine.jpg",
-                discount: null,
-                refurbished: false
-            },
-            {
-                name: "Lacoste Fabric",
-                price: 18750.45,
-                rating: 4.7,
-                sold: "102",
-                image: "/static/pictures/JUKI MO-6700 Series Edger machine.jpg",
-                discount: "8%",
-                refurbished: false
-            }
-        ],
-        Woven: [
-            {
-                name: "Collar and Cuffs",
-                price: 24650.99,
-                rating: 5.0,
-                sold: "78",
-                image: "/static/pictures/JUKI DDL 8100 Highspeed machine.jpg",
-                discount: null,
-                refurbished: false
-            }
-        ]
-    };
+document.addEventListener('DOMContentLoaded', async function () {
+    let products = [];
+    try {
+        const response = await fetch('/api/products?category=Fabrics');
+        products = await response.json();
+    } catch (error) {
+        console.error('Error loading products:', error);
+    }
 
-    
-   const productGrid = document.getElementById('productGrid');
+    // DOM elements
+    const productGrid = document.getElementById('productGrid');
     const categoryLinks = document.querySelectorAll('.category-list li a, .categories-grid a');
     const ratingItems = document.querySelectorAll('.rating-item');
     const sortButtons = document.querySelectorAll('.sort-btn:not(.dropdown-toggle)');
@@ -116,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeCategories = document.getElementById('closeCategories');
 
     let currentFilters = {
-        category: 'Cotton', 
+        category: 'All', 
         rating: 0,
         minPrice: 0,
         maxPrice: Infinity,
@@ -126,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderProducts() {
         productGrid.innerHTML = '';
         
-        let filteredProducts = [...(products[currentFilters.category] || [])];
+        let filteredProducts = [...products];
         
         if (currentFilters.rating > 0) {
             filteredProducts = filteredProducts.filter(product => product.rating >= currentFilters.rating);
@@ -144,8 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'topsales':
                 filteredProducts.sort((a, b) => {
-                    const aSold = parseInt(a.sold.replace('K', '000'));
-                    const bSold = parseInt(b.sold.replace('K', '000'));
+                    const aSold = parseInt(a.sold || '0');
+                    const bSold = parseInt(b.sold || '0');
                     return bSold - aSold;
                 });
                 break;
@@ -164,9 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const productLink = document.createElement('a');
             productLink.className = 'product-card product-link';
             productLink.setAttribute('data-authenticated', isLoggedIn ? '1' : '0');
-            productLink.href = isLoggedIn ? 
-                `/f-productdetails?product=${encodeURIComponent(product.name)}` : 
-                'javascript:void(0)'; // Use javascript:void(0) instead of # to prevent URL changes
+            if (isLoggedIn) {
+                productLink.href = `/f-productdetails?product=${encodeURIComponent(product.name)}`;
+            } else {
+                productLink.href = '#'; // Will be intercepted by global handler
+            }
 
             let starsHTML = '';
             for (let i = 1; i <= 5; i++) {
@@ -193,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="review-count">${product.sold} sold</span>
+                        <span class="review-count">${product.sold || '0'} sold</span>
                     </div>
                 </div>
             `;
@@ -227,7 +136,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    
     const defaultCategoryLink = document.querySelector(`.category-list li a[data-category="${currentFilters.category}"]`);
     if (defaultCategoryLink) {
         defaultCategoryLink.parentElement.classList.add('active');
@@ -246,21 +154,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-   
-ratingItems.forEach(item => {
-item.addEventListener('click', function() {
-const rating = parseInt(this.getAttribute('data-rating'));
+    ratingItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
 
-ratingItems.forEach(ri => {
-    ri.classList.remove('active');
-});
+            ratingItems.forEach(ri => {
+                ri.classList.remove('active');
+            });
 
-this.classList.add('active');
+            this.classList.add('active');
 
-currentFilters.rating = rating;
-renderProducts();
-});
-});
+            currentFilters.rating = rating;
+            renderProducts();
+        });
+    });
 
     sortButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -321,6 +228,8 @@ renderProducts();
         });
     }
 });
+
+// User authentication UI
 document.addEventListener('DOMContentLoaded', function () {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const username = localStorage.getItem('username');
@@ -339,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             dropdownMenu.innerHTML = `
                 <a href="/my-account" class="dropdown-item">My Account</a>
-                <a href="orders.html" class="dropdown-item">Orders</a>
+                <a href="/orders" class="dropdown-item">Orders</a>
                 <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
             `;
 

@@ -140,7 +140,7 @@ def profile():
 def cart():
     cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
     total_items = sum(item.quantity for item in cart_items)
-    total_amount = sum(item.quantity * item.product.price for item in cart_items)
+    total_amount = sum(item.quantity * float(item.product.base_price) for item in cart_items)
     return render_template("cart.html", user=current_user, cart_items=cart_items,
                          total_items=total_items, total_amount=total_amount)
 
