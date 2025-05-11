@@ -220,13 +220,14 @@ def sign_up():
     
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form
-        username = data.get('username')
+        first_name = data.get('firstname')  # Get first name from form
+        last_name = data.get('lastname')    # Get last name from form
         email = data.get('email')
-        password = data.get('password')
-        confirm_password = data.get('confirm_password')
+        password = data.get('new-password')
+        confirm_password = data.get('confirm-password')
         
         # Validation
-        if not all([username, email, password, confirm_password]):
+        if not all([first_name, last_name, email, password, confirm_password]):
             message = 'All fields are required'
             if request.is_json:
                 return jsonify({'success': False, 'message': message}), 400
@@ -254,14 +255,17 @@ def sign_up():
             flash(message, 'error')
             return render_template('signup.html')
         
-        # Check if username or email already exists
-        if User.query.filter_by(username=username).first():
-            message = 'Username already exists'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
+        # Generate personalized username
+        base_username = f"{first_name.lower()}{last_name.lower()}"
+        username = base_username
+        counter = 1
         
+        # Keep trying until we find a unique username
+        while User.query.filter_by(username=username).first():
+            username = f"{base_username}{counter}"
+            counter += 1
+        
+        # Check if email already exists
         if User.query.filter_by(email=email).first():
             message = 'Email already exists'
             if request.is_json:
@@ -271,8 +275,10 @@ def sign_up():
         
         # Create new user
         new_user = User(
-            username=username,
+            username=username,  # Use generated username
             email=email,
+            first_name=first_name,
+            last_name=last_name,
             password=password
         )
         
@@ -293,7 +299,7 @@ def sign_up():
             db.session.rollback()
             tb = traceback.format_exc()
             print(f"\n[SignUp Error] {str(e)}\nTraceback:\n{tb}")
-            message = f'An error occurred while creating your account: {str(e)}\nTraceback:\n{tb}'
+            message = f'An error occurred while creating your account: {str(e)}'
             if request.is_json:
                 return jsonify({'success': False, 'message': message}), 500
             flash(message, 'error')
@@ -535,7 +541,6 @@ def my_account():
         # Get form data
         first_name = request.form.get('fullName')
         email = request.form.get('email')
-        phone = request.form.get('phone')
         gender = request.form.get('gender')
         day = request.form.get('day')
         month = request.form.get('month')
@@ -544,7 +549,6 @@ def my_account():
         # Update user fields
         current_user.first_name = first_name
         current_user.email = email
-        current_user.phone = phone
         current_user.gender = gender
         # Handle date of birth
         if day and month and year:
@@ -580,26 +584,25 @@ def chat():
 @auth.route('/api/sign-up', methods=['POST'])
 def api_sign_up():
     data = request.get_json()
-    firstname = data.get('firstname')
-    lastname = data.get('lastname')
-    username = data.get('username')
+    first_name = data.get('firstname')
+    last_name = data.get('lastname')
     email = data.get('email')
-    password = data.get('password')
+    password = data.get('new-password')
 
-    if not all([firstname, lastname, username, email, password]):
+    if not all([first_name, last_name, email, password]):
         return jsonify({'success': False, 'message': 'All fields are required'}), 400
 
-    if User.query.filter_by(username=username).first():
+    if User.query.filter_by(username=first_name).first():
         return jsonify({'success': False, 'message': 'Username already exists'}), 400
     if User.query.filter_by(email=email).first():
         return jsonify({'success': False, 'message': 'Email already exists'}), 400
 
     try:
         new_user = User(
-            username=username,
+            username=first_name,  # Use first name as username
             email=email,
-            first_name=firstname,
-            last_name=lastname
+            first_name=first_name,
+            last_name=last_name
         )
         new_user.password = password  # This will hash the password
         db.session.add(new_user)
