@@ -26,7 +26,7 @@
                     <option>Sewing Machines</option>
                     <option>Sewing Parts</option>
                 </select>
-                <input type="text" class="search-input" placeholder="What can we help you find?">
+                <input type="text" class="search-input" placeholder="What can we help you find?" autocomplete="off">
                 <button class="search-btn">
                     <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
                 </button>
@@ -152,9 +152,23 @@
                 </div>
                 <div class="form-group">
                     <input type="text" id="phoneNumber" placeholder="Phone Number">
+                    <span id="phoneNumberError" style="display:none; color:#e74c3c; font-size:14px; margin-top:4px;">Invalid Input</span>
                 </div>
-                <div class="form-group">
-                    <input type="text" id="completeAddress" placeholder="Region, Province, City, Barangay">
+                <div class="form-group address-dropdown-wrapper">
+                    <input type="text" id="completeAddress" placeholder="Region, Province, City, Barangay" readonly style="cursor:pointer; background:#fff;" onclick="showAddressDropdown()">
+                    <input type="hidden" id="fullAddress" name="fullAddress">
+                    <div class="address-dropdown-panel" id="addressDropdownPanel" style="display:none;">
+                        <div class="address-tabs">
+                            <span class="address-tab active" data-tab="region">Region</span>
+                            <span class="address-tab" data-tab="province">Province</span>
+                            <span class="address-tab" data-tab="city">City</span>
+                            <span class="address-tab" data-tab="barangay">Barangay</span>
+                        </div>
+                        <div class="address-tab-content" id="regionTabContent"></div>
+                        <div class="address-tab-content" id="provinceTabContent" style="display:none;"></div>
+                        <div class="address-tab-content" id="cityTabContent" style="display:none;"></div>
+                        <div class="address-tab-content" id="barangayTabContent" style="display:none;"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <input type="text" id="postalCode" placeholder="Postal Code">

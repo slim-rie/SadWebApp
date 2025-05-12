@@ -1,4 +1,8 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session, current_app, jsonify
+from flask import Blueprint
+
+auth = Blueprint('auth', __name__)
+
+from flask import render_template, request, flash, redirect, url_for, session, current_app, jsonify
 from .models import User, CartItem, Product, Address, Order
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
@@ -11,8 +15,6 @@ import uuid
 import re
 from werkzeug.security import generate_password_hash
 from datetime import datetime
-
-auth = Blueprint('auth', __name__)
 
 # Allow OAuth over HTTP for development
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -694,6 +696,7 @@ def add_address():
             last_name=data.get('lastName'),
             phone_number=data.get('phoneNumber'),
             postal_code=data.get('postalCode'),
+            street_address=data.get('streetAddress'),
             complete_address=data.get('completeAddress'),
             label=data.get('label'),
             is_default=data.get('isDefault', False)
@@ -719,6 +722,7 @@ def api_get_addresses():
             'lastName': addr.last_name,
             'phoneNumber': addr.phone_number,
             'postalCode': addr.postal_code,
+            'street_address': addr.street_address,
             'complete_address': addr.complete_address,
             'label': addr.label,
             'isDefault': addr.is_default
@@ -751,6 +755,7 @@ def update_address(address_id):
         address.last_name = data.get('lastName', address.last_name)
         address.phone_number = data.get('phoneNumber', address.phone_number)
         address.postal_code = data.get('postalCode', address.postal_code)
+        address.street_address = data.get('streetAddress', address.street_address)
         address.complete_address = data.get('completeAddress', address.complete_address)
         address.label = data.get('label', address.label)
         address.is_default = data.get('isDefault', address.is_default)
@@ -813,24 +818,41 @@ def test_db():
             'message': str(e)
         }), 500
 
-@auth.route('/api/cancel_order', methods=['POST'])
+@auth.route('/api/address/<int:address_id>', methods=['GET'])
 @login_required
-def cancel_order():
-    from flask import request, jsonify
-    order_id = request.json.get('order_id')
+def get_address(address_id):
+    address = Address.query.filter_by(id=address_id, user_id=current_user.user_id).first()
+    if not address:
+        return jsonify({'success': False, 'message': 'Address not found'}), 404
+    
+    return jsonify({
+        'success': True,
+        'address': {
+            'id': address.id,
+            'firstName': address.first_name,
+            'lastName': address.last_name,
+            'phoneNumber': address.phone_number,
+            'postalCode': address.postal_code,
+            'streetAddress': address.street_address,
+            'completeAddress': address.complete_address,
+            'label': address.label,
+            'isDefault': address.is_default
+        }
+    })
+
+@auth.route('/api/address/<int:address_id>/set-default', methods=['POST'])
+@login_required
+def set_default_address(address_id):
+    address = Address.query.filter_by(id=address_id, user_id=current_user.user_id).first()
+    if not address:
+        return jsonify({'success': False, 'message': 'Address not found'}), 404
     try:
-        order_id = int(order_id)
-    except (TypeError, ValueError):
-        return jsonify({'success': False, 'message': 'Invalid order ID'}), 400
-    reason = request.json.get('reason', None)
-    order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
-    if not order:
-        return jsonify({'success': False, 'message': 'Order not found'}), 404
-    if order.status == 'cancelled':
-        return jsonify({'success': False, 'message': 'Order already cancelled'}), 400
-    order.status = 'cancelled'
-    order.payment_status = 'cancelled'
-    # Optionally save the reason if you have a field for it
-    # order.cancellation_reason = reason
-    db.session.commit()
-    return jsonify({'success': True, 'message': 'Order cancelled successfully'}) 
+        # Unset all other addresses
+        Address.query.filter_by(user_id=current_user.user_id).update({'is_default': False})
+        # Set this address as default
+        address.is_default = True
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Default address updated'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500 

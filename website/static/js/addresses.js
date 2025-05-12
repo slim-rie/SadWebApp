@@ -73,6 +73,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     setupLocationSelectionUI();
+    
+    let addressIdToDelete = null;
+
+    function showDeleteModal(addressId) {
+        addressIdToDelete = addressId;
+        document.getElementById('deleteAddressModal').style.display = 'flex';
+    }
+
+    function hideDeleteModal() {
+        addressIdToDelete = null;
+        document.getElementById('deleteAddressModal').style.display = 'none';
+    }
+
+    if (document.getElementById('cancelDeleteBtn')) {
+        document.getElementById('cancelDeleteBtn').onclick = hideDeleteModal;
+    }
+    if (document.getElementById('deleteAddressModal')) {
+        document.getElementById('deleteAddressModal').onclick = function(e) {
+            if (e.target === this) hideDeleteModal();
+        };
+    }
+    if (document.getElementById('confirmDeleteBtn')) {
+        document.getElementById('confirmDeleteBtn').onclick = function() {
+            if (addressIdToDelete) {
+                deleteAddress(addressIdToDelete);
+                hideDeleteModal();
+            }
+        };
+    }
 });
 
 function setupLocationSelectionUI() {
@@ -368,24 +397,26 @@ function loadAddresses() {
                 addressesList.innerHTML = '<p class="no-addresses">You have no saved addresses. Add a new address to get started.</p>';
                 return;
             }
+            // Sort addresses: default address first
+            data.addresses.sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
             data.addresses.forEach(address => {
                 const addressCard = document.createElement('div');
                 addressCard.className = `address-card${address.isDefault ? ' default' : ''}`;
                 addressCard.innerHTML = `
-                    <h3 class="address-name">${address.firstName} ${address.lastName}</h3>
-                    <p class="address-details">
-                        ${address.complete_address || ''}<br>
-                        ${address.postalCode || ''}
-                    </p>
-                    <p class="address-phone">${address.phoneNumber || ''}</p>
-                    <div class="address-label ${address.label === 'home' ? 'home-label' : 'work-label'}">
-                        ${address.label === 'home' ? 'Home' : 'Work'}
+                    <div class="address-header">
+                        <span class="address-name">${address.firstName} ${address.lastName}</span>
+                        <span class="address-separator">|</span>
+                        <span class="address-phone">${address.phoneNumber}</span>
+                        <div class="address-actions">
+                            <a href="#" class="edit-btn" data-id="${address.id}">Edit</a>
+                            ${!address.isDefault ? `<a href="#" class="delete-btn" data-id="${address.id}">Delete</a>` : ''}
+                        </div>
                     </div>
-                    <div class="address-actions">
-                        <button class="edit-btn" data-id="${address.id}">Edit</button>
-                        <button class="delete-btn" data-id="${address.id}">Delete</button>
+                    <div class="address-details">
+                        <div>${address.street_address || ''}</div>
+                        <div>${address.complete_address || ''}${address.postalCode ? ', ' + address.postalCode : ''}</div>
                     </div>
-                    ${address.isDefault ? '<div class="default-badge">Default</div>' : ''}
+                    ${address.isDefault ? '<span class="default-badge">Default</span>' : `<button class="set-default-btn" data-id="${address.id}">Set as default</button>`}
                 `;
                 addressesList.appendChild(addressCard);
             });
@@ -411,6 +442,12 @@ function addAddressButtonListeners() {
             }
         });
     });
+    document.querySelectorAll('.set-default-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const addressId = this.getAttribute('data-id');
+            setDefaultAddress(addressId);
+        });
+    });
 }
 
 function openAddressModal(mode, addressId = null) {
@@ -425,36 +462,54 @@ function openAddressModal(mode, addressId = null) {
         modalTitle.textContent = 'Edit Address';
         currentEditId = addressId;
         
-        const savedAddresses = JSON.parse(localStorage.getItem('userAddresses')) || [];
-        const addressToEdit = savedAddresses.find(addr => addr.id === addressId);
-        
-        if (addressToEdit) {
-            document.getElementById('firstName').value = addressToEdit.firstName || '';
-            document.getElementById('lastName').value = addressToEdit.lastName || '';
-            document.getElementById('phoneNumber').value = addressToEdit.phoneNumber || '';
-            document.getElementById('postalCode').value = addressToEdit.postalCode || '';
-            document.getElementById('streetAddress').value = addressToEdit.streetAddress || '';
-            document.getElementById('completeAddress').value = addressToEdit.completeAddress || '';
-            
-            if (addressToEdit.label === 'work') {
-                document.getElementById('workLabel').classList.add('active');
-                document.getElementById('homeLabel').classList.remove('active');
-                document.getElementById('addressLabel').value = 'work';
-            } else {
-                document.getElementById('homeLabel').classList.add('active');
-                document.getElementById('workLabel').classList.remove('active');
-                document.getElementById('addressLabel').value = 'home';
-            }
-            
-            const defaultAddressId = localStorage.getItem('defaultAddressId');
-            defaultAddressCheckbox.checked = addressId === defaultAddressId;
-        }
+        // Fetch the address data from the server
+        fetch(`/api/address/${addressId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const address = data.address;
+                    document.getElementById('firstName').value = address.firstName || '';
+                    document.getElementById('lastName').value = address.lastName || '';
+                    document.getElementById('phoneNumber').value = address.phoneNumber || '';
+                    document.getElementById('postalCode').value = address.postalCode || '';
+                    document.getElementById('streetAddress').value = address.streetAddress || '';
+                    document.getElementById('completeAddress').value = address.completeAddress || '';
+                    
+                    // Set the label
+                    if (address.label === 'work') {
+                        document.getElementById('workLabel').classList.add('active');
+                        document.getElementById('homeLabel').classList.remove('active');
+                        document.getElementById('addressLabel').value = 'work';
+                    } else {
+                        document.getElementById('homeLabel').classList.add('active');
+                        document.getElementById('workLabel').classList.remove('active');
+                        document.getElementById('addressLabel').value = 'home';
+                    }
+                    
+                    // Set default address checkbox
+                    defaultAddressCheckbox.checked = address.isDefault;
+                } else {
+                    console.error('Error loading address:', data.message);
+                    const statusMessage = document.getElementById('statusMessage');
+                    statusMessage.textContent = 'Error loading address data: ' + data.message;
+                    statusMessage.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching address:', error);
+                const statusMessage = document.getElementById('statusMessage');
+                statusMessage.textContent = 'Error loading address data';
+                statusMessage.style.display = 'block';
+            });
     } else {
         modalTitle.textContent = 'Add New Address';
         currentEditId = null;
         defaultAddressCheckbox.checked = false;
     }
     
+    // Always hide the address dropdown panel when opening the modal
+    document.getElementById('addressDropdownPanel').style.display = 'none';
+
     addressModal.classList.add('active');
 }
 
@@ -481,6 +536,42 @@ function saveAddress() {
     const completeAddress = document.getElementById('completeAddress').value.trim();
     const addressLabel = document.getElementById('addressLabel').value;
     const setAsDefault = document.getElementById('defaultAddress').checked;
+
+    // Phone number validation: PH (09XXXXXXXXX or +639XXXXXXXXX) or international (+XXXXXXXXXXX, 10-15 digits)
+    const phonePattern = /^(09\d{9}|\+639\d{9}|\+\d{10,15})$/;
+    const phoneNumberError = document.getElementById('phoneNumberError');
+    if (!phonePattern.test(phoneNumber)) {
+        phoneNumberError.style.display = 'block';
+        const statusMessage = document.getElementById('statusMessage');
+        statusMessage.style.display = 'none';
+        // Scroll to the phone number input
+        document.getElementById('phoneNumber').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    } else {
+        phoneNumberError.style.display = 'none';
+    }
+
+    // Validate required fields
+    const requiredFields = {
+        'firstName': 'First Name',
+        'lastName': 'Last Name',
+        'phoneNumber': 'Phone Number',
+        'streetAddress': 'Street Address',
+        'completeAddress': 'Complete Address',
+        'postalCode': 'Postal Code'
+    };
+
+    for (const [fieldId, fieldName] of Object.entries(requiredFields)) {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = `${fieldName} is required`;
+            statusMessage.style.display = 'block';
+            // Scroll to the required field
+            field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+    }
 
     const addressData = {
         firstName,
@@ -520,6 +611,8 @@ function saveAddress() {
         } else {
             statusMessage.textContent = 'Error: ' + data.message;
             statusMessage.style.display = 'block';
+            // Scroll to the error message
+            statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     })
     .catch(error => {
@@ -527,6 +620,8 @@ function saveAddress() {
         const statusMessage = document.getElementById('statusMessage');
         statusMessage.textContent = 'Error: ' + error;
         statusMessage.style.display = 'block';
+        // Scroll to the error message
+        statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 }
 
@@ -560,17 +655,23 @@ function deleteAddress(addressId) {
 }
 
 function setDefaultAddress(addressId) {
-    localStorage.setItem('defaultAddressId', addressId);
-    
-    const statusMessage = document.getElementById('statusMessage');
-    statusMessage.textContent = 'Default address updated!';
-    statusMessage.style.display = 'block';
-    
-    setTimeout(() => {
-        statusMessage.style.display = 'none';
-    }, 5000);
-    
-    loadAddresses();
+    fetch(`/api/address/${addressId}/set-default`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadAddresses();
+        } else {
+            alert('Failed to set default address: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('Error setting default address: ' + error);
+    });
 }
 
 function updateUIForLoginStatus(isLoggedIn, username) {
@@ -612,3 +713,170 @@ workLabel.addEventListener('click', function () {
     homeLabel.classList.remove('active');
     addressLabelInput.value = 'work';
 });
+
+// Address Dropdown Panel Logic
+function showAddressDropdown() {
+    document.getElementById('addressDropdownPanel').style.display = 'block';
+}
+
+document.addEventListener('click', function(event) {
+    const panel = document.getElementById('addressDropdownPanel');
+    const input = document.getElementById('completeAddress');
+    if (!panel.contains(event.target) && event.target !== input) {
+        panel.style.display = 'none';
+    }
+});
+
+// PSGC API endpoints
+const PSGC_API = {
+    region: 'https://psgc.rootscratch.com/region',
+    province: 'https://psgc.rootscratch.com/province?id=',
+    city: 'https://psgc.rootscratch.com/municipal-city?id=',
+    barangay: 'https://psgc.rootscratch.com/barangay?id='
+};
+
+let selectedRegion = '';
+let selectedRegionId = '';
+let selectedProvince = '';
+let selectedProvinceId = '';
+let selectedCity = '';
+let selectedCityId = '';
+let selectedBarangay = '';
+
+function renderRegionTab() {
+    const regionTab = document.getElementById('regionTabContent');
+    regionTab.innerHTML = '<div>Loading...</div>';
+    fetch(PSGC_API.region)
+        .then(res => res.json())
+        .then(regions => {
+            regionTab.innerHTML = '';
+            regions.forEach(region => {
+                const div = document.createElement('div');
+                div.className = 'location-item';
+                div.textContent = region.name;
+                div.onclick = function() {
+                    selectedRegion = region.name;
+                    selectedRegionId = region.psgc_id;
+                    selectedProvince = '';
+                    selectedProvinceId = '';
+                    selectedCity = '';
+                    selectedCityId = '';
+                    selectedBarangay = '';
+                    renderProvinceTab();
+                    switchTab('province');
+                    updateCompleteAddress();
+                };
+                regionTab.appendChild(div);
+            });
+        });
+}
+
+function renderProvinceTab() {
+    const provinceTab = document.getElementById('provinceTabContent');
+    provinceTab.innerHTML = '<div>Loading...</div>';
+    if (!selectedRegionId) return;
+    fetch(PSGC_API.province + selectedRegionId)
+        .then(res => res.json())
+        .then(provinces => {
+            provinceTab.innerHTML = '';
+            provinces.forEach(province => {
+                const div = document.createElement('div');
+                div.className = 'location-item';
+                div.textContent = province.name;
+                div.onclick = function() {
+                    selectedProvince = province.name;
+                    selectedProvinceId = province.psgc_id;
+                    selectedCity = '';
+                    selectedCityId = '';
+                    selectedBarangay = '';
+                    renderCityTab();
+                    switchTab('city');
+                    updateCompleteAddress();
+                };
+                provinceTab.appendChild(div);
+            });
+        });
+}
+
+function renderCityTab() {
+    const cityTab = document.getElementById('cityTabContent');
+    cityTab.innerHTML = '<div>Loading...</div>';
+    if (!selectedProvinceId) return;
+    fetch(PSGC_API.city + selectedProvinceId)
+        .then(res => res.json())
+        .then(cities => {
+            cityTab.innerHTML = '';
+            cities.forEach(city => {
+                const div = document.createElement('div');
+                div.className = 'location-item';
+                div.textContent = city.name;
+                div.onclick = function() {
+                    selectedCity = city.name;
+                    selectedCityId = city.psgc_id;
+                    selectedBarangay = '';
+                    renderBarangayTab();
+                    switchTab('barangay');
+                    updateCompleteAddress();
+                };
+                cityTab.appendChild(div);
+            });
+        });
+}
+
+function renderBarangayTab() {
+    const barangayTab = document.getElementById('barangayTabContent');
+    barangayTab.innerHTML = '<div>Loading...</div>';
+    if (!selectedCityId) return;
+    fetch(PSGC_API.barangay + selectedCityId)
+        .then(res => res.json())
+        .then(barangays => {
+            barangayTab.innerHTML = '';
+            barangays.forEach(barangay => {
+                const div = document.createElement('div');
+                div.className = 'location-item';
+                div.textContent = barangay.name;
+                div.onclick = function() {
+                    selectedBarangay = barangay.name;
+                    updateCompleteAddress();
+                    document.getElementById('addressDropdownPanel').style.display = 'none';
+                };
+                barangayTab.appendChild(div);
+            });
+        });
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.address-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.address-tab[data-tab="' + tab + '"]').classList.add('active');
+    document.querySelectorAll('.address-tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById(tab + 'TabContent').style.display = 'block';
+}
+
+function updateCompleteAddress() {
+    const address = [selectedRegion, selectedProvince, selectedCity, selectedBarangay].filter(Boolean).join(', ');
+    document.getElementById('completeAddress').value = address;
+    document.getElementById('fullAddress').value = address;
+}
+
+// Add this after initializing the dropdown panel
+function setupAddressTabClicks() {
+    document.querySelectorAll('.address-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            if (tabName === 'region') {
+                switchTab('region');
+            } else if (tabName === 'province' && selectedRegion) {
+                switchTab('province');
+            } else if (tabName === 'city' && selectedRegion && selectedProvince) {
+                switchTab('city');
+            } else if (tabName === 'barangay' && selectedRegion && selectedProvince && selectedCity) {
+                switchTab('barangay');
+            }
+        });
+    });
+}
+
+// Call this after rendering the region tab and switching to region
+renderRegionTab();
+switchTab('region');
+setupAddressTabClicks();

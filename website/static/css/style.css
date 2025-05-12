@@ -218,7 +218,6 @@
     height: 100vh;
     overflow: auto;
     background: rgba(0,0,0,0.5);
-    display: flex;
     align-items: center;
     justify-content: center;
 }
@@ -258,12 +257,12 @@
 .close-modal {
     z-index: 1100 !important;
     position: absolute;
-    top: 24px;
-    right: 24px;
+    top: -25px;
+    right: -15px;
     cursor: pointer;
     background: none;
     border: none;
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: #333;
     pointer-events: auto;
 }
