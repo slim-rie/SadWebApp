@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Initialize quantity selector
     initializeQuantitySelector(product.stock);
-    initializeTabs();
+        initializeTabs();
 
     // Add to cart functionality
     const addToCartBtn = document.getElementById('addToCartBtn');
@@ -141,42 +141,42 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 
-function initializeQuantitySelector(maxStock) {
-    const quantityInput = document.getElementById('quantityInput');
-    const minusButton = document.querySelector('.quantity-btn.minus');
-    const plusButton = document.querySelector('.quantity-btn.plus');
+    function initializeQuantitySelector(maxStock) {
+        const quantityInput = document.getElementById('quantityInput');
+        const minusButton = document.querySelector('.quantity-btn.minus');
+        const plusButton = document.querySelector('.quantity-btn.plus');
 
-    quantityInput.value = 1;
-    quantityInput.readOnly = true;
+        quantityInput.value = 1; 
+        quantityInput.readOnly = true; 
 
-    minusButton.addEventListener('click', function () {
-        let currentValue = parseInt(quantityInput.value, 10);
-        if (currentValue > 1) {
-            quantityInput.value = currentValue - 1;
-        }
-    });
-
-    plusButton.addEventListener('click', function () {
-        let currentValue = parseInt(quantityInput.value, 10);
-        if (currentValue < maxStock) {
-            quantityInput.value = currentValue + 1;
-        }
-    });
-}
-
-function initializeTabs() {
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            this.classList.add('active');
-
-            const tabId = this.getAttribute('data-tab');
-            document.getElementById(tabId + 'Tab').classList.add('active');
+        minusButton.addEventListener('click', function () {
+            let currentValue = parseInt(quantityInput.value, 10);
+            if (currentValue > 1) {
+                quantityInput.value = currentValue - 1;
+            }
         });
-    });
-}
+
+        plusButton.addEventListener('click', function () {
+            let currentValue = parseInt(quantityInput.value, 10);
+            if (currentValue < maxStock) {
+                quantityInput.value = currentValue + 1;
+            }
+        });
+    }
+    
+    function initializeTabs() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+        button.addEventListener('click', function () {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                this.classList.add('active');
+                
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId + 'Tab').classList.add('active');
+            });
+        });
+    }

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session, current_app, jsonify
-from .models import User, CartItem, Product, Address
+from .models import User, CartItem, Product, Address, Order
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -574,7 +574,66 @@ def my_account():
 @auth.route('/orders')
 @login_required
 def orders():
-    return render_template('orders.html')
+    import os
+    # Get all orders for the current user
+    user_orders = Order.query.filter_by(user_id=current_user.user_id).order_by(Order.created_at.desc()).all()
+    
+    # Format orders for the frontend
+    formatted_orders = []
+    for order in user_orders:
+        order_items = []
+        for item in order.items:
+            product = Product.query.get(item.product_id)
+            # Dynamic image path logic
+            if getattr(product, 'image_url', None):
+                image_path = url_for('static', filename=product.image_url)
+            else:
+                jpg_path = f"pictures/{product.product_name}.jpg"
+                png_path = f"pictures/{product.product_name}.png"
+                static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+                jpg_full = os.path.join(static_dir, jpg_path)
+                png_full = os.path.join(static_dir, png_path)
+                if os.path.exists(jpg_full):
+                    image_path = url_for('static', filename=jpg_path)
+                elif os.path.exists(png_full):
+                    image_path = url_for('static', filename=png_path)
+                else:
+                    image_path = url_for('static', filename='pictures/default.png')
+            order_items.append({
+                'name': product.product_name,
+                'variation': '',  # Add variation if you have it
+                'quantity': item.quantity,
+                'price': float(item.price),
+                'originalPrice': float(product.base_price),
+                'image': image_path
+            })
+        # Map database status to frontend status
+        status_mapping = {
+            'pending': 'to-pay',
+            'paid': 'to-ship',
+            'shipped': 'to-receive',
+            'delivered': 'completed',
+            'cancelled': 'cancelled',
+            'refunded': 'return-refund'
+        }
+        status_text_mapping = {
+            'pending': 'Pending Payment',
+            'paid': 'Seller is preparing your order',
+            'shipped': 'Out for delivery',
+            'delivered': 'Parcel has been delivered',
+            'cancelled': 'Cancelled by you',
+            'refunded': 'REFUND COMPLETED'
+        }
+        formatted_orders.append({
+            'id': order.order_id,
+            'status': status_mapping.get(order.status, 'to-pay'),
+            'statusText': status_text_mapping.get(order.status, 'Pending Payment'),
+            'products': order_items,
+            'total': float(order.total_amount),
+            'deliveryDate': '',  # Add delivery date if you have it
+            'paymentMethod': order.payment_method
+        })
+    return render_template('orders.html', orders=formatted_orders)
 
 @auth.route('/chat')
 @login_required
@@ -752,4 +811,26 @@ def test_db():
         return jsonify({
             'status': 'error',
             'message': str(e)
-        }), 500 
+        }), 500
+
+@auth.route('/api/cancel_order', methods=['POST'])
+@login_required
+def cancel_order():
+    from flask import request, jsonify
+    order_id = request.json.get('order_id')
+    try:
+        order_id = int(order_id)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Invalid order ID'}), 400
+    reason = request.json.get('reason', None)
+    order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+    if not order:
+        return jsonify({'success': False, 'message': 'Order not found'}), 404
+    if order.status == 'cancelled':
+        return jsonify({'success': False, 'message': 'Order already cancelled'}), 400
+    order.status = 'cancelled'
+    order.payment_status = 'cancelled'
+    # Optionally save the reason if you have a field for it
+    # order.cancellation_reason = reason
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Order cancelled successfully'}) 

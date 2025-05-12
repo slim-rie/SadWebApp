@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         const response = await fetch(`/api/productdetails?product=${encodeURIComponent(productName)}`);
         if (response.ok) {
             product = await response.json();
-        } else {
+    } else {
             document.getElementById('productTitle').textContent = 'Product Not Found';
             return;
         }
@@ -26,59 +26,59 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('productBreadcrumb').textContent = product.name;
     document.getElementById('productTitle').textContent = product.name;
 
-    const mainImage = document.getElementById('mainProductImage');
+        const mainImage = document.getElementById('mainProductImage');
     mainImage.src = product.image;
     mainImage.alt = product.name;
 
     // Only one image for now
-    const thumbnailGallery = document.getElementById('thumbnailGallery');
-    thumbnailGallery.innerHTML = '';
-    const mainThumbnail = document.createElement('div');
-    mainThumbnail.className = 'thumbnail active';
+        const thumbnailGallery = document.getElementById('thumbnailGallery');
+        thumbnailGallery.innerHTML = '';
+        const mainThumbnail = document.createElement('div');
+        mainThumbnail.className = 'thumbnail active';
     mainThumbnail.innerHTML = `<img src="${product.image}" alt="Main Thumbnail" class="thumbnail-img active">`;
-    thumbnailGallery.appendChild(mainThumbnail);
-
+        thumbnailGallery.appendChild(mainThumbnail);
+        
     // Default rating and sold count
     const rating = 4.5;
     const sold = 0;
 
-    const ratingContainer = document.getElementById('productRating');
-    ratingContainer.innerHTML = '';
-    for (let i = 1; i <= 5; i++) {
-        const star = document.createElement('i');
+        const ratingContainer = document.getElementById('productRating');
+        ratingContainer.innerHTML = '';
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('i');
         if (i <= Math.floor(rating)) {
-            star.className = 'fas fa-star';
+                star.className = 'fas fa-star';
         } else if (i - 0.5 <= rating) {
-            star.className = 'fas fa-star-half-alt';
-        } else {
-            star.className = 'far fa-star';
+                star.className = 'fas fa-star-half-alt';
+            } else {
+                star.className = 'far fa-star';
+            }
+            ratingContainer.appendChild(star);
         }
-        ratingContainer.appendChild(star);
-    }
     document.getElementById('ratingValue').textContent = rating.toFixed(1);
-    document.getElementById('reviewCount').textContent = "100+ reviews";
+        document.getElementById('reviewCount').textContent = "100+ reviews"; 
     document.getElementById('soldCount').textContent = sold + ' sold';
 
-    document.getElementById('productPrice').textContent = '₱ ' + product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('stockInfo').textContent = product.stock + ' pieces available';
-    document.getElementById('productDescription').innerHTML = product.description;
+        document.getElementById('productPrice').textContent = '₱ ' + product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('stockInfo').textContent = product.stock + ' pieces available';
+        document.getElementById('productDescription').innerHTML = product.description;
 
     // Specifications table (basic)
-    const specsTableBody = document.getElementById('specsTableBody');
-    specsTableBody.innerHTML = '';
+        const specsTableBody = document.getElementById('specsTableBody');
+        specsTableBody.innerHTML = '';
     if (product.model_number) {
         const row = document.createElement('tr');
         row.innerHTML = `<td class="spec-label">Model</td><td class="spec-value">${product.model_number}</td>`;
         specsTableBody.appendChild(row);
     }
     if (product.category_id) {
-        const row = document.createElement('tr');
+            const row = document.createElement('tr');
         row.innerHTML = `<td class="spec-label">Category ID</td><td class="spec-value">${product.category_id}</td>`;
-        specsTableBody.appendChild(row);
+            specsTableBody.appendChild(row);
     }
 
     // Option row for model
-    const optionRow = document.querySelector('.option-row');
+        const optionRow = document.querySelector('.option-row');
     if (optionRow) {
         optionRow.querySelector('.option-label').textContent = 'Model';
         const optionValueContainer = optionRow.querySelector('.option-value');
@@ -103,8 +103,8 @@ document.addEventListener('DOMContentLoaded', async function () {
         const minusButton = document.querySelector('.quantity-btn.minus');
         const plusButton = document.querySelector('.quantity-btn.plus');
 
-        quantityInput.value = 1;
-        quantityInput.readOnly = true;
+        quantityInput.value = 1; 
+        quantityInput.readOnly = true; 
 
         minusButton.addEventListener('click', function () {
             let currentValue = parseInt(quantityInput.value, 10);
@@ -120,18 +120,18 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
         });
     }
-
+    
     function initializeTabs() {
         const tabButtons = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
-
+        
         tabButtons.forEach(button => {
             button.addEventListener('click', function () {
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 tabContents.forEach(content => content.classList.remove('active'));
-
+                
                 this.classList.add('active');
-
+                
                 const tabId = this.getAttribute('data-tab');
                 document.getElementById(tabId + 'Tab').classList.add('active');
             });
@@ -166,23 +166,23 @@ document.addEventListener('DOMContentLoaded', async function () {
             });
         } else {
             // Guest: use localStorage
-            const cartItem = {
-                id: productName,
-                name: productName,
-                price: productPrice,
-                image: productImage,
-                quantity: productQuantity
-            };
-            let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-            const existingItemIndex = cartItems.findIndex(item => item.id === cartItem.id);
-            if (existingItemIndex !== -1) {
-                cartItems[existingItemIndex].quantity += productQuantity;
-            } else {
-                cartItems.push(cartItem);
-            }
-            localStorage.setItem('cartItems', JSON.stringify(cartItems));
-            alert('Product added to cart!');
-            window.location.href = '/cart';
+        const cartItem = {
+            id: productName, 
+            name: productName,
+            price: productPrice,
+            image: productImage,
+            quantity: productQuantity
+        };
+        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        const existingItemIndex = cartItems.findIndex(item => item.id === cartItem.id);
+        if (existingItemIndex !== -1) {
+            cartItems[existingItemIndex].quantity += productQuantity;
+        } else {
+            cartItems.push(cartItem);
+        }
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+        alert('Product added to cart!');
+        window.location.href = '/cart';
         }
     });
 
@@ -236,98 +236,98 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     const chatLink = document.getElementById('chatLink');
-    const chatModal = document.getElementById('chatModal');
-    const chatForm = document.getElementById('chatForm');
-    const chatInput = document.getElementById('chatInput');
-    const chatMessages = document.getElementById('chatMessages');
-    const quickQuestions = document.querySelectorAll('.quick-question-btn');
+const chatModal = document.getElementById('chatModal');
+const chatForm = document.getElementById('chatForm');
+const chatInput = document.getElementById('chatInput');
+const chatMessages = document.getElementById('chatMessages');
+const quickQuestions = document.querySelectorAll('.quick-question-btn');
 
-    function addMessage(text, className) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', className);
-        messageElement.textContent = text;
-        chatMessages.appendChild(messageElement);
+function addMessage(text, className) {
+const messageElement = document.createElement('div');
+messageElement.classList.add('message', className);
+messageElement.textContent = text;
+chatMessages.appendChild(messageElement);
 
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
-    quickQuestions.forEach(button => {
-        button.addEventListener('click', function () {
-            const question = this.getAttribute('data-question');
-            addMessage(question, 'user-message'); 
+quickQuestions.forEach(button => {
+button.addEventListener('click', function () {
+    const question = this.getAttribute('data-question');
+    addMessage(question, 'user-message'); 
 
-            setTimeout(() => {
-                let response = '';
-                switch (question.toLowerCase()) {
-                    case 'shipping policy':
-                        response = 'Our shipping policy ensures delivery within 3-5 business days.';
-                        break;
-                    case 'return policy':
-                        response = 'You can return items within 30 days of purchase.';
-                        break;
-                    case 'product inquiry':
-                        response = 'Please provide the product name for more details.';
-                        break;
-                    case 'payment methods':
-                        response = 'We accept GCash, bank transfers, and cash on delivery.';
-                        break;
-                    case 'order tracking':
-                        response = 'You can track your order using the tracking ID sent to your email.';
-                        break;
-                    default:
-                        response = 'Thank you for your message! Our team will get back to you shortly.';
-                        break;
-                }
-                addMessage(response, 'bot-message'); 
-            }, 1000);
-        });
-    });
-
-    function openChatModal() {
-        chatModal.classList.add('show-modal');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeChatModal() {
-        chatModal.classList.remove('show-modal');
-        document.body.style.overflow = '';
-    }
-
-    if (chatLink) {
-        chatLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (isLoggedIn) {
-                openChatModal();
-            } else {
-                openLoginModal();
-            }
-        });
-    }
-
-    if (chatForm) {
-        chatForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const message = chatInput.value.trim();
-            
-            if (message) {
-                addMessage(message, 'user-message');
-                
-                chatInput.value = '';
-                
-                setTimeout(() => {
-                    addMessage('Thank you for your message! Our team will get back to you shortly.', 'system-message');
-                }, 1000);
-            }
-        });
-    }
-
-    if (chatModal) {
-        const closeChatBtn = chatModal.querySelector('.close-chat');
-
-        if (closeChatBtn) {
-            closeChatBtn.addEventListener('click', closeChatModal);
+    setTimeout(() => {
+        let response = '';
+        switch (question.toLowerCase()) {
+            case 'shipping policy':
+                response = 'Our shipping policy ensures delivery within 3-5 business days.';
+                break;
+            case 'return policy':
+                response = 'You can return items within 30 days of purchase.';
+                break;
+            case 'product inquiry':
+                response = 'Please provide the product name for more details.';
+                break;
+            case 'payment methods':
+                response = 'We accept GCash, bank transfers, and cash on delivery.';
+                break;
+            case 'order tracking':
+                response = 'You can track your order using the tracking ID sent to your email.';
+                break;
+            default:
+                response = 'Thank you for your message! Our team will get back to you shortly.';
+                break;
         }
+        addMessage(response, 'bot-message'); 
+    }, 1000);
+});
+});
+
+function openChatModal() {
+chatModal.classList.add('show-modal');
+document.body.style.overflow = 'hidden';
+}
+
+function closeChatModal() {
+chatModal.classList.remove('show-modal');
+document.body.style.overflow = '';
+}
+
+if (chatLink) {
+chatLink.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (isLoggedIn) {
+        openChatModal();
+    } else {
+        openLoginModal();
     }
+});
+}
+
+if (chatForm) {
+chatForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    
+    if (message) {
+        addMessage(message, 'user-message');
+        
+        chatInput.value = '';
+        
+        setTimeout(() => {
+            addMessage('Thank you for your message! Our team will get back to you shortly.', 'system-message');
+        }, 1000);
+    }
+});
+}
+
+if (chatModal) {
+const closeChatBtn = chatModal.querySelector('.close-chat');
+
+if (closeChatBtn) {
+    closeChatBtn.addEventListener('click', closeChatModal);
+}
+}
 
     function openLoginModal() {
         loginModal.classList.add('show-modal');

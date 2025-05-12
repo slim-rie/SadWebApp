@@ -1,3 +1,15 @@
+// Read orders data from the hidden script tag
+let orders = [];
+const ordersDataTag = document.getElementById('orders-data');
+if (ordersDataTag) {
+    try {
+        orders = JSON.parse(ordersDataTag.textContent);
+    } catch (e) {
+        console.error('Failed to parse orders data:', e);
+    }
+}
+window.orders = orders; // If you want to keep it globally accessible
+
 document.addEventListener('DOMContentLoaded', function() {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const username = localStorage.getItem('username');
@@ -16,130 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('profileImage').src = savedProfileImage;
     }
     
-    const orders = [
-        {
-            id: 'ORD-24680',
-            status: 'cancelled',
-            statusText: 'Cancelled by you',
-            products: [
-                {
-                    name: 'Polyester Fabrics',
-                    variation: 'Teal - White',
-                    quantity: 4,
-                    price: 183,
-                    originalPrice: 243,
-                    image: 'images/fabric-sample.png'
-                }
-            ],
-            total: 732,
-            deliveryDate: ''
-        },
-        {
-            id: 'ORD-13579',
-            status: 'cancelled',
-            statusText: 'Cancelled automatically by JBR\'s system',
-            products: [
-                {
-                    name: 'Silk Blanket Fabrics',
-                    variation: 'Dark Blue - White',
-                    quantity: 3,
-                    price: 165,
-                    originalPrice: 328,
-                    image: 'images/fabric-sample.png'
-                }
-            ],
-            total: 495,
-            deliveryDate: ''
-        },
-        {
-            id: 'ORD-78965',
-            status: 'to-receive',
-            statusText: 'Out for delivery',
-            products: [
-                {
-                    name: 'China Cotton 135 GSM',
-                    variation: 'Whites - Cream',
-                    quantity: 2,
-                    price: 450,
-                    originalPrice: 530,
-                    image: 'images/fabric-sample.png'
-                }
-            ],
-            total: 450,
-            deliveryDate: 'Confirm receipt after you\'ve checked the received items and made payment'
-        },
-        {
-            id: 'ORD-54321',
-            status: 'to-pay',
-            statusText: 'Pending Payment',
-            products: [
-                {
-                    name: 'Ribbing Fabric (for Neckline)',
-                    variation: 'Maroon',
-                    quantity: 1,
-                    price: 280,
-                    originalPrice: 380,
-                    image: 'images/fabric-sample.png'
-                }
-            ],
-            total: 280,
-            deliveryDate: 'Please complete payment by 04/25/2025'
-        },
-        {
-            id: 'ORD-12345',
-            status: 'to-ship',
-            statusText: 'Seller is preparing your order',
-            products: [
-                {
-                    name: 'Solid Craft Cotton Fabric',
-                    variation: 'Whites - Cream',
-                    quantity: 2,
-                    price: 140,
-                    originalPrice: 280,
-                    image: 'images/fabric-sample.png'
-                }
-            ],
-            total: 280,
-            deliveryDate: 'Delivery attempt should be made between 03/13/2025 and 03/15/2025'
-        },
-        {
-            id: 'ORD-67890',
-            status: 'completed',
-            statusText: 'Parcel has been delivered',
-            products: [
-                {
-                    name: 'Brother SE700 Computerized Sewing and Embroidery Machine with Artspira App',
-                    variation: '',
-                    quantity: 1,
-                    price: 9639.89,
-                    originalPrice: 12000,
-                    image: 'images/sewing-machine.png'
-                }
-            ],
-            total: 9639.89,
-            deliveryDate: 'Rate products by 03/17/2025'
-        },
-        {
-            id: 'ORD-192',
-            status: 'return-refund',
-            statusText: 'REFUND COMPLETED',
-            products: [
-                {
-                    name: 'China Cotton 165 GSM',
-                    variation: 'Pink',
-                    quantity: 3,
-                    price: 578,
-                    originalPrice: 650,
-                    image: 'images/fabric-sample.png'
-                }
-            ],
-            total: 578,
-            refundAmount: 578,
-            deliveryDate: '',
-            refundStatus: 'completed'
-        }
-    ];
-    
+    // Get orders from the server
+    const orders = window.orders || [];
     
     function loadOrders(filter = 'all') {
         const container = document.getElementById('ordersContainer');
@@ -157,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         filteredOrders.forEach(order => {
             let orderHtml = `
-                <div class="order-card">
+                <div class="order-card" data-order-id="${order.id}">
             `;
             
             order.products.forEach(product => {
@@ -185,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="order-total">
                             <span>Order Total: <strong>₱${order.total.toFixed(2)}</strong></span>
                         </div>
+                        ${order.paymentMethod ? `<p>Payment Method: ${order.paymentMethod}</p>` : ''}
                     </div>
                     <div class="order-actions">
                 `;
@@ -229,47 +120,78 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML += orderHtml;
         });
         
+        // Add event listeners for buttons
+        addButtonEventListeners();
+    }
+    
+    function addButtonEventListeners() {
         document.querySelectorAll('.contact-seller-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const chatModal = document.getElementById('chatModal');
-        chatModal.style.display = 'block';
-    });
-});
+            btn.addEventListener('click', function() {
+                if (isLoggedIn) {
+                    openChatModal();
+                } else {
+                    openLoginModal();
+                }
+            });
+        });
         
         document.querySelectorAll('.buy-again-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function() {
                 window.location.href = '/cart';
             });
         });
         
         document.querySelectorAll('.cancel-order-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                showSuccessMessage('Order cancelled successfully');
+                const orderCard = btn.closest('.order-card');
+                const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
+                console.log("Cancel order clicked", orderId);
+                if (!orderId) {
+                    alert('Order ID not found.');
+                    return;
+                }
+                const reason = null;
+                fetch('/api/cancel_order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_id: orderId, reason: reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API response:', data);
+                    if (data.success) {
+                        showSuccessMessage('Order cancelled successfully');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        alert(data.message);
+                    }
+                });
             });
         });
         
         document.querySelectorAll('.track-order-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function() {
                 window.location.href = '/trackorder';
             });
         });
 
         document.querySelectorAll('.payment-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function() {
                 window.location.href = '/transaction';
             });
         });
         
-document.querySelectorAll('.view-details-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        window.location.href = '/cancel-order-details';
-    });
+        document.querySelectorAll('.view-details-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                window.location.href = '/cancel-order-details';
+            });
         });
+    }
     
-        }
-    
+    // Initial load of all orders
     loadOrders();
     
+    // Tab click handlers
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', function() {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -278,6 +200,7 @@ document.querySelectorAll('.view-details-btn').forEach(btn => {
         });
     });
     
+    // Search functionality
     document.getElementById('searchBtn').addEventListener('click', function() {
         const searchTerm = document.getElementById('orderSearch').value.toLowerCase();
         
@@ -299,8 +222,9 @@ document.querySelectorAll('.view-details-btn').forEach(btn => {
             return;
         }
         
+        // Display filtered orders
         filteredOrders.forEach(order => {
-            let orderHtml = `<div class="order-card">`;
+            let orderHtml = `<div class="order-card" data-order-id="${order.id}">`;
             
             order.products.forEach(product => {
                 orderHtml += `
@@ -371,51 +295,8 @@ document.querySelectorAll('.view-details-btn').forEach(btn => {
             container.innerHTML += orderHtml;
         });
         
-        document.querySelectorAll('.payment-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (this.textContent === 'Pay Now') {
-                    showSuccessMessage('Payment processing initiated');
-                } else {
-                    showSuccessMessage('Thank you for rating this product');
-                }
-            });
-        });
-        
-        document.querySelectorAll('.contact-seller-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                showSuccessMessage('Message sent to seller');
-            });
-        });
-        
-        document.querySelectorAll('.buy-again-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                window.location.href = '/cart';
-            });
-        });
-        
-        document.querySelectorAll('.cancel-order-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                showSuccessMessage('Order cancelled successfully');
-            });
-        });
-        
-        document.querySelectorAll('.track-order-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                window.location.href = '/trackorder';
-            });
-        });
-        
-        document.querySelectorAll('.order-received-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                showSuccessMessage('Thank you for confirming receipt of your order');
-            });
-        });
-        
-        document.querySelectorAll('.view-details-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                showSuccessMessage('Cancellation details viewed');
-            });
-        });
+        // Add event listeners for the filtered orders
+        addButtonEventListeners();
     });
     
     document.getElementById('orderSearch').addEventListener('keypress', function(e) {
@@ -537,17 +418,6 @@ document.querySelectorAll('.view-details-btn').forEach(btn => {
         });
     }
 
-    if (contact-seller-btn) {
-        contact-seller-btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (isLoggedIn) {
-                openChatModal();
-            } else {
-                openLoginModal();
-            }
-        });
-    }
-    
     if (chatForm) {
         chatForm.addEventListener('submit', function(e) {
             e.preventDefault();

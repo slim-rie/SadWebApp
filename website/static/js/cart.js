@@ -1,8 +1,11 @@
+let cartItems = [];
+
 document.addEventListener('DOMContentLoaded', function () {
     const cartContent = document.getElementById('cartContent');
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
-    function renderCart(cartItems) {
+    function renderCart(cartItemsArg) {
+        cartItems = cartItemsArg;
         cartItems.forEach(item => {
             if (item.selected === undefined) {
                 item.selected = true;
@@ -17,8 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 if (data.items) {
-                    // Map backend items to the format expected by updateCartUI
-                    const cartItems = data.items.map(item => ({
+                    cartItems = data.items.map(item => ({
                         id: item.id,
                         name: item.name,
                         price: item.price,
@@ -28,13 +30,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     }));
                     renderCart(cartItems);
                 } else {
-                    renderCart([]);
+                    cartItems = [];
+                    renderCart(cartItems);
                 }
             })
-            .catch(() => renderCart([]));
+            .catch(() => {
+                cartItems = [];
+                renderCart(cartItems);
+            });
     } else {
-        // Use localStorage for guests
-        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
         renderCart(cartItems);
     }
 
@@ -234,7 +239,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        proceedToCheckoutBtn.addEventListener('click', function () {
+        proceedToCheckoutBtn.addEventListener('click', function (event) {
+            event.preventDefault();
             const selectedItems = cartItems.filter(item => item.selected);
 
             if (selectedItems.length === 0) {
@@ -242,8 +248,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                // Show login modal
+                const loginModal = document.getElementById('loginModal');
+                if (loginModal) {
+                    loginModal.style.display = 'block';
+                }
+                return;
+            }
 
+            localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
             window.location.href = '/transaction';
         });
     }
@@ -275,7 +290,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         } else {
-            // Remove from localStorage
             cartItems = cartItems.filter(item => item.id !== id);
             localStorage.setItem('cartItems', JSON.stringify(cartItems));
             updateCartUI(cartItems);

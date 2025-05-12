@@ -406,6 +406,9 @@
         </div>
     </footer>
 
+    <script id="orders-data" type="application/json">
+        {{ orders|tojson|safe }}
+    </script>
     <script src="{{ url_for('static', filename='js/orders.js') }}" defer></script>
 
 </body>

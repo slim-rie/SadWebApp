@@ -49,48 +49,80 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function openLoginModal(target = null) {
         redirectTarget = target;
-        loginModal.classList.add('show-modal');
-        document.body.style.overflow = 'hidden'; 
+        if (loginModal) {
+            loginModal.style.display = 'flex';
+            loginModal.classList.add('show-modal');
+            document.body.style.overflow = 'hidden';
+        }
     }
     
     function closeLoginModal() {
-        loginModal.classList.remove('show-modal');
-        document.body.style.overflow = ''; 
+        if (loginModal) {
+            loginModal.classList.remove('show-modal');
+            loginModal.style.display = 'none';
+            document.body.style.overflow = '';
+            if (loginError) {
+                loginError.textContent = '';
+            }
+            if (loginForm) {
+                loginForm.reset();
+            }
+        }
     }
     
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const usernameInput = document.getElementById('username').value;
-        const passwordInput = document.getElementById('password').value;
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
 
-        fetch('/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username: usernameInput,
-                password: passwordInput
+            fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: usernameInput,
+                    password: passwordInput
+                })
             })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('username', 'customer');
-                updateUIForLoginStatus(true, 'customer');
-                closeLoginModal();
-                
-                if (redirectTarget) {
-                    window.location.href = redirectTarget;
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('username', 'customer');
+                    updateUIForLoginStatus(true, 'customer');
+                    closeLoginModal();
+                    
+                    if (redirectTarget) {
+                        window.location.href = redirectTarget;
+                    }
+                } else {
+                    if (loginError) {
+                        loginError.textContent = data.message || 'Invalid username or password';
+                    }
                 }
-            } else {
-                loginError.textContent = data.message || 'Invalid username or password';
-            }
-        })
-        .catch(error => {
-            loginError.textContent = 'Login failed: ' + error;
+            })
+            .catch(error => {
+                if (loginError) {
+                    loginError.textContent = 'Login failed: ' + error;
+                }
+            });
         });
+    }
+    
+    if (closeModal) {
+        closeModal.onclick = closeLoginModal;
+    }
+    
+    if (modalOverlay) {
+        modalOverlay.onclick = closeLoginModal;
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && loginModal && loginModal.classList.contains('show-modal')) {
+            closeLoginModal();
+        }
     });
     
     function logout() {
@@ -228,8 +260,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = '/fabrics';
             };
             
-            heroShopNowBtn.onclick = function() {
-                window.location.href = '/products';
+            heroShopNowBtn.onclick = function(event) {
+                if (!isLoggedIn) {
+                    event.preventDefault();
+                    openLoginModal();
+                    return false;
+                } else {
+                    window.location.href = '/sewingmachines';
+                }
             };
             
             footerShopLink.onclick = function(e) {
@@ -287,8 +325,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = '/fabrics';
             };
             
-            heroShopNowBtn.onclick = function() {
-                window.location.href = '/products';
+            heroShopNowBtn.onclick = function(event) {
+                if (!isLoggedIn) {
+                    event.preventDefault();
+                    openLoginModal();
+                    return false;
+                } else {
+                    window.location.href = '/sewingmachines';
+                }
             };
             
             footerShopLink.onclick = function(e) {
@@ -324,9 +368,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     }
-    
-    closeModal.addEventListener('click', closeLoginModal);
-    modalOverlay.addEventListener('click', closeLoginModal);
     
     if (!isLoggedIn) {
         const loginBtns = document.querySelectorAll('.open-login-modal, #loginBtn');
