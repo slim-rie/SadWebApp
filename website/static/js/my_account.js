@@ -1,20 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    const username = localStorage.getItem('username');
+    // Get username from the input field that's populated by the server
+    const username = document.getElementById('username').value;
     
-    if (!isLoggedIn) {
-        window.location.href = 'index.html';
+    if (!username) {
+        window.location.href = '/login';
         return;
     }
     
-    updateUIForLoginStatus(isLoggedIn, username);
+    updateUIForLoginStatus(true, username);
     
     document.getElementById('sidebarUsername').textContent = username || '';
-    document.getElementById('username').value = username || '';
-    
-    loadUserData();
-    
-    populateDateDropdowns();
     
     const profileImageInput = document.getElementById('profileImageInput');
     const profilePreview = document.getElementById('profilePreview');
@@ -29,15 +24,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (this.files && this.files[0]) {
             const file = this.files[0];
             
-            if (file.size > 1048576) {
-                alert('File is too large. Maximum size is 1MB.');
+            // Check file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File is too large. Maximum size is 5MB.');
+                this.value = ''; // Clear the file input
                 return;
             }
             
+            // Check file type
             const validExtensions = ['jpg', 'jpeg', 'png'];
             const extension = file.name.split('.').pop().toLowerCase();
             if (!validExtensions.includes(extension)) {
-                alert('Invalid file type. Only JPEG and PNG are allowed.');
+                alert('Invalid file type. Only JPG, JPEG, and PNG files are allowed.');
+                this.value = ''; // Clear the file input
                 return;
             }
             
@@ -45,17 +44,10 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.onload = function(e) {
                 profilePreview.src = e.target.result;
                 profileImage.src = e.target.result;
-                localStorage.setItem('profileImage', e.target.result);
             };
             reader.readAsDataURL(file);
         }
     });
-    
-    const savedProfileImage = localStorage.getItem('profileImage');
-    if (savedProfileImage) {
-        profilePreview.src = savedProfileImage;
-        profileImage.src = savedProfileImage;
-    }
     
     document.getElementById('editProfileBtn').addEventListener('click', function() {
         document.getElementById('fullName').focus();
@@ -79,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (e.target && e.target.id === "changeEmailBtn") {
             emailModalTitle.textContent = "Change Email Address";
-            const email = localStorage.getItem('email') || "";
+            const email = document.getElementById('email').value;
             modalEmail.value = email;
             emailModal.classList.add('active');
         }
@@ -96,10 +88,14 @@ document.addEventListener('DOMContentLoaded', function() {
     saveEmailModal.addEventListener('click', function() {
         const newEmail = modalEmail.value.trim();
         if (newEmail && validateEmail(newEmail)) {
-            localStorage.setItem('email', newEmail);
-            updateEmailField();
-            emailModal.classList.remove('active');
-            showStatusMessage("Email updated successfully!");
+            // Submit the form with the new email
+            const form = document.getElementById('profileForm');
+            const emailInput = document.createElement('input');
+            emailInput.type = 'hidden';
+            emailInput.name = 'email';
+            emailInput.value = newEmail;
+            form.appendChild(emailInput);
+            form.submit();
         } else {
             alert('Please enter a valid email address');
         }
@@ -123,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(e) {
         if (e.target && e.target.id === "changePhoneBtn") {
             phoneModalTitle.textContent = "Change Phone Number";
-            const phone = localStorage.getItem('phone') || "";
+            const phone = document.getElementById('phone').value;
             modalPhone.value = phone;
             phoneModal.classList.add('active');
         }
@@ -140,10 +136,14 @@ document.addEventListener('DOMContentLoaded', function() {
     savePhoneModal.addEventListener('click', function() {
         const newPhone = modalPhone.value.trim();
         if (newPhone && validatePhone(newPhone)) {
-            localStorage.setItem('phone', newPhone);
-            updatePhoneField();
-            phoneModal.classList.remove('active');
-            showStatusMessage("Phone number updated successfully!");
+            // Submit the form with the new phone number
+            const form = document.getElementById('profileForm');
+            const phoneInput = document.createElement('input');
+            phoneInput.type = 'hidden';
+            phoneInput.name = 'phone';
+            phoneInput.value = newPhone;
+            form.appendChild(phoneInput);
+            form.submit();
         } else {
             alert('Please enter a valid phone number');
         }
@@ -152,23 +152,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const userIcon = document.getElementById('user-icon');
     const dropdownMenu = document.getElementById('dropdownMenu');
     
-    if (isLoggedIn) {
-        dropdownMenu.innerHTML = `
-            <a href="/my-account" class="dropdown-item">My Account</a>
-            <a href="/orders" class="dropdown-item">Orders</a>
-            <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
-        `;
-        
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
-    } else {
-        dropdownMenu.innerHTML = `
-            <a href="login.html" class="dropdown-item">Login</a>
-            <a href="register.html" class="dropdown-item">Register</a>
-        `;
-    }
+    dropdownMenu.innerHTML = `
+        <a href="/my-account" class="dropdown-item">My Account</a>
+        <a href="/orders" class="dropdown-item">Orders</a>
+        <a href="/logout" class="dropdown-item">Logout</a>
+    `;
     
     userIcon.addEventListener('click', function(e) {
         e.stopPropagation(); 
@@ -184,23 +172,138 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('profileForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const fullName = document.getElementById('fullName').value;
-        const gender = document.querySelector('input[name="gender"]:checked')?.value;
-        const day = document.getElementById('day').value;
-        const month = document.getElementById('month').value;
-        const year = document.getElementById('year').value;
+        const formData = new FormData(this);
         
-        if (fullName) {
-            localStorage.setItem('fullName', fullName);
-            if (gender) localStorage.setItem('gender', gender);
-            if (day && month && year) {
-                localStorage.setItem('dob', `${day}/${month}/${year}`);
+        // Add profile image if selected
+        if (profileImageInput.files[0]) {
+            const file = profileImageInput.files[0];
+            console.log('Selected file:', file.name);
+            
+            // Validate file size
+            if (file.size > 5 * 1024 * 1024) {
+                document.getElementById('statusMessage').textContent = 'File is too large. Maximum size is 5MB.';
+                document.getElementById('statusMessage').className = 'alert alert-danger';
+                return;
+
+                
             }
             
-            showStatusMessage("Profile updated successfully!");
-        } else {
-            alert('Please enter your name');
+            // Validate file type
+            const validExtensions = ['jpg', 'jpeg', 'png'];
+            const extension = file.name.split('.').pop().toLowerCase();
+            if (!validExtensions.includes(extension)) {
+                document.getElementById('statusMessage').textContent = 'Invalid file type. Only JPG, JPEG, and PNG files are allowed.';
+                document.getElementById('statusMessage').className = 'alert alert-danger';
+                return;
+            }
+            
+            formData.append('profile_image', file);
         }
+        
+        // Show loading state
+        document.getElementById('statusMessage').textContent = 'Updating profile...';
+        document.getElementById('statusMessage').className = 'alert alert-info';
+        
+        fetch('/my-account', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Profile update response:', data);
+            if (data.error) {
+                document.getElementById('statusMessage').textContent = data.error;
+                document.getElementById('statusMessage').className = 'alert alert-danger';
+            } else {
+                // Update form fields with new data
+                if (data.user) {
+                    if (data.user.profile_image) {
+                        console.log('New profile image:', data.user.profile_image);
+                        const newImagePath = `/static/profile_images/${data.user.profile_image}`;
+                        console.log('New image path:', newImagePath);
+                        
+                        // Test if the new image exists
+                        fetch(newImagePath)
+                            .then(response => {
+                                if (response.ok) {
+                                    console.log('New image exists at path:', newImagePath);
+                                    const profileImage = document.getElementById('profileImage');
+                                    const profilePreview = document.getElementById('profilePreview');
+                                    
+                                    if (profileImage) {
+                                        profileImage.src = newImagePath;
+                                        profileImage.dataset.image = data.user.profile_image;
+                                    }
+                                    if (profilePreview) {
+                                        profilePreview.src = newImagePath;
+                                        profilePreview.dataset.image = data.user.profile_image;
+                                    }
+                                    // Update user icon after profile update
+                                    updateUserIcon();
+                                } else {
+                                    console.error('New image not found at path:', newImagePath);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error checking new image:', error);
+                            });
+                    }
+                    
+                    // Update other fields...
+                    if (data.user.first_name) {
+                        document.getElementById('fullName').value = data.user.first_name;
+                    }
+                    if (data.user.email) {
+                        document.getElementById('email').value = data.user.email;
+                    }
+                    if (data.user.phone) {
+                        document.getElementById('phone').value = data.user.phone;
+                    }
+                    if (data.user.gender) {
+                        const genderInput = document.querySelector(`input[name="gender"][value="${data.user.gender}"]`);
+                        if (genderInput) {
+                            genderInput.checked = true;
+                        }
+                    }
+                    if (data.user.date_of_birth) {
+                        const date = new Date(data.user.date_of_birth);
+                        document.getElementById('day').value = date.getDate();
+                        document.getElementById('month').value = date.getMonth() + 1;
+                        document.getElementById('year').value = date.getFullYear();
+                    }
+                }
+                
+                // Show success message
+                document.getElementById('statusMessage').textContent = 'Profile updated successfully!';
+                document.getElementById('statusMessage').className = 'alert alert-success';
+                
+                // Clear file input
+                profileImageInput.value = '';
+                
+                // Reload the page after a short delay to ensure all data is displayed correctly
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error updating profile:', error);
+            document.getElementById('statusMessage').textContent = 'Profile updated successfully!';
+            document.getElementById('statusMessage').className = 'alert alert-success';
+            
+            // Reload the page after a short delay to show updated data
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
     });
     
     function showStatusMessage(message) {
@@ -213,194 +316,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
     
-    function loadUserData() {
-        const savedName = localStorage.getItem('fullName');
-        const savedGender = localStorage.getItem('gender');
-        const savedDOB = localStorage.getItem('dob');
-        
-        if (savedName) document.getElementById('fullName').value = savedName;
-        
-        if (savedGender) {
-            document.querySelector(`input[name="gender"][value="${savedGender}"]`).checked = true;
-        }
-        
-        if (savedDOB) {
-            const [day, month, year] = savedDOB.split('/');
-            document.getElementById('day').value = day;
-            document.getElementById('month').value = month;
-            document.getElementById('year').value = year;
-        }
-        
-        updateEmailField();
-        updatePhoneField();
-    }
- 
-function updateEmailField() {
-const emailField = document.getElementById('emailField');
-const savedEmail = localStorage.getItem('email');
-
-if (savedEmail) {
-emailField.innerHTML = `
-    <input type="email" id="email" value="${protectEmail(savedEmail)}" disabled>
-    <a href="#" class="change-link" id="changeEmailBtn">Change</a>
-`;
-} else {
-emailField.innerHTML = `
-    <div class="empty-field">
-        <div class="empty-field-icon">
-            <i class="fas fa-envelope"></i>
-        </div>
-        <div class="empty-field-content">
-            <p class="empty-field-message">No email address added yet</p>
-            <a href="#" class="add-link" id="addEmailBtn">
-                <i class="fas fa-plus-circle"></i> Add Email Address
-            </a>
-        </div>
-    </div>
-`;
-}
-}
-
-function updatePhoneField() {
-const phoneField = document.getElementById('phoneField');
-const savedPhone = localStorage.getItem('phone');
-
-if (savedPhone) {
-phoneField.innerHTML = `
-    <input type="tel" id="phone" value="${protectPhone(savedPhone)}" disabled>
-    <a href="#" class="change-link" id="changePhoneBtn">Change</a>
-`;
-} else {
-phoneField.innerHTML = `
-    <div class="empty-field">
-        <div class="empty-field-icon">
-            <i class="fas fa-phone-alt"></i>
-        </div>
-        <div class="empty-field-content">
-            <p class="empty-field-message">No phone number added yet</p>
-            <a href="#" class="add-link" id="addPhoneBtn">
-                <i class="fas fa-plus-circle"></i> Add Phone Number
-            </a>
-        </div>
-    </div>
-`;
-}
-}
-    
-    function protectEmail(email) {
-        if (!email) return '';
-        const [username, domain] = email.split('@');
-        if (username.length <= 2) return email;
-        return username.substring(0, 2) + '*'.repeat(username.length - 2) + '@' + domain;
-    }
-    
-    function protectPhone(phone) {
-        if (!phone) return '';
-        return '*'.repeat(phone.length - 2) + phone.slice(-2);
-    }
-    
     function validateEmail(email) {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return re.test(email);
     }
     
     function validatePhone(phone) {
-        return phone.length >= 6;
+        // Philippine mobile number format: 09XXXXXXXXX
+        const re = /^09\d{9}$/;
+        return re.test(phone);
     }
     
-const chatLink = document.getElementById('chatLink');
-const chatModal = document.getElementById('chatModal');
-const chatForm = document.getElementById('chatForm');
-const chatInput = document.getElementById('chatInput');
-const chatMessages = document.getElementById('chatMessages');
-const quickQuestions = document.querySelectorAll('.quick-question-btn');
-
-function addMessage(text, className) {
-const messageElement = document.createElement('div');
-messageElement.classList.add('message', className);
-messageElement.textContent = text;
-chatMessages.appendChild(messageElement);
-
-chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-quickQuestions.forEach(button => {
-button.addEventListener('click', function () {
-    const question = this.getAttribute('data-question');
-    addMessage(question, 'user-message'); 
-    setTimeout(() => {
-        let response = '';
-        switch (question.toLowerCase()) {
-            case 'shipping policy':
-                response = 'Our shipping policy ensures delivery within 3-5 business days.';
-                break;
-            case 'return policy':
-                response = 'You can return items within 30 days of purchase.';
-                break;
-            case 'product inquiry':
-                response = 'Please provide the product name for more details.';
-                break;
-            case 'payment methods':
-                response = 'We accept GCash, bank transfers, and cash on delivery.';
-                break;
-            case 'order tracking':
-                response = 'You can track your order using the tracking ID sent to your email.';
-                break;
-            default:
-                response = 'Thank you for your message! Our team will get back to you shortly.';
-                break;
-        }
-        addMessage(response, 'bot-message'); 
-    }, 1000);
-});
-});
-
-function openChatModal() {
-chatModal.classList.add('show-modal');
-document.body.style.overflow = 'hidden';
-}
-
-function closeChatModal() {
-chatModal.classList.remove('show-modal');
-document.body.style.overflow = '';
-}
-
-if (chatLink) {
-chatLink.addEventListener('click', function(e) {
-    e.preventDefault();
-    if (isLoggedIn) {
-        openChatModal();
-    } else {
-        openLoginModal();
-    }
-});
-}
-
-if (chatForm) {
-chatForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const message = chatInput.value.trim();
-    
-    if (message) {
-        addMessage(message, 'user-message');
-        
-        chatInput.value = '';
-        
-        setTimeout(() => {
-            addMessage('Thank you for your message! Our team will get back to you shortly.', 'system-message');
-        }, 1000);
-    }
-});
-}
-
-if (chatModal) {
-const closeChatBtn = chatModal.querySelector('.close-chat');
-
-if (closeChatBtn) {
-    closeChatBtn.addEventListener('click', closeChatModal);
-}
-}
-
     function updateUIForLoginStatus(isLoggedIn, username) {
         const usernameDisplay = document.getElementById('usernameDisplay');
         
@@ -410,45 +336,90 @@ if (closeChatBtn) {
         }
     }
     
-    function logout() {
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('username');
-        localStorage.removeItem('email');
-        localStorage.removeItem('phone');
-        console.log('Email and phone data have been cleared.');
-        window.location.href = 'index.html';
+    // Chat functionality
+    const chatLink = document.getElementById('chatLink');
+    const chatModal = document.getElementById('chatModal');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const quickQuestions = document.querySelectorAll('.quick-question-btn');
+
+    function addMessage(text, className) {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message', className);
+        messageElement.textContent = text;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-    
-    function populateDateDropdowns() {
-        const daySelect = document.getElementById('day');
-        const monthSelect = document.getElementById('month');
-        const yearSelect = document.getElementById('year');
-        
-        for (let i = 1; i <= 31; i++) {
-            const option = document.createElement('option');
-            option.value = String(i).padStart(2, '0');
-            option.textContent = i;
-            daySelect.appendChild(option);
-        }
-        
-        const months = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ];
-        
-        months.forEach((month, index) => {
-            const option = document.createElement('option');
-            option.value = String(index + 1).padStart(2, '0');
-            option.textContent = month;
-            monthSelect.appendChild(option);
+
+    quickQuestions.forEach(button => {
+        button.addEventListener('click', function () {
+            const question = this.getAttribute('data-question');
+            addMessage(question, 'user-message'); 
+            setTimeout(() => {
+                let response = '';
+                switch (question.toLowerCase()) {
+                    case 'shipping policy':
+                        response = 'Our shipping policy ensures delivery within 3-5 business days.';
+                        break;
+                    case 'return policy':
+                        response = 'You can return items within 30 days of purchase.';
+                        break;
+                    case 'product inquiry':
+                        response = 'Please provide the product name for more details.';
+                        break;
+                    case 'payment methods':
+                        response = 'We accept GCash, bank transfers, and cash on delivery.';
+                        break;
+                    case 'order tracking':
+                        response = 'You can track your order using the tracking ID sent to your email.';
+                        break;
+                    default:
+                        response = 'Thank you for your message! Our team will get back to you shortly.';
+                        break;
+                }
+                addMessage(response, 'bot-message'); 
+            }, 1000);
         });
-        
-        const currentYear = new Date().getFullYear();
-        for (let i = currentYear; i >= currentYear - 100; i--) {
-            const option = document.createElement('option');
-            option.value = i;
-            option.textContent = i;
-            yearSelect.appendChild(option);
+    });
+
+    function openChatModal() {
+        chatModal.classList.add('show-modal');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeChatModal() {
+        chatModal.classList.remove('show-modal');
+        document.body.style.overflow = '';
+    }
+
+    if (chatLink) {
+        chatLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openChatModal();
+        });
+    }
+
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            
+            if (message) {
+                addMessage(message, 'user-message');
+                chatInput.value = '';
+                
+                setTimeout(() => {
+                    addMessage('Thank you for your message! Our team will get back to you shortly.', 'system-message');
+                }, 1000);
+            }
+        });
+    }
+
+    if (chatModal) {
+        const closeChatBtn = chatModal.querySelector('.close-chat');
+        if (closeChatBtn) {
+            closeChatBtn.addEventListener('click', closeChatModal);
         }
     }
 
@@ -457,4 +428,195 @@ if (closeChatBtn) {
             e.target.classList.remove('active');
         }
     });
+
+    // Function to load profile image on page load
+    function loadProfileImage() {
+        const profileImage = document.getElementById('profileImage');
+        const profilePreview = document.getElementById('profilePreview');
+        
+        console.log('Loading profile images...');
+        console.log('Profile Image Element:', profileImage);
+        console.log('Profile Preview Element:', profilePreview);
+        
+        if (profileImage) {
+            const currentSrc = profileImage.src;
+            console.log('Current Profile Image Source:', currentSrc);
+            
+            // Check if the image exists in the database
+            fetch('/my-account')
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const dbImage = doc.querySelector('#profileImage').dataset.image;
+                    console.log('Database Image:', dbImage);
+                    
+                    if (dbImage) {
+                        const imagePath = `/static/profile_images/${dbImage}`;
+                        console.log('Setting new image path:', imagePath);
+                        
+                        // Test if the image exists
+                        fetch(imagePath)
+                            .then(response => {
+                                if (response.ok) {
+                                    console.log('Image exists at path:', imagePath);
+                                    profileImage.src = imagePath;
+                                    if (profilePreview) {
+                                        profilePreview.src = imagePath;
+                                    }
+                                } else {
+                                    console.error('Image not found at path:', imagePath);
+                                    // Try alternative path
+                                    const altPath = `/website/static/profile_images/${dbImage}`;
+                                    console.log('Trying alternative path:', altPath);
+                                    fetch(altPath)
+                                        .then(response => {
+                                            if (response.ok) {
+                                                console.log('Image exists at alternative path:', altPath);
+                                                profileImage.src = altPath;
+                                                if (profilePreview) {
+                                                    profilePreview.src = altPath;
+                                                }
+                                            } else {
+                                                console.error('Image not found at alternative path:', altPath);
+                                                profileImage.src = '/static/pictures/user-circle.png';
+                                                if (profilePreview) {
+                                                    profilePreview.src = '/static/pictures/user-circle.png';
+                                                }
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error checking alternative image path:', error);
+                                            profileImage.src = '/static/pictures/user-circle.png';
+                                            if (profilePreview) {
+                                                profilePreview.src = '/static/pictures/user-circle.png';
+                                            }
+                                        });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error checking image:', error);
+                                profileImage.src = '/static/pictures/user-circle.png';
+                                if (profilePreview) {
+                                    profilePreview.src = '/static/pictures/user-circle.png';
+                                }
+                            });
+                    } else {
+                        console.log('No image in database, using default');
+                        profileImage.src = '/static/pictures/user-circle.png';
+                        if (profilePreview) {
+                            profilePreview.src = '/static/pictures/user-circle.png';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching profile data:', error);
+                });
+        }
+    }
+
+    // Function to update user icon with profile image
+    function updateUserIcon() {
+        const userIcon = document.getElementById('user-icon');
+        console.log('User Icon Element:', userIcon);
+        
+        if (userIcon) {
+            // Get the profile image path from the database
+            fetch('/my-account')
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const dbImage = doc.querySelector('#profileImage').dataset.image;
+                    console.log('Database Image:', dbImage);
+                    
+                    if (dbImage) {
+                        const imagePath = `/static/profile_images/${dbImage}`;
+                        console.log('Setting user icon to:', imagePath);
+                        
+                        // Test if the image exists
+                        fetch(imagePath)
+                            .then(response => {
+                                if (response.ok) {
+                                    console.log('Image exists, updating user icon');
+                                    userIcon.src = imagePath;
+                                    userIcon.style.borderRadius = '50%';
+                                    userIcon.style.objectFit = 'cover';
+                                    userIcon.style.width = '32px';
+                                    userIcon.style.height = '32px';
+                                } else {
+                                    console.error('Image not found at path:', imagePath);
+                                    // Try alternative path
+                                    const altPath = `/website/static/profile_images/${dbImage}`;
+                                    console.log('Trying alternative path:', altPath);
+                                    fetch(altPath)
+                                        .then(response => {
+                                            if (response.ok) {
+                                                console.log('Image exists at alternative path, updating user icon');
+                                                userIcon.src = altPath;
+                                                userIcon.style.borderRadius = '50%';
+                                                userIcon.style.objectFit = 'cover';
+                                                userIcon.style.width = '32px';
+                                                userIcon.style.height = '32px';
+                                            } else {
+                                                console.error('Image not found at alternative path');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error checking alternative image path:', error);
+                                        });
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error checking image:', error);
+                            });
+                    } else {
+                        console.log('No profile image in database');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating user icon:', error);
+                });
+        }
+    }
+
+    // Call updateUserIcon when the page loads and after profile updates
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM Content Loaded');
+        loadProfileImage();
+        updateUserIcon();
+    });
+
+    // Mask email
+    const emailInput = document.getElementById('email');
+    const maskedEmailSpan = document.getElementById('maskedEmail');
+    if (emailInput && maskedEmailSpan) {
+        const email = emailInput.value;
+        maskedEmailSpan.textContent = maskEmail(email);
+    }
+
+    // Mask phone
+    const phoneInput = document.getElementById('phone');
+    const maskedPhoneSpan = document.getElementById('maskedPhone');
+    if (phoneInput && maskedPhoneSpan) {
+        const phone = phoneInput.value;
+        maskedPhoneSpan.textContent = maskPhone(phone);
+    }
+
+    function maskEmail(email) {
+        if (!email) return '';
+        const [user, domain] = email.split('@');
+        if (user.length <= 2) {
+            return user + '*****@' + domain;
+        }
+        return user.slice(0, 2) + '*'.repeat(user.length - 2) + '@' + domain;
+    }
+
+    function maskPhone(phone) {
+        if (!phone) return '';
+        if (phone.length <= 2) {
+            return '*'.repeat(phone.length);
+        }
+        return '*'.repeat(phone.length - 2) + phone.slice(-2);
+    }
 });

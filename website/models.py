@@ -20,6 +20,7 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     first_name = db.Column(db.String(100))
     last_name = db.Column(db.String(100))
+    phone_number = db.Column(db.String(20))
     gender = db.Column(db.String(10))
     date_of_birth = db.Column(db.Date)
     profile_image = db.Column(db.String(255))

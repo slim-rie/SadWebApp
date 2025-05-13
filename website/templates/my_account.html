@@ -46,7 +46,7 @@
                 <div class="user-dropdown">
                     <div class="user-info">
                         <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
-                        <span class="username" id="usernameDisplay"></span>
+                        <span class="username" id="usernameDisplay" ></span>
                     </div>
                     <div class="dropdown-container" id="dropdownMenu">
                         <a href="{{ url_for('auth.my_account') }}" class="dropdown-item">My Account</a>
@@ -63,7 +63,11 @@
             <div class="account-wrapper">
                 <div class="sidebar">
                     <div class="user-profile">
-                        <img src="{% if user.profile_image %}{{ url_for('static', filename='profile_images/' ~ user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}" alt="Profile" id="profileImage" class="profile-image">
+                        <img src="{% if user.profile_image %}{{ url_for('static', filename='profile_images/' ~ user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}" 
+                             alt="Profile" 
+                             id="profileImage" 
+                             class="profile-image"
+                             data-image="{{ user.profile_image if user.profile_image else '' }}">
                         <div class="user-info">
                             <div class="user-name-section">
                                 <h3 id="sidebarUsername"></h3>
@@ -103,12 +107,48 @@
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" value="{{ user.email }}">
+                            <div class="protected-field" id="emailField">
+                                {% if user.email %}
+                                <input type="text" id="maskedEmailInput" value="" disabled>
+                                <input type="email" id="email" value="{{ user.email }}" style="display:none;">
+                                <a href="#" class="change-link" id="changeEmailBtn">Change</a>
+                                {% else %}
+                                <div class="empty-field">
+                                    <div class="empty-field-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div class="empty-field-content">
+                                        <p class="empty-field-message">No email address added yet</p>
+                                        <a href="#" class="add-link" id="addEmailBtn">
+                                            <i class="fas fa-plus-circle"></i> Add Email Address
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="form-group">
                             <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" value="{{ user.phone }}">
+                            <div class="protected-field" id="phoneField">
+                                {% if user.phone_number %}
+                                <input type="text" id="maskedPhoneInput" value="" disabled>
+                                <input type="tel" id="phone" value="{{ user.phone_number }}" style="display:none;">
+                                <a href="#" class="change-link" id="changePhoneBtn">Change</a>
+                                {% else %}
+                                <div class="empty-field">
+                                    <div class="empty-field-icon">
+                                        <i class="fas fa-phone-alt"></i>
+                                    </div>
+                                    <div class="empty-field-content">
+                                        <p class="empty-field-message">No phone number added yet</p>
+                                        <a href="#" class="add-link" id="addPhoneBtn">
+                                            <i class="fas fa-plus-circle"></i> Add Phone Number
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -153,11 +193,6 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="profileImage">Profile Image</label>
-                            <input type="file" id="profileImageInput" name="profile_image" accept=".jpg,.jpeg,.png">
-                        </div>
-
                         <button type="submit" class="save-btn">SAVE</button>
                     </form>
                     {% endif %}
@@ -165,11 +200,15 @@
 
                 <div class="profile-picture-section">
                     <div class="profile-picture-container">
-                        <img src="{% if user.profile_image %}{{ url_for('static', filename='profile_images/' ~ user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}" alt="Profile" id="profilePreview" class="profile-preview">
+                        <img src="{% if user.profile_image %}{{ url_for('static', filename='profile_images/' ~ user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}" 
+                             alt="Profile" 
+                             id="profilePreview" 
+                             class="profile-preview"
+                             data-image="{{ user.profile_image if user.profile_image else '' }}">
                         <button type="button" class="select-image-btn" id="selectImageBtn">Select Image</button>
                     </div>
-                    <p class="file-requirements">File size: maximum 1 MB</p>
-                    <p class="file-requirements">File extension: JPEG, PNG</p>
+                    <p class="file-requirements">File size: maximum 5 MB</p>
+                    <p class="file-requirements">File extension: JPG, JPEG, PNG</p>
                     <input type="file" id="profileImageInput" accept=".jpg,.jpeg,.png" style="display: none;">
                 </div>
             </div>
@@ -293,6 +332,41 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/my_account.js') }}" defer></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mask email
+        const emailInput = document.getElementById('email');
+        const maskedEmailInput = document.getElementById('maskedEmailInput');
+        if (emailInput && maskedEmailInput) {
+            maskedEmailInput.value = maskEmail(emailInput.value);
+        }
+
+        // Mask phone
+        const phoneInput = document.getElementById('phone');
+        const maskedPhoneInput = document.getElementById('maskedPhoneInput');
+        if (phoneInput && maskedPhoneInput) {
+            maskedPhoneInput.value = maskPhone(phoneInput.value);
+        }
+
+        function maskEmail(email) {
+            if (!email) return '';
+            const [user, domain] = email.split('@');
+            if (user.length <= 2) {
+                return user + '*****@' + domain;
+            }
+            return user.slice(0, 2) + '*'.repeat(user.length - 2) + '@' + domain;
+        }
+
+        function maskPhone(phone) {
+            if (!phone) return '';
+            if (phone.length <= 2) {
+                return '*'.repeat(phone.length);
+            }
+            return '*'.repeat(phone.length - 2) + phone.slice(-2);
+        }
+    });
+    </script>
 
 </body>
 </html>

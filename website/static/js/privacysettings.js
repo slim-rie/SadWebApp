@@ -8,10 +8,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const username = localStorage.getItem('username');
 
     if (isLoggedIn && username) {
-        usernameDisplay.textContent = username;
+        usernameDisplay.textContent = current_user.username;
         usernameDisplay.style.display = 'inline-block';
 
-        sidebarUsername.textContent = username;
+        sidebarUsername.textContent = current_user.username;
 
         dropdownMenu.innerHTML = `
             <a href="/my-account" class="dropdown-item">My Account</a>

@@ -47,7 +47,7 @@
                 <div class="user-dropdown">
                     <div class="user-info">
                         <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
-                        <span class="username" id="usernameDisplay"></span>
+                        <span class="username" id="usernameDisplay">{{ user.username }}</span>
                     </div>
                     <div class="dropdown-container" id="dropdownMenu">
                     </div>
@@ -61,10 +61,11 @@
             <div class="account-wrapper">
                 <div class="sidebar">
                     <div class="user-profile">
-                        <img src="{{ url_for('static', filename='pictures/user-circle.png') }}" alt="Profile" id="profileImage" class="profile-image">
+                        <img src="{% if user.profile_image %}{{ url_for('static', filename='profile_images/' ~ user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}"
+                             alt="Profile" id="profileImage" class="profile-image" data-image="{{ user.profile_image if user.profile_image else '' }}">
                         <div class="user-info">
                             <div class="user-name-section">
-                                <h3 id="sidebarUsername"></h3>
+                                <h3 id="sidebarUsername">{{ user.username }}</h3>
                                 <div class="green-line">
                                     <button class="edit-profile-btn" id="editProfileBtn">✏️ Edit Profile</button>
                                 </div>

@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateUIForLoginStatus(isLoggedIn, username);
     
-    document.getElementById('sidebarUsername').textContent = username || '';
+    document.getElementById('sidebarUsername').textContent = current_user.username || '';
     
     const savedProfileImage = localStorage.getItem('profileImage');
     if (savedProfileImage) {
@@ -678,7 +678,7 @@ function updateUIForLoginStatus(isLoggedIn, username) {
     const usernameDisplay = document.getElementById('usernameDisplay');
     
     if (isLoggedIn && username) {
-        usernameDisplay.textContent = username;
+        usernameDisplay.textContent = current_user.username;
     } else {
         usernameDisplay.textContent = '';
     }

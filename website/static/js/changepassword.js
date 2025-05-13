@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateUIForLoginStatus(isLoggedIn, username);
     
-    document.getElementById('sidebarUsername').textContent = username || '';
+    document.getElementById('sidebarUsername').textContent = current_user.username || '';
     
     const savedProfileImage = localStorage.getItem('profileImage');
     if (savedProfileImage) {
@@ -226,7 +226,7 @@ if (closeChatBtn) {
         const usernameDisplay = document.getElementById('usernameDisplay');
         
         if (isLoggedIn && username) {
-            usernameDisplay.textContent = username;
+            usernameDisplay.textContent = current_user.username;
             usernameDisplay.style.display = 'inline-block';
             
             dropdownMenu.innerHTML = `

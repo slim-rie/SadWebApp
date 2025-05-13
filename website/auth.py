@@ -41,7 +41,7 @@ google = OAuth2Session(
 )
 
 # Profile image settings
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 def allowed_file(filename):
@@ -80,21 +80,21 @@ def change_password():
             if request.is_json:
                 return jsonify({'success': False, 'message': message}), 400
             flash(message, 'error')
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=current_user)
         
         if new_password != confirm_password:
             message = 'New passwords do not match'
             if request.is_json:
                 return jsonify({'success': False, 'message': message}), 400
             flash(message, 'error')
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=current_user)
         
         is_valid, message = validate_password(new_password)
         if not is_valid:
             if request.is_json:
                 return jsonify({'success': False, 'message': message}), 400
             flash(message, 'error')
-            return render_template('change_password.html')
+            return render_template('change_password.html', user=current_user)
         
         try:
             current_user.password = new_password
@@ -115,7 +115,7 @@ def change_password():
                 return jsonify({'success': False, 'message': message}), 500
             flash(message, 'error')
     
-    return render_template('change_password.html')
+    return render_template('change_password.html', user=current_user)
 
 @auth.route('/add-item')
 @login_required
@@ -540,37 +540,123 @@ def contact_seller(product_id):
 @login_required
 def my_account():
     if request.method == 'POST':
-        # Get form data
-        first_name = request.form.get('fullName')
-        email = request.form.get('email')
-        gender = request.form.get('gender')
-        day = request.form.get('day')
-        month = request.form.get('month')
-        year = request.form.get('year')
+        try:
+            # Get form data
+            first_name = request.form.get('fullName')
+            email = request.form.get('email')
+            phone_number = request.form.get('phone')
+            gender = request.form.get('gender')
+            day = request.form.get('day')
+            month = request.form.get('month')
+            year = request.form.get('year')
 
-        # Update user fields
-        current_user.first_name = first_name
-        current_user.email = email
-        current_user.gender = gender
-        # Handle date of birth
-        if day and month and year:
-            try:
-                current_user.date_of_birth = datetime(int(year), int(month), int(day))
-            except Exception:
-                pass
-        # Handle profile image upload
-        if 'profile_image' in request.files:
-            file = request.files['profile_image']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                ext = filename.rsplit('.', 1)[1].lower()
-                new_filename = f"{current_user.user_id}_{int(datetime.utcnow().timestamp())}.{ext}"
-                save_path = os.path.join('SadWebApp/website/static/profile_images', new_filename)
-                file.save(save_path)
-                current_user.profile_image = new_filename
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('auth.my_account'))
+            # Update user fields
+            if first_name:
+                current_user.first_name = first_name
+            if email:
+                if not validate_email(email):
+                    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return jsonify({'error': 'Invalid email format'}), 400
+                    flash('Invalid email format', 'error')
+                    return redirect(url_for('auth.my_account'))
+                current_user.email = email
+            if phone_number:
+                # Validate phone number (Philippine format)
+                phone_regex = r'^(\+63|0)9\d{9}$'
+                if not re.match(phone_regex, phone_number):
+                    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return jsonify({'error': 'Please enter a valid Philippine mobile number (e.g., +639XXXXXXXXX or 09XXXXXXXXX)'}), 400
+                    flash('Please enter a valid Philippine mobile number (e.g., +639XXXXXXXXX or 09XXXXXXXXX)', 'error')
+                    return redirect(url_for('auth.my_account'))
+                current_user.phone_number = phone_number
+            if gender:
+                current_user.gender = gender
+            
+            # Handle date of birth
+            if day and month and year:
+                try:
+                    current_user.date_of_birth = datetime(int(year), int(month), int(day))
+                except Exception:
+                    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return jsonify({'error': 'Invalid date format'}), 400
+                    flash('Invalid date format', 'error')
+                    return redirect(url_for('auth.my_account'))
+
+            # Handle profile image upload
+            if 'profile_image' in request.files:
+                file = request.files['profile_image']
+                if file and file.filename:
+                    # Check file extension
+                    if not allowed_file(file.filename):
+                        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                            return jsonify({'error': 'Invalid file type. Only JPG, JPEG, and PNG files are allowed.'}), 400
+                        flash('Invalid file type. Only JPG, JPEG, and PNG files are allowed.', 'error')
+                        return redirect(url_for('auth.my_account'))
+                    
+                    # Check file size
+                    file.seek(0, os.SEEK_END)
+                    file_size = file.tell()
+                    file.seek(0)
+                    
+                    if file_size > MAX_FILE_SIZE:
+                        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                            return jsonify({'error': 'File size too large. Maximum size is 5MB.'}), 400
+                        flash('File size too large. Maximum size is 5MB.', 'error')
+                        return redirect(url_for('auth.my_account'))
+                    
+                    try:
+                        # Generate unique filename
+                        filename = secure_filename(file.filename)
+                        ext = filename.rsplit('.', 1)[1].lower()
+                        new_filename = f"{current_user.user_id}_{int(datetime.utcnow().timestamp())}.{ext}"
+                        
+                        # Create profile_images directory if it doesn't exist
+                        profile_images_dir = os.path.join(current_app.root_path, 'static', 'profile_images')
+                        os.makedirs(profile_images_dir, exist_ok=True)
+                        
+                        # Save file
+                        file_path = os.path.join(profile_images_dir, new_filename)
+                        print(f"Saving profile image to: {file_path}")  # Debug print
+                        file.save(file_path)
+                        
+                        # Update user's profile_image in database
+                        current_user.profile_image = new_filename
+                        print(f"Updated profile_image in database to: {new_filename}")  # Debug print
+                    except Exception as e:
+                        print(f"Error saving profile image: {str(e)}")  # Debug print
+                        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                            return jsonify({'error': f'Error saving image: {str(e)}'}), 500
+                        flash(f'Error saving image: {str(e)}', 'error')
+                        return redirect(url_for('auth.my_account'))
+
+            db.session.commit()
+
+            if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                response_data = {
+                    'message': 'Profile updated successfully',
+                    'user': {
+                        'first_name': current_user.first_name,
+                        'email': current_user.email,
+                        'phone': current_user.phone_number,
+                        'gender': current_user.gender,
+                        'date_of_birth': current_user.date_of_birth.strftime('%Y-%m-%d') if current_user.date_of_birth else None,
+                        'profile_image': current_user.profile_image
+                    }
+                }
+                print(f"Sending response data: {response_data}")  # Debug print
+                return jsonify(response_data)
+
+            flash('Profile updated successfully', 'success')
+            return redirect(url_for('auth.my_account'))
+
+        except Exception as e:
+            print(f"Error in my_account route: {str(e)}")  # Debug print
+            db.session.rollback()
+            if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'error': f'Error updating profile: {str(e)}'}), 500
+            flash(f'Error updating profile: {str(e)}', 'error')
+            return redirect(url_for('auth.my_account'))
+
     return render_template('my_account.html', user=current_user)
 
 @auth.route('/orders')
@@ -682,7 +768,7 @@ def addresses():
 @auth.route('/privacy-settings')
 @login_required
 def privacy_settings():
-    return render_template('privacysettings.html')
+    return render_template('privacysettings.html', user=current_user)
 
 @auth.route('/add-address', methods=['POST'])
 @login_required

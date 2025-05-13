@@ -34,14 +34,18 @@ def create_app(config_class=Config):
     app.register_blueprint(auth, url_prefix='/')
     
     # Create database tables
-    # with app.app_context():
-    #     db.create_all()
+    with app.app_context():
+        db.create_all()
     
     return app
 
 def create_database(app):
-    if not path.exists('website/' + 'SADprojectdb'):
-        with app.app_context():
-            db.create_all()
-        print('Created Database!')
+    with app.app_context():
+        # Create migrations directory if it doesn't exist
+        if not path.exists('website/migrations'):
+            from flask_migrate import init, migrate, upgrade
+            init()
+            migrate()
+            upgrade()
+        print('Database initialized with migrations!')
 
