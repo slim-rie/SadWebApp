@@ -60,25 +60,55 @@ document.addEventListener('DOMContentLoaded', function() {
     
     confirmDeleteBtn.addEventListener('click', function() {
         const password = document.getElementById('confirmPassword').value;
+        const passwordError = document.getElementById('passwordError');
+        passwordError.style.display = 'none';
+        passwordError.textContent = '';
         
         if (!password) {
-            alert('Please enter your password to confirm deletion');
+            passwordError.textContent = 'Please enter your password to confirm deletion';
+            passwordError.style.display = 'block';
             return;
         }
-        
-       
-        if (password === storedPassword) {
-            
-            localStorage.clear();
-            
-            alert('Account deleted successfully. You will be redirected to the homepage.');
-            
-            setTimeout(function() {
-                window.location.href = 'index.html';
-            }, 1500);
-        } else {
-            alert('Incorrect password. Please try again.');
-        }
+
+        fetch('/api/delete-account', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ password: password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                passwordError.style.display = 'none';
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
+                localStorage.removeItem('profileImage');
+                alert('Account deleted successfully. You will be redirected to the homepage.');
+                setTimeout(function() {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                if (data.message && data.message.toLowerCase().includes('password')) {
+                    passwordError.textContent = data.message;
+                    passwordError.style.display = 'block';
+                } else {
+                    passwordError.style.display = 'none';
+                    alert(data.message || 'Failed to delete account.');
+                }
+            }
+        })
+        .catch(error => {
+            passwordError.style.display = 'none';
+            console.error('Error:', error);
+            alert('Error: ' + error);
+        });
+    });
+    
+    document.getElementById('confirmPassword').addEventListener('input', function() {
+        const passwordError = document.getElementById('passwordError');
+        passwordError.style.display = 'none';
+        passwordError.textContent = '';
     });
     
     window.addEventListener('click', function(event) {

@@ -87,7 +87,7 @@
                     <div class="delete-account">
                         <h3>Account Deletion</h3>
                         <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
-                        <button class="delete-btn" id="deleteAccountBtn">DELETE ACCOUNT</button>
+                        <button class="delete-btn" id="deleteAccountBtn" onclick="window.location.href='{{ url_for('views.delete_info') }}'">DELETE ACCOUNT</button>
                     </div>
                 </div>
             </div>
@@ -116,22 +116,6 @@
             <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
             <button type="submit" class="send-btn">Send</button>
         </form>
-    </div>
-
-    <div id="deleteAccountModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h2>Delete Account</h2>
-            <p>By clicking on "Proceed", you agree to the following:</p>
-            <ul>
-                <li>Account deletion is irreversible. Upon successful deletion of your account, you will not be able to log in to the deleted account and view account history.</li>
-                <li>Your account cannot be deleted if you have any pending purchases, sales and/or outstanding matters including legal matters.</li>
-                <li>After successful deletion of your account, JBC Tanching C.O may retain certain data in accordance with JBC Tanching C.O's Privacy Policy and applicable law.</li>
-                <li>JBC Tanching C.O reserves the right to reject future account creation requests by you.</li>
-                <li>The deletion of your account does not discharge you from any outstanding liabilities and/or obligations.</li>
-            </ul>
-            <button id="cancelDeleteBtn">Cancel</button>
-            <button id="confirmDeleteBtn">Proceed</button>
-        </div>
     </div>
 
     <footer>
