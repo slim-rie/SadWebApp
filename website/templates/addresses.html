@@ -40,14 +40,15 @@
                 <a href="#" class="chat-link" id="chatLink">
                     <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                 </a>
-                <a href="cart.html" class="cart-link">
+                <a href="{{ url_for('views.cart') }}" class="cart-link">
                     <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
                 </a>
 
                 <div class="user-dropdown">
                     <div class="header-user-info">
                         <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
-                        <span class="username" id="usernameDisplay">{{ user.username }}</span>                    </div>
+                        <span class="username" id="usernameDisplay">{{ user.username }}</span>
+                    </div>
                     <div class="dropdown-container" id="dropdownMenu">
                         <a href="{{ url_for('auth.my_account') }}" class="dropdown-item">My Account</a>
                         <a href="{{ url_for('auth.orders') }}" class="dropdown-item">Orders</a>
@@ -200,6 +201,148 @@
         </div>
     </div>
 
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-header">
+            <h3>Customer Support</h3>
+            <button class="close-chat" id="closeChat">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! How can I help you with your shopping today?
+            </div>
+        </div>
+        <div class="quick-questions" id="quickQuestions">
+            <button class="quick-question-btn" data-question="Shipping policy">Shipping policy</button>
+            <button class="quick-question-btn" data-question="Return policy">Return policy</button>
+            <button class="quick-question-btn" data-question="Product inquiry">Product inquiry</button>
+            <button class="quick-question-btn" data-question="Payment methods">Payment methods</button>
+            <button class="quick-question-btn" data-question="Order tracking">Order tracking</button>
+            <button class="quick-question-btn" data-question="Chat with Seller">Chat with Seller</button>
+        </div>
+        <form class="chat-form" id="chatForm">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+            <label for="fileInput" class="file-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="clip-icon">
+                    <path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l8.49-8.49a3.5 3.5 0 014.95 4.95l-8.49 8.49a1.5 1.5 0 01-2.12-2.12l8.49-8.49.71.71-8.49 8.49a.5.5 0 00.71.71l8.49-8.49a2.5 2.5 0 10-3.54-3.54l-8.49 8.49a4.5 4.5 0 006.36 6.36l8.49-8.49.71.71z"/>
+                </svg>
+                <input type="file" id="fileInput" class="file-input" style="display: none;" accept="image/*,video/*">
+            </label>
+            <button type="submit" class="send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </form>
+        <div id="filePreview" class="file-preview"></div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/addresses.js') }}" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // User dropdown functionality
+        const userIcon = document.getElementById('user-icon');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        userIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!userIcon.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.remove('active');
+            }
+        });
+
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = "{{ url_for('auth.logout') }}";
+        });
+
+        // Chat functionality
+        const chatLink = document.getElementById('chatLink');
+        const chatModal = document.getElementById('chatModal');
+        const closeChat = document.getElementById('closeChat');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const quickQuestions = document.getElementById('quickQuestions');
+        const fileInput = document.getElementById('fileInput');
+        const filePreview = document.getElementById('filePreview');
+
+        function openChatModal() {
+            chatModal.classList.add('show-modal');
+        }
+
+        function closeChatModal() {
+            chatModal.classList.remove('show-modal');
+        }
+
+        chatLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openChatModal();
+        });
+
+        closeChat.addEventListener('click', closeChatModal);
+
+        window.addEventListener('click', function(e) {
+            if (e.target === chatModal) {
+                closeChatModal();
+            }
+        });
+
+        // Quick questions functionality
+        quickQuestions.addEventListener('click', function(e) {
+            if (e.target.classList.contains('quick-question-btn')) {
+                const question = e.target.dataset.question;
+                addMessage(question, 'user-message');
+                // Simulate bot response
+                setTimeout(() => {
+                    addMessage(`Thank you for asking about our ${question}. How can I assist you further?`, 'bot-message');
+                }, 1000);
+            }
+        });
+
+        // Chat form submission
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage(message, 'user-message');
+                chatInput.value = '';
+                // Simulate bot response
+                setTimeout(() => {
+                    addMessage('Thank you for your message. Our team will get back to you soon.', 'bot-message');
+                }, 1000);
+            }
+        });
+
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // File input preview
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    filePreview.innerHTML = `
+                        <div class="preview-item">
+                            <img src="${e.target.result}" alt="Preview">
+                            <button class="remove-preview">&times;</button>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+    </script>
 </body>
 </html>

@@ -72,43 +72,47 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div>Actions</div>
                     </div>
                     ${cartItems.map(item => `
-                        <div class="cart-item" data-id="${item.id}">
-                            <input type="checkbox" class="select-item" data-id="${item.id}" ${item.selected ? 'checked' : ''}>
-                            <div class="product-info">
-                                <img src="${item.image}" alt="${item.name}">
-                                <div class="product-details">
-                                    <h4>${item.name}</h4>
+                        <div class="cart-item">
+                            <div class="item-select">
+                                <input type="checkbox" class="item-checkbox" ${item.selected ? 'checked' : ''} data-id="${item.id}">
+                            </div>
+                            <div class="item-info">
+                                <img src="${item.image}" alt="${item.name}" class="item-image">
+                                <div class="item-details">
+                                    <h3>${item.name}</h3>
                                 </div>
                             </div>
-                            <div class="item-price">₱${item.price.toLocaleString()}</div>
+                            <div class="item-price">₱${item.price.toFixed(2)}</div>
                             <div class="item-quantity">
-                                <div class="quantity-selector">
-                                    <button class="quantity-btn decrease">-</button>
-                                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="99">
-                                    <button class="quantity-btn increase">+</button>
-                                </div>
+                                <button class="quantity-btn minus" data-id="${item.id}">-</button>
+                                <input type="number" value="${item.quantity}" min="1" class="quantity-input" data-id="${item.id}">
+                                <button class="quantity-btn plus" data-id="${item.id}">+</button>
                             </div>
-                            <div class="item-total">₱${(item.price * item.quantity).toLocaleString()}</div>
-                            <div class="remove-item">
-                                <i class="fas fa-trash"></i>
+                            <div class="item-total">₱${(item.price * item.quantity).toFixed(2)}</div>
+                            <div class="item-actions">
+                                <button class="remove-btn" data-id="${item.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </div>
                     `).join('')}
                 </div>
                 <div class="cart-summary">
-                    <div class="total-row">
-                        <div class="select-actions">
-                            <label>
-                                <input type="checkbox" id="selectAllBottom" ${cartItems.every(item => item.selected) ? 'checked' : ''}>
-                                <span>Select All</span>
-                            </label>
-                            <button class="delete-selected" id="deleteSelectedBtn">Delete</button>
-                        </div>
-                        <div class="total-text">
-                            Total (${selectedCount} Item${selectedCount !== 1 ? 's' : ''}): ₱${selectedTotal.toLocaleString()}
-                        </div>
+                    <div class="summary-row">
+                        <span>Selected Items (${selectedCount}):</span>
+                        <span>₱${selectedTotal.toFixed(2)}</span>
                     </div>
-                    <button class="checkout-btn" id="proceedToCheckoutBtn">Proceed to Checkout</button>
+                    <div class="summary-row">
+                        <span>Shipping Fee:</span>
+                        <span>₱0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span>₱${selectedTotal.toFixed(2)}</span>
+                    </div>
+                    <button class="checkout-btn" ${selectedCount === 0 ? 'disabled' : ''}>
+                        Proceed to Checkout
+                    </button>
                 </div>
             `;
 

@@ -32,12 +32,10 @@
             </div>
 
             <div class="nav-icons">
-                {% if user.is_authenticated %}
-                    <span class="phone-info">
-                        <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
-                        <span class="phone-text">{{ user.phone if user.phone else '0' }}</span>
-                    </span>
-                {% endif %}
+                <span class="phone-info">
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
 
                     <a href="#" class="chat-link" id="chatLink">
                         <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
@@ -50,7 +48,7 @@
                 <div class="user-dropdown">
                     <div class="user-info">
                         <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
-                        <span class="username" id="usernameDisplay"></span>
+                        <span class="username" id="usernameDisplay">{{ current_user.username }}</span>
                     </div>
                     <div class="dropdown-container" id="dropdownMenu">
                     </div>
