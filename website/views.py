@@ -1,11 +1,10 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User
-from .payment import process_payment, create_ewallet_source
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem
 import os
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timedelta
 
 views = Blueprint('views', __name__)
 
@@ -221,29 +220,137 @@ def process_payment_route():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
-@views.route('/api/payment/ewallet', methods=['POST'])
-@login_required
-def create_ewallet_source_route():
-    try:
-        data = request.get_json()
-        amount = float(data.get('amount'))
-        ewallet_type = data.get('type')  # 'gcash' or 'paymaya'
-        redirect_url = data.get('redirect_url')
-        
-        if not all([amount, ewallet_type]):
-            return jsonify({'success': False, 'message': 'Missing required information'}), 400
-            
-        source = create_ewallet_source(amount, ewallet_type, redirect_url=redirect_url)
-        if source and hasattr(source, 'redirect') and source.redirect.get('checkout_url'):
-            return jsonify({'success': True, 'checkout_url': source.redirect['checkout_url']})
-        else:
-            return jsonify({'success': False, 'message': 'Failed to create e-wallet source'}), 400
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
+def calculate_shipping_fee(address, cart_items):
+    """Calculate shipping fee based on location and items"""
+    # Base shipping fee
+    base_fee = 50
+
+    # Location-based fee
+    # Add more locations and fees as needed
+    location_fees = {
+        'Manila': 50,
+        'Quezon City': 70,
+        'Makati': 70,
+        'Taguig': 80,
+        'Other': 100
+    }
+
+    # Get city from address or default to 'Other'
+    city = None
+    for known_city in location_fees.keys():
+        if known_city.lower() in address.complete_address.lower():
+            city = known_city
+            break
+    location_fee = location_fees.get(city, location_fees['Other'])
+
+    # Weight/quantity-based fee
+    total_quantity = sum(item.quantity for item in cart_items)
+    quantity_fee = max(0, (total_quantity - 1) * 20)  # ₱20 for each additional item
+
+    total_fee = base_fee + location_fee + quantity_fee
+    return total_fee
 
 @views.route('/transaction')
+@login_required
 def transaction():
-    return render_template('transaction.html', user=current_user)
+    # Get user's default address
+    address = Address.query.filter_by(user_id=current_user.user_id, is_default=True).first()
+    if not address:
+        # If no default address, get the first address or redirect to add address
+        address = Address.query.filter_by(user_id=current_user.user_id).first()
+        if not address:
+            flash('Please add a shipping address first', 'error')
+            return redirect(url_for('auth.addresses'))
+
+    # Format address for template
+    formatted_address = {
+        'full_name': f"{address.first_name} {address.last_name}",
+        'phone': address.phone_number,
+        'full_address': address.complete_address,
+        'is_default': address.is_default
+    }
+
+    # Get cart items
+    cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
+    # Remove duplicates: keep only one entry per product_id, sum quantities
+    unique_cart = {}
+    for item in cart_items:
+        if item.product_id in unique_cart:
+            unique_cart[item.product_id].quantity += item.quantity
+            db.session.delete(item)  # Remove duplicate
+        else:
+            unique_cart[item.product_id] = item
+    db.session.commit()
+    cart_items = list(unique_cart.values())
+    if not cart_items:
+        flash('Your cart is empty', 'error')
+        return redirect(url_for('views.cart'))
+
+    # Calculate order summary
+    subtotal = sum(item.product.base_price * item.quantity for item in cart_items)
+
+    # Calculate dynamic shipping fee
+    shipping_fee = calculate_shipping_fee(address, cart_items)
+    total = subtotal + shipping_fee
+
+    # Format cart items for template
+    formatted_cart_items = []
+    for item in cart_items:
+        product = Product.query.get(item.product_id)
+        formatted_cart_items.append({
+            'product_name': product.product_name,
+            'image_url': url_for('static', filename=f'pictures/{product.product_name}.jpg'),
+            'color': item.color if hasattr(item, 'color') else None,
+            'price': float(product.base_price),
+            'quantity': item.quantity,
+            'subtotal': float(product.base_price * item.quantity)
+        })
+
+    # Shipping option (can be made dynamic based on user selection)
+    shipping_option = {
+        'method': 'Standard Delivery',
+        'delivery_date': (datetime.now() + timedelta(days=3)).strftime('%B %d, %Y')
+    }
+
+    # Order summary
+    order_summary = {
+        'subtotal': subtotal,
+        'shipping': shipping_fee,
+        'total': total,
+        'total_items': sum(item.quantity for item in cart_items)
+    }
+
+    # QR code URLs and payment details for different methods
+    qr_codes = {
+        'bank': {
+            'name': 'Bank Account',
+            'qr_url': url_for('static', filename='pictures/bank_qr.png'),
+            'account_name': 'JBR Tanching C.O',
+            'account_number': '1234-5678-9012',
+            'bank_name': 'BDO'
+        },
+        'gcash': {
+            'name': 'GCash',
+            'qr_url': url_for('static', filename='pictures/gcash_qr.png'),
+            'account_name': 'JBR Tanching',
+            'phone_number': '0912-345-6789'
+        },
+        'maya': {
+            'name': 'Maya',
+            'qr_url': url_for('static', filename='pictures/maya_qr.png'),
+            'account_name': 'JBR Tanching',
+            'phone_number': '0912-345-6789'
+        }
+    }
+
+    return render_template('transaction.html',
+        user=current_user,
+        address=formatted_address,
+        cart_items=formatted_cart_items,
+        shipping_option=shipping_option,
+        order_summary=order_summary,
+        qr_codes=qr_codes
+    )
 
 @views.route('/confirmation')
 def confirmation():
@@ -410,3 +517,77 @@ def get_average_rating():
     avg_rating = db.session.query(func.avg(Review.rating)).filter_by(product_id=product_id).scalar()
     count = db.session.query(func.count(Review.rating)).filter_by(product_id=product_id).scalar()
     return jsonify({'success': True, 'average': round(avg_rating or 0, 2), 'count': count})
+
+@views.route('/api/create-order', methods=['POST'])
+@login_required
+def create_order():
+    data = request.get_json()
+    payment_method = data.get('payment_method')
+    reference_number = data.get('reference_number')
+
+    # Validate payment method
+    allowed_methods = ['Cash on Delivery', 'Bank', 'GCash', 'Maya']
+    if payment_method not in allowed_methods:
+        return {'success': False, 'message': 'Invalid payment method.'}, 400
+
+    # Get user's default address
+    address = Address.query.filter_by(user_id=current_user.user_id, is_default=True).first()
+    if not address:
+        return {'success': False, 'message': 'No default address found.'}, 400
+
+    # Get cart items and validate stock
+    cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
+    if not cart_items:
+        return {'success': False, 'message': 'Cart is empty.'}, 400
+
+    # Check stock availability for all items
+    out_of_stock_items = []
+    for item in cart_items:
+        product = Product.query.get(item.product_id)
+        if product.stock_quantity < item.quantity:
+            out_of_stock_items.append({
+                'product_name': product.product_name,
+                'requested': item.quantity,
+                'available': product.stock_quantity
+            })
+    
+    if out_of_stock_items:
+        return {
+            'success': False,
+            'message': 'Some items are out of stock',
+            'out_of_stock_items': out_of_stock_items
+        }, 400
+
+    # Calculate total with dynamic shipping
+    subtotal = sum(item.product.base_price * item.quantity for item in cart_items)
+    shipping_fee = calculate_shipping_fee(address, cart_items)
+    total = subtotal + shipping_fee
+
+    # Create order
+    order = Order(
+        user_id=current_user.user_id,
+        total_amount=total,
+        status='pending',
+        payment_method=payment_method,
+        payment_status='pending',
+        shipping_address=address.complete_address
+    )
+    db.session.add(order)
+    db.session.flush()  # Get order_id
+
+    # Add order items and update stock
+    for item in cart_items:
+        product = Product.query.get(item.product_id)
+        product.stock_quantity -= item.quantity  # Reduce stock
+        db.session.add(OrderItem(
+            order_id=order.order_id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+            price=float(item.product.base_price)
+        ))
+
+    # Clear cart
+    CartItem.query.filter_by(user_id=current_user.user_id).delete()
+    db.session.commit()
+
+    return {'success': True, 'order_id': order.order_id}

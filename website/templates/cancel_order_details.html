@@ -13,8 +13,8 @@
     <header>
         <nav class="navbar">
             <div class="nav-left">
-                <a href="index.html" class="nav-logo">
-                    <img src="images/logo.ico" alt="Logo" class="logo-image">
+                <a href="{{ url_for('views.home') }}" class="nav-logo" id="homeLink">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
                     <h2 class="logo-text">JBR Tanching C.O</h2>
                 </a>
             </div>
@@ -27,20 +27,20 @@
                 </select>
                 <input type="text" class="search-input" placeholder="What can we help you find?">
                 <button class="search-btn">
-                    <img src="images/search.png" alt="Search" class="icon-img">
+                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
                 </button>
             </div>
             <div class="nav-icons">
                 <span class="phone-info">
-                    <img src="images/contact.png" alt="Contact" class="icon-img non-clickable"> 
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
                     <span class="phone-text">+63 912-3456-789</span>
                 </span>
-                <a href="cart.html" class="cart-link">
-                    <img src="images/cart.png" alt="Cart" class="icon-img">
+                <a href="{{ url_for('auth.cart') }}" class="cart-link">
+                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
                 </a>
                 <div class="user-dropdown">
                     <div class="user-info">
-                        <img src="images/user.png" alt="User" class="icon-img" id="user-icon">
+                        <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
                         <span class="username" id="usernameDisplay"></span>
                     </div>
                     <div class="dropdown-container" id="dropdownMenu">
@@ -55,7 +55,7 @@
             <div class="account-wrapper">
                 <div class="sidebar">
                     <div class="user-profile">
-                        <img src="images/user-circle.png" alt="Profile" id="profileImage" class="profile-image">
+                        <img src="{{ url_for('static', filename='pictures/user-circle.png') }}" alt="Profile" id="profileImage" class="profile-image">
                         <div class="user-info">
                             <div class="user-name-section">
                                 <h3 id="sidebarUsername"></h3>
@@ -88,7 +88,7 @@
                     {% for item in order.items %}
                     <div class="cancelled-product">
                         <div class="product-image">
-                            <img src="{{ url_for('static', filename=item.product.images[0].image_url) if item.product.images else url_for('static', filename='pictures/default.png') }}" alt="Product Image">
+                            <img src="{{ url_for('static', filename=item.image_path) }}" alt="Product Image">
                         </div>
                         <div class="product-details">
                             <h4 class="product-name">{{ item.product.product_name }}</h4>
@@ -154,14 +154,14 @@
             <div class="footer-section payment-section">
                 <h3>Payment Methods</h3>
                 <div class="payment-icons">
-                    <img src="images/bank-icon.png" alt="Bank Transfer" class="payment-icon">
-                    <img src="images/gcash-icon.png" alt="GCash" class="payment-icon">
-                    <img src="images/cod-icon.png" alt="Cash on Delivery" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
                 </div>
             </div>
             <div class="footer-section contact-section">
                 <div class="footer-logo">
-                    <img src="images/logo.ico" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
                 </div>
                 <div class="contact-info">
                     <h3>JBR Tanching C.O</h3>

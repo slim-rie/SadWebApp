@@ -52,7 +52,7 @@ class User(UserMixin, db.Model):
 
 class Brand(db.Model):
     __tablename__ = 'brands'
-    id = db.Column(db.Integer, primary_key=True)
+    brand_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text)
     products = db.relationship('Product', backref='brand_obj', lazy=True)
@@ -154,7 +154,7 @@ class Product(db.Model):
     model_number = db.Column(db.String(50), nullable=False)
     description = db.Column(db.Text)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'), nullable=False)
-    brand_id = db.Column(db.Integer, db.ForeignKey('brands.id'), nullable=True)
+    brand_id = db.Column(db.Integer, db.ForeignKey('brands.brand_id'), nullable=True)
     base_price = db.Column(db.Numeric(10, 2), nullable=False)
     discount_percentage = db.Column(db.Numeric(5, 2), default=0)
     stock_quantity = db.Column(db.Integer, nullable=False, default=0)

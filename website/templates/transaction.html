@@ -64,9 +64,9 @@
                 <i class="fa-solid fa-location-dot shipping-icon"></i>
                 <div class="address-details">
                     <h2>Shipping Address</h2>
-                    <div class="customer-name">John Doe (+63) 951 171 8564</div>
-                    <div class="customer-address">Mendoza St, Lolomboy, Bocaue, North Luzon, Bulacan 3018</div>
-                    <span class="default-tag">Default</span>
+                    <div class="customer-name">{{ address.full_name }} ({{ address.phone }})</div>
+                    <div class="customer-address">{{ address.full_address }}</div>
+                    {% if address.is_default %}<span class="default-tag">Default</span>{% endif %}
                     <a href="{{ url_for('auth.addresses') }}" class="change-btn">Change</a>
                 </div>
             </div>
@@ -77,44 +77,55 @@
                 <div>Unit Price</div>
                 <div>Item Subtotal</div>
             </div>
-            
+            {% for item in cart_items %}
             <div class="product-row">
                 <div class="product-cell">
-                    <img src="https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?auto=format&fit=crop&q=80&w=600" alt="Sewing Machine" class="product-image">
+                    <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="product-image">
                     <div class="product-details">
-                        <h3>SINGER® C5980Q Patchwork™ Plus Sewing & Quilting Machine with Extension Table</h3>
-                        <div class="product-color">Color: White</div>
-                        <div class="product-price">Price: ₱ 11,460.60</div>
+                        <h3>{{ item.product_name }}</h3>
+                        <div class="product-color">Color: {{ item.color }}</div>
+                        <div class="product-price">Price: ₱ {{ '%.2f'|format(item.price) }}</div>
                     </div>
                 </div>
-                <div>₱11,460.60</div>
-                <div>₱11,460.60</div>
+                <div>₱{{ '%.2f'|format(item.price) }}</div>
+                <div>₱{{ '%.2f'|format(item.subtotal) }}</div>
             </div>
+            {% endfor %}
             
             <div class="shipping-option">
                 <h3>Shipping Option:</h3>
                 <div class="shipping-method">
-                    <strong>Standard Local</strong>
+                    <strong>{{ shipping_option.method }}</strong>
                 </div>
                 <div class="delivery-info">
                     <i class="fa-solid fa-box shipping-icon-small"></i>
-                    <span class="delivery-date">Guaranteed to get by 10 - 12 Mar</span>
+                    <span class="delivery-date">{{ shipping_option.delivery_date }}</span>
                 </div>
             </div>
             
             <div class="order-summary">
                 <div class="summary-row">
                     <div>Merchandise Subtotal:</div>
-                    <div>₱11,460.60</div>
+                    <div>₱{{ '%.2f'|format(order_summary.subtotal) }}</div>
                 </div>
                 <div class="summary-row">
                     <div>Shipping Subtotal:</div>
-                    <div>₱36</div>
+                    <div>₱{{ '%.2f'|format(order_summary.shipping) }}</div>
                 </div>
                 <div class="summary-row total">
-                    <div>Order Total (1 item):</div>
-                    <div>₱11,496.6</div>
+                    <div>Order Total ({{ order_summary.total_items }} item{{ 's' if order_summary.total_items != 1 else '' }}):</div>
+                    <div>₱{{ '%.2f'|format(order_summary.total) }}</div>
                 </div>
+            </div>
+
+            <div class="order-summary-row">
+                <span>Payment Method:</span>
+                <span>
+                    {% if payment_method == 'Cash on Delivery' %}Cash on Delivery
+                    {% elif payment_method == 'Bank' %}Bank Account
+                    {% elif payment_method == 'GCash' %}GCash
+                    {% else %}{{ payment_method }}{% endif %}
+                </span>
             </div>
         </div>
         
@@ -124,11 +135,14 @@
                 <div class="payment-option" id="codOption">
                     Cash on Delivery
                 </div>
-                <div class="payment-option" id="bankOption">
+                <div class="payment-option" id="bankOption" data-qr="{{ qr_codes.bank.qr_url }}">
                     Bank Account
                 </div>
-                <div class="payment-option" id="gcashOption">
-                    Gcash
+                <div class="payment-option" id="gcashOption" data-qr="{{ qr_codes.gcash.qr_url }}">
+                    GCash
+                </div>
+                <div class="payment-option" id="mayaOption" data-qr="{{ qr_codes.maya.qr_url }}">
+                    Maya
                 </div>
             </div>
             
@@ -138,8 +152,14 @@
     
     <div class="qr-modal" id="qrModal">
         <div class="qr-modal-content">
-            <h2>Scan the QR for payment</h2>
-            <img src="{{ url_for('static', filename='pictures/qr_code_PNG6.jpg') }}" alt="QR Code" class="qr-code-img" id="qrCodeImage">
+            <h2>Payment Details</h2>
+            <div id="paymentDetails">
+                <p class="payment-detail"><strong>Account Name:</strong> <span id="accountName"></span></p>
+                <p class="payment-detail" id="accountNumberRow"><strong>Account Number:</strong> <span id="accountNumber"></span></p>
+                <p class="payment-detail" id="bankNameRow"><strong>Bank:</strong> <span id="bankName"></span></p>
+                <p class="payment-detail" id="phoneNumberRow"><strong>Phone Number:</strong> <span id="phoneNumber"></span></p>
+            </div>
+            <img src="" alt="QR Code" class="qr-code-img" id="qrCodeImage">
             <p class="reference-text">Type here the Reference Number after the payment.</p>
             <input type="text" class="reference-input" id="referenceInput" placeholder="Reference Number">
             <div class="modal-buttons">

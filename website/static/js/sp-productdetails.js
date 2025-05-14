@@ -122,10 +122,43 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     if (buyNowBtn) {
-    buyNowBtn.addEventListener('click', function () {
-            if (productName) {
-                window.location.href = `/transaction?product=${encodeURIComponent(productName)}`;
-        } else {
+        buyNowBtn.addEventListener('click', function () {
+            const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn && product.product_id) {
+                fetch('/api/cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ product_id: product.product_id, quantity: productQuantity })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = '/transaction';
+                    } else {
+                        alert('Failed to add to cart: ' + (data.message || 'Unknown error'));
+                    }
+                });
+            } else {
+                // Guest: use localStorage
+                const productName = document.getElementById('productTitle').textContent;
+                const productPrice = parseFloat(document.getElementById('productPrice').textContent.replace('₱', '').replace(',', ''));
+                const productImage = document.getElementById('mainProductImage').src;
+                const cartItem = {
+                    id: productName,
+                    name: productName,
+                    price: productPrice,
+                    image: productImage,
+                    quantity: productQuantity
+                };
+                let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+                const existingItemIndex = cartItems.findIndex(item => item.id === cartItem.id);
+                if (existingItemIndex !== -1) {
+                    cartItems[existingItemIndex].quantity += productQuantity;
+                } else {
+                    cartItems.push(cartItem);
+                }
+                localStorage.setItem('cartItems', JSON.stringify(cartItems));
                 window.location.href = '/transaction';
             }
         });

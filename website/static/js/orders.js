@@ -82,30 +82,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="order-actions">
                 `;
                 
-                if (order.status === 'completed') {
+                const mappedStatus = mapStatus(order.status);
+                if (mappedStatus === 'completed') {
                     orderHtml += `
                         <button class="action-btn rate-btn">Rate</button>
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
                     `;
-                } else if (order.status === 'to-ship') {
+                } else if (mappedStatus === 'pending' || mappedStatus === 'to-ship' || mappedStatus === 'to-pay') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
-                    `;
-                } else if (order.status === 'to-pay') {
-                    orderHtml += `
-                        <button class="action-btn contact-seller-btn">Contact Seller</button>
-                        <button class="action-btn payment-btn">Pay Now</button>
                         <button class="action-btn cancel-order-btn">Cancel Order</button>
                     `;
-                } else if (order.status === 'to-receive') {
+                } else if (mappedStatus === 'shipped' || mappedStatus === 'to-receive') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn track-order-btn">Track Order</button>
                         <button class="action-btn order-received-btn">Order Received</button>
                     `;
-                } else if (order.status === 'cancelled') {
+                } else if (mappedStatus === 'cancelled') {
                     orderHtml += `
                         <button class="action-btn view-details-btn">View Cancellation Details</button>
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
@@ -144,30 +140,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         document.querySelectorAll('.cancel-order-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function(event) {
+                console.log('Cancel Order button clicked:', event, btn);
                 const orderCard = btn.closest('.order-card');
                 const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
-                console.log("Cancel order clicked", orderId);
                 if (!orderId) {
                     alert('Order ID not found.');
                     return;
                 }
-                const reason = null;
-                fetch('/api/cancel_order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ order_id: orderId, reason: reason })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('API response:', data);
-                    if (data.success) {
-                        showSuccessMessage('Order cancelled successfully');
-                        setTimeout(() => location.reload(), 1000);
-                    } else {
-                        alert(data.message);
-                    }
-                });
+                document.getElementById('cancelModal').style.display = 'block';
             });
         });
         
@@ -263,30 +244,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="order-actions">
                 `;
                 
-                if (order.status === 'completed') {
+                const mappedStatus = mapStatus(order.status);
+                if (mappedStatus === 'completed') {
                     orderHtml += `
                         <button class="action-btn rate-btn">Rate</button>
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
                     `;
-                } else if (order.status === 'to-ship') {
+                } else if (mappedStatus === 'pending' || mappedStatus === 'to-ship' || mappedStatus === 'to-pay') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
-                    `;
-                } else if (order.status === 'to-pay') {
-                    orderHtml += `
-                        <button class="action-btn contact-seller-btn">Contact Seller</button>
-                        <button class="action-btn payment-btn">Pay Now</button>
                         <button class="action-btn cancel-order-btn">Cancel Order</button>
                     `;
-                } else if (order.status === 'to-receive') {
+                } else if (mappedStatus === 'shipped' || mappedStatus === 'to-receive') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn track-order-btn">Track Order</button>
                         <button class="action-btn order-received-btn">Order Received</button>
                     `;
-                } else if (order.status === 'cancelled') {
+                } else if (mappedStatus === 'cancelled') {
                     orderHtml += `
                         <button class="action-btn view-details-btn">View Cancellation Details</button>
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
@@ -470,6 +447,84 @@ document.addEventListener('DOMContentLoaded', function() {
             ratingModalOverlay.style.display = 'none';
         }
     });
+
+    let cancelOrderId = null;
+
+    // Show modal when Cancel Order is clicked
+    // Use event delegation for dynamically loaded buttons
+    // Place this inside DOMContentLoaded
+
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('cancel-order-btn')) {
+            const orderCard = e.target.closest('.order-card');
+            cancelOrderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
+            if (!cancelOrderId) {
+                alert('Order ID not found.');
+                return;
+            }
+            document.getElementById('cancelModal').style.display = 'block';
+        }
+    });
+
+    // Hide modal on Not Now
+    const cancelModalNotNowBtn = document.getElementById('cancelModalNotNowBtn');
+    if (cancelModalNotNowBtn) {
+        cancelModalNotNowBtn.addEventListener('click', function() {
+            document.getElementById('cancelModal').style.display = 'none';
+            cancelOrderId = null;
+            document.getElementById('cancelForm').reset();
+        });
+    }
+
+    // Confirm cancellation
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    if (confirmCancelBtn) {
+        confirmCancelBtn.addEventListener('click', function() {
+            const reasonInput = document.querySelector('input[name="cancel_reason"]:checked');
+            if (!reasonInput) {
+                alert('Please select a cancellation reason.');
+                return;
+            }
+            const reason = reasonInput.value;
+            fetch('/api/cancel_order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: cancelOrderId, reason: reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccessMessage('Order cancelled successfully');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert(data.message);
+                }
+            });
+            document.getElementById('cancelModal').style.display = 'none';
+            cancelOrderId = null;
+            document.getElementById('cancelForm').reset();
+        });
+    }
+
+    // Tracking modal close logic
+    const trackingModal = document.getElementById('trackingModal');
+    const closeTrackingModalBtn = document.getElementById('closeTrackingModal');
+
+    if (closeTrackingModalBtn && trackingModal) {
+        closeTrackingModalBtn.addEventListener('click', function() {
+            trackingModal.style.display = 'none';
+        });
+    }
+
+    // Optional: close when clicking outside the modal content
+    window.addEventListener('click', function(event) {
+        if (event.target === trackingModal) {
+            trackingModal.style.display = 'none';
+        }
+    });
+
+    // Prevent accidental modal opening on page load
+    document.getElementById('cancelModal').style.display = 'none';
 });
 
 function createRatingModal() {
@@ -560,35 +615,21 @@ function updateStarDisplay(starRating, rating) {
     button.addEventListener('click', openRatingModal);
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    const cancelModal = document.getElementById('cancelModal');
-    const cancelOrderBtn = document.getElementById('cancelOrderBtn');
-    const notNowBtn = document.getElementById('notNowBtn');
-    const cancelButtons = document.querySelectorAll('.cancel-order-btn'); 
-
-    cancelButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            cancelModal.style.display = 'flex'; 
-        });
-    });
-
-    notNowBtn.addEventListener('click', function () {
-        cancelModal.style.display = 'none'; 
-    });
-
-    cancelOrderBtn.addEventListener('click', function () {
-        const selectedReason = document.querySelector('input[name="reason"]:checked');
-        if (selectedReason) {
-            cancelModal.style.display = 'none';
-            showSuccessMessage('Order cancelled successfully'); 
-        } else {
-            alert('Please select a cancellation reason.'); 
-        }
-    });
-
-    cancelModal.addEventListener('click', function (e) {
-        if (e.target === cancelModal) {
-            cancelModal.style.display = 'none';
-        }
-    });
-});
+// Map backend status to frontend status
+function mapStatus(status) {
+    const mapping = {
+        'Order Confirmed': 'pending',
+        'Order Placed': 'pending',
+        'To Ship': 'to-ship',
+        'To Pay': 'pending',
+        'Shipped': 'shipped',
+        'To Receive': 'to-receive',
+        'Delivered': 'completed',
+        'Completed': 'completed',
+        'Cancelled': 'cancelled',
+        'Canceled': 'cancelled',
+        'Return/Refund': 'return-refund',
+        // Add more as needed
+    };
+    return mapping[status] || status;
+}

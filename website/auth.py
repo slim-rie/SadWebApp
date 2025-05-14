@@ -883,9 +883,45 @@ def set_default_address(address_id):
 @auth.route('/cancel-order-details')
 @login_required
 def cancel_order_details():
+    import os
     order_id = request.args.get('order_id')
     order = None
     if order_id:
         from .models import Order, Product
         order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
-    return render_template('cancel_order_details.html', order=order) 
+        if order:
+            for item in order.items:
+                # Get the product image path
+                jpg_path = f"pictures/{item.product.product_name}.jpg"
+                png_path = f"pictures/{item.product.product_name}.png"
+                static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+                jpg_full = os.path.join(static_dir, jpg_path)
+                png_full = os.path.join(static_dir, png_path)
+                
+                if os.path.exists(jpg_full):
+                    item.image_path = jpg_path
+                elif os.path.exists(png_full):
+                    item.image_path = png_path
+                else:
+                    item.image_path = 'pictures/default.png'
+    
+    return render_template('cancel_order_details.html', order=order)
+
+@auth.route('/api/cancel_order', methods=['POST'])
+@login_required
+def api_cancel_order():
+    data = request.get_json()
+    order_id = data.get('order_id')
+    reason = data.get('reason')
+    if not order_id or not reason:
+        return jsonify({'success': False, 'message': 'Order ID and reason are required.'}), 400
+    from .models import Order
+    order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+    if not order:
+        return jsonify({'success': False, 'message': 'Order not found.'}), 404
+    if order.status == 'cancelled':
+        return jsonify({'success': False, 'message': 'Order is already cancelled.'}), 400
+    order.status = 'cancelled'
+    order.cancellation_reason = reason
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Order cancelled successfully.'}) 

@@ -12,8 +12,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const bankOption = document.getElementById('bankOption');
     const gcashOption = document.getElementById('gcashOption');
     const codOption = document.getElementById('codOption');
+    const mayaOption = document.getElementById('mayaOption');
     const qrCodeImage = document.getElementById('qrCodeImage');
     
+    // Get QR code URLs from data attributes
+    const bankQr = bankOption.getAttribute('data-qr');
+    const gcashQr = gcashOption.getAttribute('data-qr');
+    const mayaQr = mayaOption ? mayaOption.getAttribute('data-qr') : null;
+    const defaultQr = qrCodeImage.getAttribute('src');
+    
+    // Payment details from backend (injected as a JS object)
+    const qrCodes = {
+        bank: {
+            name: 'Bank Account',
+            qr_url: bankQr,
+            account_name: 'JBR Tanching C.O',
+            account_number: '1234-5678-9012',
+            bank_name: 'BDO'
+        },
+        gcash: {
+            name: 'GCash',
+            qr_url: gcashQr,
+            account_name: 'JBR Tanching',
+            phone_number: '0912-345-6789'
+        },
+        maya: {
+            name: 'Maya',
+            qr_url: mayaQr,
+            account_name: 'JBR Tanching',
+            phone_number: '0912-345-6789'
+        }
+    };
+
+    function updatePaymentDetails(method) {
+        const details = qrCodes[method];
+        document.getElementById('accountName').textContent = details.account_name || '';
+        document.getElementById('accountNumberRow').style.display = details.account_number ? '' : 'none';
+        document.getElementById('accountNumber').textContent = details.account_number || '';
+        document.getElementById('bankNameRow').style.display = details.bank_name ? '' : 'none';
+        document.getElementById('bankName').textContent = details.bank_name || '';
+        document.getElementById('phoneNumberRow').style.display = details.phone_number ? '' : 'none';
+        document.getElementById('phoneNumber').textContent = details.phone_number || '';
+        qrCodeImage.src = details.qr_url || defaultQr;
+    }
+
     paymentOptions.forEach(option => {
         option.addEventListener('click', function() {
             paymentOptions.forEach(opt => opt.classList.remove('selected'));
@@ -22,25 +64,56 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     bankOption.addEventListener('click', function() {
-        qrCodeImage.src = "images/bank_qr_code.jpg"; 
+        updatePaymentDetails('bank');
     });
     
     gcashOption.addEventListener('click', function() {
-        qrCodeImage.src = "images/gcash_qr_code.jpg"; 
+        updatePaymentDetails('gcash');
+    });
+    
+    if (mayaOption) {
+        mayaOption.addEventListener('click', function() {
+            updatePaymentDetails('maya');
+        });
+    }
+    
+    codOption.addEventListener('click', function() {
+        // Hide all payment details for COD
+        document.getElementById('accountName').textContent = '';
+        document.getElementById('accountNumberRow').style.display = 'none';
+        document.getElementById('bankNameRow').style.display = 'none';
+        document.getElementById('phoneNumberRow').style.display = 'none';
+        qrCodeImage.src = defaultQr;
     });
     
     continueBtn.addEventListener('click', function() {
         const selectedOption = document.querySelector('.payment-option.selected');
-        
         if (!selectedOption) {
             alert('Please select a payment method');
             return;
         }
-        
-        if (selectedOption.id === 'bankOption' || selectedOption.id === 'gcashOption') {
+        if (selectedOption.id === 'bankOption' || selectedOption.id === 'gcashOption' || selectedOption.id === 'mayaOption') {
+            // Show modal and update details
             qrModal.classList.add('show');
+            if (selectedOption.id === 'bankOption') updatePaymentDetails('bank');
+            if (selectedOption.id === 'gcashOption') updatePaymentDetails('gcash');
+            if (selectedOption.id === 'mayaOption') updatePaymentDetails('maya');
         } else if (selectedOption.id === 'codOption') {
-            window.location.href = '/confirmation';
+            // Create order for COD
+            fetch('/api/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payment_method: 'Cash on Delivery' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/orders';
+                } else {
+                    alert(data.message || 'Failed to create order.');
+                }
+            })
+            .catch(() => alert('Failed to create order.'));
         }
     });
     
@@ -50,11 +123,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     proceedBtn.addEventListener('click', function() {
         const referenceInput = document.getElementById('referenceInput');
+        const selectedOption = document.querySelector('.payment-option.selected');
         if (!referenceInput.value) {
             alert('Please enter your reference number');
             return;
         }
-        window.location.href = '/confirmation';
+        // Create order for bank/gcash
+        let payment_method = selectedOption.id === 'bankOption' ? 'Bank' : 'GCash';
+        fetch('/api/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payment_method, reference_number: referenceInput.value })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/orders';
+            } else {
+                alert(data.message || 'Failed to create order.');
+            }
+        })
+        .catch(() => alert('Failed to create order.'));
     });
     
     const userIcon = document.getElementById('user-icon');
