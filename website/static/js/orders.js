@@ -10,6 +10,8 @@ if (ordersDataTag) {
 }
 window.orders = orders; // If you want to keep it globally accessible
 
+console.log('DEBUG: orders loaded from backend:', window.orders);
+
 document.addEventListener('DOMContentLoaded', function() {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const username = localStorage.getItem('username');
@@ -183,7 +185,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.querySelectorAll('.view-details-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                window.location.href = '/cancel-order-details';
+                const orderCard = btn.closest('.order-card');
+                const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
+                if (orderId) {
+                    window.location.href = `/cancel-order-details?order_id=${orderId}`;
+                } else {
+                    window.location.href = '/cancel-order-details';
+                }
             });
         });
     }

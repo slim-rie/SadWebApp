@@ -101,7 +101,7 @@
                 <span>OR</span>
             </div>
             
-            <button type="button" class="google-btn" onclick="window.location.href='{{ url_for('auth.google_oauth_login') }}'">
+            <button type="button" class="google-btn" id="googleSignupBtn" data-url="{{ url_for('auth.google_oauth_login') }}">
                 <i class="fab fa-google"></i> Sign up with Google
             </button>
             
@@ -131,7 +131,7 @@
                 <div class="or-divider">
                     <span>OR</span>
                 </div>
-                <button class="google-btn">
+                <button id="googleLoginBtn" class="google-btn">
                     <i class="fab fa-google"></i> Continue with Google
                 </button>
                 <p class="signup-link">Don't have an account? <a href="{{ url_for('auth.sign_up') }}">Sign Up</a></p>

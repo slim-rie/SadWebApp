@@ -2,6 +2,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const userIcon = document.getElementById('user-icon');
     const dropdownMenu = document.getElementById('dropdownMenu');
     
+    // Add Google sign-up button handler
+    const googleSignupBtn = document.getElementById('googleSignupBtn');
+    if (googleSignupBtn) {
+        googleSignupBtn.addEventListener('click', function() {
+            const url = this.getAttribute('data-url');
+            window.location.href = url;
+        });
+    }
+    
     userIcon.addEventListener('click', function() {
         dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
     });
@@ -152,12 +161,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     'confirm-password': confirmPassword
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    openModal(successModal);
+            .then(async response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    if (data.success) {
+                        openModal(successModal);
+                    } else {
+                        alert(data.message || 'Signup failed');
+                    }
                 } else {
-                    alert(data.message || 'Signup failed');
+                    const text = await response.text();
+                    alert('Signup failed: ' + text);
                 }
             })
             .catch(error => {
@@ -187,12 +202,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 password: passwordInput
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = data.redirect || '/';
+        .then(async response => {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = data.redirect || '/';
+                } else {
+                    loginError.textContent = data.message || 'Invalid username or password';
+                }
             } else {
-                loginError.textContent = data.message || 'Invalid username or password';
+                const text = await response.text();
+                loginError.textContent = 'Login failed: ' + text;
             }
         })
         .catch(error => {

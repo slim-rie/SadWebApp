@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category
+from .models import Product, CartItem, SupplyRequest, Category, Review, User
 from .payment import process_payment, create_ewallet_source
 import os
+from werkzeug.utils import secure_filename
+from datetime import datetime
 
 views = Blueprint('views', __name__)
 
@@ -265,30 +267,39 @@ def search():
 
 @views.route('/api/products')
 def get_products():
-    category_name = request.args.get('category', 'Sewing Machines')
-    category = Category.query.filter_by(category_name=category_name).first()
-    
+    category = request.args.get('category')
+    print(f"[DEBUG] Requested category: {category}")
     if not category:
-        return jsonify([])
-    
+        print("[DEBUG] No category specified in request.")
+        return jsonify({'error': 'No category specified'}), 400
+    cat_obj = Category.query.filter_by(category_name=category).first()
+    if not cat_obj:
+        print(f"[DEBUG] No category found in DB for: {category}")
+        return jsonify({'error': 'No products found'}), 404
     # Get all subcategory IDs
-    subcategories = Category.query.filter_by(parent_category_id=category.category_id).all()
-    category_ids = [category.category_id] + [subcat.category_id for subcat in subcategories]
-    
+    subcategories = Category.query.filter_by(parent_category_id=cat_obj.category_id).all()
+    category_ids = [cat_obj.category_id] + [subcat.category_id for subcat in subcategories]
     products = Product.query.filter(Product.category_id.in_(category_ids)).all()
+    print(f"[DEBUG] Number of products found: {len(products)}")
+    if not products:
+        return jsonify({'error': 'No products found'}), 404
+    # Fetch real average rating and review count for each product
     product_list = []
-    
     for product in products:
+        reviews = Review.query.filter_by(product_id=product.product_id).all()
+        avg_rating = sum(review.rating for review in reviews) / len(reviews) if reviews else 0
+        review_count = len(reviews)
         product_list.append({
+            'product_id': product.product_id,
             'name': product.product_name,
             'price': float(product.base_price),
-            'rating': 4.5,  # Default rating
-            'sold': "0",    # Default sold count
-            'image': f"/static/pictures/{product.product_name}.jpg",  # Assuming image naming convention
+            'image': get_product_image_url(product.product_name),
             'discount': None,
-            'refurbished': False
+            'refurbished': product.refurbished if hasattr(product, 'refurbished') else None,
+            'sold': product.sold if hasattr(product, 'sold') else None,
+            'rating': avg_rating,
+            'review_count': review_count
         })
-    
     return jsonify(product_list)
 
 @views.route('/addresses')
@@ -304,6 +315,19 @@ def get_product_details():
     product = Product.query.filter_by(product_name=product_name).first()
     if not product:
         return jsonify({'error': 'Product not found'}), 404
+    # Fetch brand name
+    brand_name = product.brand_obj.name if product.brand_obj else None
+    # Fetch category name
+    category_name = product.category.category_name if product.category else None
+    # Fetch all specifications, ordered by display_order, excluding 'Category ID'
+    specs = [
+        {'name': spec.spec_name, 'value': spec.spec_value, 'order': spec.display_order}
+        for spec in sorted(product.specifications, key=lambda s: s.display_order or 0)
+        if spec.spec_name.lower() != 'category id'
+    ]
+    # Insert category name as the first spec
+    if category_name:
+        specs.insert(0, {'name': 'Category', 'value': category_name, 'order': 0})
     return jsonify({
         'product_id': product.product_id,
         'name': product.product_name,
@@ -312,5 +336,77 @@ def get_product_details():
         'price': float(product.base_price),
         'stock': product.stock_quantity,
         'image': f"/static/pictures/{product.product_name}.jpg",
-        'category_id': product.category_id
+        'category_id': product.category_id,
+        'category_name': category_name,
+        'brand': brand_name,
+        'specifications': specs
     })
+
+ALLOWED_REVIEW_MEDIA = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
+REVIEW_MEDIA_FOLDER = os.path.join('SadWebApp', 'website', 'static', 'review_media')
+os.makedirs(REVIEW_MEDIA_FOLDER, exist_ok=True)
+
+def allowed_review_media(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_REVIEW_MEDIA
+
+@views.route('/api/reviews', methods=['POST'])
+@login_required
+def submit_review():
+    product_id = request.form.get('product_id')
+    rating = request.form.get('rating')
+    comment = request.form.get('comment')
+    file = request.files.get('media')
+    if not all([product_id, rating, comment]):
+        return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+    media_url = None
+    media_type = None
+    if file and allowed_review_media(file.filename):
+        filename = secure_filename(file.filename)
+        ext = filename.rsplit('.', 1)[1].lower()
+        unique_filename = f"{current_user.user_id}_{product_id}_{int(datetime.utcnow().timestamp())}.{ext}"
+        file_path = os.path.join(REVIEW_MEDIA_FOLDER, unique_filename)
+        file.save(file_path)
+        media_url = f"/static/review_media/{unique_filename}"
+        media_type = ext
+    review = Review(
+        product_id=product_id,
+        user_id=current_user.user_id,
+        rating=int(rating),
+        comment=comment,
+        media_url=media_url,
+        media_type=media_type
+    )
+    db.session.add(review)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Review submitted successfully'})
+
+@views.route('/api/reviews', methods=['GET'])
+def get_reviews():
+    product_id = request.args.get('product_id')
+    if not product_id:
+        return jsonify({'success': False, 'message': 'Missing product_id'}), 400
+    reviews = Review.query.filter_by(product_id=product_id).order_by(Review.created_at.desc()).all()
+    review_list = []
+    for r in reviews:
+        review_list.append({
+            'review_id': r.review_id,
+            'user_id': r.user_id,
+            'username': r.user.username if r.user else 'Unknown',
+            'profile_image': f"/static/profile_images/{r.user.profile_image}" if r.user and r.user.profile_image else None,
+            'rating': r.rating,
+            'comment': r.comment,
+            'media_url': r.media_url,
+            'media_type': r.media_type,
+            'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')
+        })
+    return jsonify({'success': True, 'reviews': review_list})
+
+@views.route('/api/reviews/average', methods=['GET'])
+def get_average_rating():
+    product_id = request.args.get('product_id')
+    if not product_id:
+        return jsonify({'success': False, 'message': 'Missing product_id'}), 400
+    from sqlalchemy import func
+    avg_rating = db.session.query(func.avg(Review.rating)).filter_by(product_id=product_id).scalar()
+    count = db.session.query(func.count(Review.rating)).filter_by(product_id=product_id).scalar()
+    return jsonify({'success': True, 'average': round(avg_rating or 0, 2), 'count': count})

@@ -360,6 +360,12 @@
     <script>
         const SIGNUP_URL = "{{ url_for('auth.sign_up') }}";
     </script>
+    <script>
+      window.AUTH_STATE = {
+        isAuthenticated: "{{ 'true' if user.is_authenticated else 'false' }}",
+        username: "{{ user.username if user.is_authenticated else '' }}"
+      };
+    </script>
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 </body>
 </html>

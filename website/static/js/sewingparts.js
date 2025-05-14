@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const closeCategories = document.getElementById('closeCategories');
 
     let currentFilters = {
-        category: 'Shunfa', 
+        category: 'All', 
         rating: 0,
         minPrice: 0,
         maxPrice: Infinity,
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             productLink.className = 'product-card product-link';
             productLink.setAttribute('data-authenticated', isLoggedIn ? '1' : '0');
             if (isLoggedIn) {
-                productLink.href = `/sp-productdetails?product=${encodeURIComponent(product.name)}`;
+                productLink.href = `/sp-productdetails?product=${encodeURIComponent(product.name)}&category=Sewing%20Parts`;
             } else {
                 productLink.href = '#'; // Will be intercepted by global handler
             }
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="review-count">${product.sold || '0'} sold</span>
+                        <span class="review-count">${product.review_count} review${product.review_count === 1 ? '' : 's'}</span>
                     </div>
                 </div>
             `;

@@ -340,119 +340,56 @@ def google_oauth_login():
 
 @auth.route('/google-oauth-callback')
 def google_oauth_callback():
-    try:
-        print('\n=== Google OAuth Callback Started ===')
-        print(f'Request args: {request.args}')
-        print(f'Session data: {dict(session)}')
-        
-        # Verify state
-        state = session.get('oauth_state')
-        request_state = request.args.get('state')
-        print(f'State verification - Session state: {state}, Request state: {request_state}')
-        
-        if not state or state != request_state:
-            print('[Google OAuth] Invalid state')
-            flash('Invalid state parameter', category='error')
-            return redirect(url_for('auth.login'))
+    code = request.args.get('code')
+    if not code:
+        flash("No code provided from Google.", "danger")
+        return redirect(url_for('views.home'))
 
-        # Get authorization code
-        code = request.args.get('code')
-        print(f'Authorization code received: {code[:10]}...' if code else 'No code received')
-        
-        if not code:
-            print('[Google OAuth] No code received')
-            flash('No authorization code received', category='error')
-            return redirect(url_for('auth.login'))
+    # Exchange code for token
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uri": GOOGLE_CALLBACK_URL,
+        "grant_type": "authorization_code"
+    }
+    r = requests.post(token_url, data=data)
+    if not r.ok:
+        flash("Failed to get token from Google.", "danger")
+        return redirect(url_for('views.home'))
+    token_info = r.json()
+    access_token = token_info.get("access_token")
 
-        # Exchange code for token
-        token_data = {
-            'client_id': GOOGLE_CLIENT_ID,
-            'client_secret': GOOGLE_CLIENT_SECRET,
-            'code': code,
-            'redirect_uri': GOOGLE_CALLBACK_URL,
-            'grant_type': 'authorization_code'
-        }
-        
-        print('Attempting to exchange code for token...')
-        token_response = requests.post(GOOGLE_TOKEN_URL, data=token_data)
-        print(f'Token response status: {token_response.status_code}')
-        
-        if not token_response.ok:
-            print(f"[Google OAuth] Token Error: {token_response.text}")
-            flash('Failed to get access token', category='error')
-            return redirect(url_for('auth.login'))
+    # Get user info
+    userinfo_url = "https://www.googleapis.com/oauth2/v2/userinfo"
+    headers = {"Authorization": f"Bearer {access_token}"}
+    userinfo = requests.get(userinfo_url, headers=headers).json()
+    email = userinfo.get("email")
+    name = userinfo.get("name")
+    picture = userinfo.get("picture")
 
-        access_token = token_response.json().get('access_token')
-        print(f'Access token received: {access_token[:10]}...')
-        
-        # Get user info
-        headers = {'Authorization': f'Bearer {access_token}'}
-        print('Fetching user info from Google...')
-        userinfo_response = requests.get(GOOGLE_USERINFO_URL, headers=headers)
-        print(f'Userinfo response status: {userinfo_response.status_code}')
-        
-        if not userinfo_response.ok:
-            print(f"[Google OAuth] Userinfo Error: {userinfo_response.text}")
-            flash('Failed to get user info', category='error')
-            return redirect(url_for('auth.login'))
+    # Check if user exists, else create
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        user = User(
+            username=email.split("@")[0],
+            email=email,
+            first_name=name.split()[0] if name else "",
+            last_name=" ".join(name.split()[1:]) if name and len(name.split()) > 1 else "",
+            profile_image=picture,
+            is_google_user=True
+        )
+        db.session.add(user)
+        db.session.commit()
+    else:
+        # Always update the profile image with the latest from Google
+        user.profile_image = picture
+        db.session.commit()
 
-        userinfo = userinfo_response.json()
-        print(f'User info received: {userinfo}')
-        
-        email = userinfo.get('email')
-        print(f'Email from userinfo: {email}')
-        
-        if not email:
-            print('[Google OAuth] No email in userinfo')
-            flash('Could not get email from Google', category='error')
-            return redirect(url_for('auth.login'))
-
-        # Create or get user
-        user = User.query.filter_by(email=email).first()
-        print(f'Existing user found: {user is not None}')
-        
-        if not user:
-            print('Creating new user...')
-            username = email.split('@')[0] + str(uuid.uuid4())[:8]
-            profile_image_url = userinfo.get('picture', None)
-            user = User(
-                email=email,
-                username=username,
-                first_name=userinfo.get('given_name', ''),
-                middle_name='',
-                last_name=userinfo.get('family_name', ''),
-                role='customer',
-                address='Please update your address',
-                profile_image=profile_image_url
-            )
-            user._password = None
-            db.session.add(user)
-            db.session.commit()
-            print(f'New user created: {user.email}, id={user.user_id}, role={user.role}')
-            # Re-fetch user to ensure session attachment
-            user = User.query.filter_by(email=email).first()
-            print(f'Re-fetched user: {user.email}, id={user.user_id}, role={user.role}')
-        else:
-            print(f'Existing user: {user.email}, id={user.user_id}, role={user.role}')
-
-        print('Attempting to log in user...')
-        login_user(user, remember=False)
-        print(f'User logged in: is_authenticated={user.is_authenticated}, id={user.user_id}, role={user.role}')
-        print(f'Current user after login: {current_user.is_authenticated if current_user else None}')
-
-        flash('Successfully signed in with Google!', category='success')
-        redirect_url = url_for('views.home' if user.role != 'admin' else 'auth.admin')
-        print(f'Redirecting to: {redirect_url}')
-        return redirect(redirect_url)
-
-    except Exception as e:
-        import traceback
-        print(f"\n=== Google OAuth Error ===")
-        print(f"Error type: {type(e).__name__}")
-        print(f"Error message: {str(e)}")
-        print(f"Traceback:\n{traceback.format_exc()}")
-        flash(f'Failed to sign in with Google: {str(e)}', category='error')
-        return redirect(url_for('auth.login'))
+    login_user(user)
+    flash("Successfully signed in with Google!", "success")
+    return redirect(url_for('views.home'))
 
 @auth.route('/update-profile', methods=['POST'])
 @login_required
@@ -941,4 +878,14 @@ def set_default_address(address_id):
         return jsonify({'success': True, 'message': 'Default address updated'})
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500 
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth.route('/cancel-order-details')
+@login_required
+def cancel_order_details():
+    order_id = request.args.get('order_id')
+    order = None
+    if order_id:
+        from .models import Order, Product
+        order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+    return render_template('cancel_order_details.html', order=order) 

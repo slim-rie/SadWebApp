@@ -24,6 +24,7 @@ class User(UserMixin, db.Model):
     gender = db.Column(db.String(10))
     date_of_birth = db.Column(db.Date)
     profile_image = db.Column(db.String(255))
+    is_google_user = db.Column(db.Boolean, default=False)
     
     # Relationships
     cart_items = db.relationship('CartItem', backref='user', lazy=True, cascade='all, delete-orphan')
@@ -88,6 +89,7 @@ class Order(db.Model):
     shipping_address = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    cancellation_reason = db.Column(db.String(255))
     
     # Relationships
     items = db.relationship('OrderItem', backref='order', lazy=True)
@@ -184,3 +186,17 @@ class ProductSpecification(db.Model):
     spec_name = db.Column(db.String(100), nullable=False)
     spec_value = db.Column(db.String(255), nullable=False)
     display_order = db.Column(db.Integer, default=0)
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+    review_id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    media_url = db.Column(db.String(255))
+    media_type = db.Column(db.String(50))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='reviews', lazy=True)
+    product = db.relationship('Product', backref='reviews', lazy=True)

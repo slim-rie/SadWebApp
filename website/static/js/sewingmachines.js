@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="review-count">${product.sold} sold</span>
+                        <span class="review-count">${product.review_count} review${product.review_count === 1 ? '' : 's'}</span>
                     </div>
                 </div>
             `;

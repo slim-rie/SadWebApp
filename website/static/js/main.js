@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Sync localStorage with backend authentication state
+    if (window.AUTH_STATE) {
+        if (window.AUTH_STATE.isAuthenticated === 'true') {
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('username', window.AUTH_STATE.username);
+        } else {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+        }
+    }
+
     // Search functionality
     const searchInput = document.querySelector('.search-input');
     const searchBtn = document.querySelector('.search-btn');
@@ -131,20 +142,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     password: passwordInput
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('username', 'customer');
-                    updateUIForLoginStatus(true, 'customer');
-                    closeLoginModal();
-                    
-                    if (redirectTarget) {
-                        window.location.href = redirectTarget;
+            .then(async response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    if (data.success) {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('username', 'customer');
+                        updateUIForLoginStatus(true, 'customer');
+                        closeLoginModal();
+                        
+                        if (redirectTarget) {
+                            window.location.href = redirectTarget;
+                        }
+                    } else {
+                        if (loginError) {
+                            loginError.textContent = data.message || 'Invalid username or password';
+                        }
                     }
                 } else {
+                    const text = await response.text();
                     if (loginError) {
-                        loginError.textContent = data.message || 'Invalid username or password';
+                        loginError.textContent = 'Login failed: ' + text;
                     }
                 }
             })
@@ -287,13 +306,8 @@ document.addEventListener('DOMContentLoaded', function() {
             dropdownMenu.innerHTML = `
                 <a href="/my-account" class="dropdown-item">My Account</a>
                 <a href="/orders" class="dropdown-item">Orders</a>
-                <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
+                <a href="/logout" class="dropdown-item" id="logoutBtn">Logout</a>
             `;
-            
-            document.getElementById('logoutBtn').addEventListener('click', function(e) {
-                e.preventDefault();
-                logout();
-            });
             
             document.getElementById('sewingMachinesCard').onclick = function() {
                 window.location.href = '/sewingmachines';

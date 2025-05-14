@@ -74,33 +74,33 @@
                     </ul>
                 </div>
                 <div class="account-content">
+                    {% if order %}
                     <div class="header">
                         <div class="back-button">
                             <a href="/orders"><i class="fas fa-arrow-left"></i> BACK</a>
                         </div>
-                        <span class="requested-date">Requested at: 04/29/2025 16:17</span>
+                        <span class="requested-date">Requested at: {{ order.updated_at.strftime('%m/%d/%Y %H:%M') if order.updated_at else '' }}</span>
                     </div>
-                    
                     <div class="cancellation-header">
                         <h2 class="cancellation-title">Cancellation Completed</h2>
-                        <p class="cancellation-date">on 04/29/2025 16:17.</p>
+                        <p class="cancellation-date">on {{ order.updated_at.strftime('%m/%d/%Y %H:%M') if order.updated_at else '' }}</p>
                     </div>
-                    
+                    {% for item in order.items %}
                     <div class="cancelled-product">
                         <div class="product-image">
-                            <img src="images/fabric-sample.png" alt="Product Image">
+                            <img src="{{ url_for('static', filename=item.product.images[0].image_url) if item.product.images else url_for('static', filename='pictures/default.png') }}" alt="Product Image">
                         </div>
                         <div class="product-details">
-                            <h4 class="product-name">Polyester Fabrics</h4>
-                            <p class="product-variation">Variation: Teal - White</p>
-                            <p class="product-quantity">x1</p>
+                            <h4 class="product-name">{{ item.product.product_name }}</h4>
+                            <p class="product-variation">Variation: {{ item.product.model_number }}</p>
+                            <p class="product-quantity">x{{ item.quantity }}</p>
                         </div>
                         <div class="product-price">
-                            <p class="original-price">₱999</p>
-                            <p class="discounted-price">₱139</p>
+                            <p class="original-price">₱{{ item.product.base_price }}</p>
+                            <p class="discounted-price">₱{{ item.price }}</p>
                         </div>
                     </div>
-                    
+                    {% endfor %}
                     <div class="order-info">
                         <div class="info-row">
                             <span class="info-label">Requested by</span>
@@ -108,18 +108,29 @@
                         </div>
                         <div class="info-row">
                             <span class="info-label">Payment method</span>
-                            <span class="info-value">Unpaid</span>
+                            <span class="info-value">{{ order.payment_method or 'Unpaid' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Order ID</span>
-                            <span class="info-value order-id">250429HUMB153Q</span>
+                            <span class="info-value order-id">{{ order.order_id }}</span>
                         </div>
                     </div>
-                    
                     <div class="cancellation-reason">
-                        <h4>Reason: Don't want to buy anymore</h4>
-                        <p>The order was cancelled by the buyer. No payment has been made for this order.</p>
+                        <h4>Reason: {{ order.cancellation_reason or '(No reason provided)' }}</h4>
+                        <p>
+                            {% if order.status == 'cancelled' %}
+                                The order was cancelled by the buyer. No payment has been made for this order.
+                            {% else %}
+                                Order is not cancelled.
+                            {% endif %}
+                        </p>
                     </div>
+                    {% else %}
+                    <div class="cancellation-header">
+                        <h2 class="cancellation-title">Order Not Found</h2>
+                        <p class="cancellation-date">The order you are looking for does not exist.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
