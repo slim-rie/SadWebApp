@@ -332,12 +332,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const category = this.getAttribute('data-category');
+                    const fabric = this.getAttribute('data-fabric');
                     if (category === 'Sewing Machines') {
                         window.location.href = '/sewingmachines';
                     } else if (category === 'Sewing Parts') {
                         window.location.href = '/sewingparts';
                     } else if (category === 'Fabrics') {
                         window.location.href = '/fabrics';
+                    } else if (fabric) {
+                        window.location.href = `/fabrics?highlight=${encodeURIComponent(fabric)}`;
                     } else {
                         window.location.href = '/';
                     }
@@ -388,12 +391,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const category = this.getAttribute('data-category');
+                    const fabric = this.getAttribute('data-fabric');
                     if (category === 'Sewing Machines') {
                         openLoginModal('/sewingmachines');
                     } else if (category === 'Sewing Parts') {
                         openLoginModal('/sewingparts');
                     } else if (category === 'Fabrics') {
                         openLoginModal('/fabrics');
+                    } else if (fabric) {
+                        openLoginModal(`/fabrics?highlight=${encodeURIComponent(fabric)}`);
                     } else {
                         openLoginModal('/');
                     }
@@ -438,6 +444,24 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = '/google-oauth-login';
         });
     }
+
+    // Scroll and highlight logic for homepage categories
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#category-')) {
+        const category = hash.replace('#category-', '');
+        const categoriesSection = document.querySelector('.categories');
+        if (categoriesSection) {
+            categoriesSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        // Highlight the selected category card
+        document.querySelectorAll('.category-card').forEach(card => {
+            if (card.dataset.category === category) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    }
 });
 
 // Global click handler for product links
@@ -478,3 +502,32 @@ document.addEventListener('click', function(e) {
         window.location.href = '/google-oauth-login';
     }
 });
+
+document.addEventListener('click', function(e) {
+    const cartIcon = e.target.closest('.cart-icon');
+    if (cartIcon && cartIcon.hasAttribute('data-product-id')) {
+        e.preventDefault();
+        const isAuthenticated = cartIcon.getAttribute('data-authenticated') === '1';
+        const productId = cartIcon.getAttribute('data-product-id');
+        if (!isAuthenticated) {
+            openLoginModal('/cart');
+            return;
+        }
+        // AJAX add to cart
+        fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: productId, quantity: 1 })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Added to cart!');
+                // Optionally update cart count here
+            } else {
+                alert(data.message || 'Failed to add to cart.');
+            }
+        })
+        .catch(() => alert('Failed to add to cart.'));
+    }
+}, true);

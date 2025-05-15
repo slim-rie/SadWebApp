@@ -99,7 +99,7 @@
     <section class="categories container">
         <h2>Categories</h2>
         <div class="category-grid">
-            <div class="category-card" id="sewingMachinesCard">
+            <div class="category-card" id="sewingMachinesCard" data-category="Sewing Machines">
                 <img src="https://th.bing.com/th/id/OIP.I6id9lwCR-8KziI8fqXzXgHaE7?rs=1&pid=ImgDetMain" alt="Sewing Machines">
                 <div class="category-overlay">
                     <div class="category-content">
@@ -109,7 +109,7 @@
                 </div>
             </div>
 
-            <div class="category-card" id="sewingPartsCard">
+            <div class="category-card" id="sewingPartsCard" data-category="Sewing Parts">
                 <img src="https://th.bing.com/th/id/R.af428faf9690299299f11425c3614434?rik=qYS3skZ56hJo%2bg&riu=http%3a%2f%2fwww.amtmim.com%2fwp-content%2fuploads%2f2018%2f12%2fMIM-Parts.jpg&ehk=B4K7LDUV8VE%2bbSb4NhUxuVjp1kCRlBU3semyuQPzYME%3d&risl=&pid=ImgRaw&r=0" alt="Sewing Parts">
                 <div class="category-overlay">
                     <div class="category-content">
@@ -119,7 +119,7 @@
                 </div>
             </div>
 
-            <div class="category-card" id="fabricsCard">
+            <div class="category-card" id="fabricsCard" data-category="Fabrics">
                 <img src="https://th.bing.com/th/id/OIP.AyLuhVUfiMkRt-d0safm8AHaE8?rs=1&pid=ImgDetMain" alt="Fabrics">
                 <div class="category-overlay">
                     <div class="category-content">
@@ -140,7 +140,7 @@
                     <h3>Polyester-Blend Fabrics</h3>
                     <p>Durable and lightweight, ideal for uniforms, casual wear, and everyday clothing.</p>
                     <div class="product-footer">
-                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link">Shop Now</a>
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link" data-fabric="Polyester-Blend Fabrics">Shop Now</a>
                     </div> 
                 </div>
             </div>
@@ -151,7 +151,7 @@
                     <h3>Cotton Fabric</h3>
                     <p>Soft and breathable cotton fabric for all your sewing needs.</p>
                     <div class="product-footer">
-                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link">Shop Now</a>
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link" data-fabric="Cotton Fabric">Shop Now</a>
                     </div>
                 </div>
             </div>
@@ -162,7 +162,7 @@
                     <h3>Lacoste Fabric</h3>
                     <p>Breathable, textured knit fabric perfect for polo shirts and activewear.</p>
                     <div class="product-footer">
-                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link">Shop Now</a>
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link" data-fabric="Lacoste Fabric">Shop Now</a>
                     </div>
                 </div>
             </div>
@@ -183,7 +183,7 @@
                         <p>Advanced computerized sewing machine with 100+ built-in stitches.</p>
                         <div class="product-footer">
                             <span class="price">₱14,599</span>
-                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}"><i class="fas fa-shopping-cart"></i></a>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="SHUNFA SF-5550 - Single Needle High-Speed Machine"><i class="fas fa-shopping-cart"></i></a>
                         </div>
                     </div>
                 </div>
@@ -195,7 +195,7 @@
                         <p>Professional-grade sewing machine perfect for quilting and heavy fabrics.</p>
                         <div class="product-footer">
                             <span class="price">₱10,999</span>
-                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}"><i class="fas fa-shopping-cart"></i></a>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="SHUNFA SF-781 - Buttonholer Machine"><i class="fas fa-shopping-cart"></i></a>
                         </div>
                     </div>
                 </div>
@@ -207,7 +207,7 @@
                         <p>Reliable mechanical sewing machine ideal for beginners and everyday use.</p>
                         <div class="product-footer">
                             <span class="price">₱15,799</span>
-                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}"><i class="fas fa-shopping-cart"></i></a>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="JUKI MO-6700 Series - Edger Machine"><i class="fas fa-shopping-cart"></i></a>
                         </div>
                     </div>
                 </div>
@@ -219,7 +219,7 @@
                         <p>Industrial-strength sewing machine for heavy-duty projects and constant use.</p>
                         <div class="product-footer">
                             <span class="price">₱19,999</span>
-                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}"><i class="fas fa-shopping-cart"></i></a>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="JUKI DDL-8100 - High-speed machine"><i class="fas fa-shopping-cart"></i></a>
                         </div>
                     </div>
                 </div>
@@ -231,7 +231,7 @@
                         <p>Swiss precision engineering with innovative features for perfect stitching.</p>
                         <div class="product-footer">
                             <span class="price">₱23,899</span>
-                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}"><i class="fas fa-shopping-cart"></i></a>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewing_machines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="Shunfa JH563 - Portable sewing machine"><i class="fas fa-shopping-cart"></i></a>
                         </div>
                     </div>
                 </div>

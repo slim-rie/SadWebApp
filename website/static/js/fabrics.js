@@ -231,6 +231,20 @@ document.addEventListener('DOMContentLoaded', async function () {
             categoriesModal.classList.remove('show-modal');
         });
     }
+
+    // Highlight fabric from query param
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlight = urlParams.get('highlight');
+    if (highlight) {
+        document.querySelectorAll('.category-list li a').forEach(link => {
+            if (link.textContent.trim() === highlight) {
+                link.parentElement.classList.add('active');
+                link.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                link.parentElement.classList.remove('active');
+            }
+        });
+    }
 });
 
 // User authentication UI
