@@ -5,6 +5,7 @@ from .models import Product, CartItem, SupplyRequest, Category, Review, User, Ad
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
+from sqlalchemy import func
 
 views = Blueprint('views', __name__)
 
@@ -86,7 +87,8 @@ def get_cart():
             'name': item.product.product_name,
             'price': float(item.product.base_price),
             'quantity': item.quantity,
-            'image_url': get_product_image_url(item.product.product_name)
+            'image_url': get_product_image_url(item.product.product_name),
+            'stock_quantity': item.product.stock_quantity
         } for item in cart_items]
     })
 
@@ -419,7 +421,7 @@ def get_product_details():
     product_name = request.args.get('product')
     if not product_name:
         return jsonify({'error': 'No product specified'}), 400
-    product = Product.query.filter_by(product_name=product_name).first()
+    product = Product.query.filter(func.lower(func.trim(Product.product_name)) == product_name.strip().lower()).first()
     if not product:
         return jsonify({'error': 'Product not found'}), 404
     # Fetch brand name
@@ -442,7 +444,8 @@ def get_product_details():
         'description': product.description,
         'price': float(product.base_price),
         'stock': product.stock_quantity,
-        'image': f"/static/pictures/{product.product_name}.jpg",
+        'image': get_product_image_url(product.product_name),
+        'images': [img.image_url for img in sorted(product.images, key=lambda i: i.display_order)],
         'category_id': product.category_id,
         'category_name': category_name,
         'brand': brand_name,
@@ -513,7 +516,6 @@ def get_average_rating():
     product_id = request.args.get('product_id')
     if not product_id:
         return jsonify({'success': False, 'message': 'Missing product_id'}), 400
-    from sqlalchemy import func
     avg_rating = db.session.query(func.avg(Review.rating)).filter_by(product_id=product_id).scalar()
     count = db.session.query(func.count(Review.rating)).filter_by(product_id=product_id).scalar()
     return jsonify({'success': True, 'average': round(avg_rating or 0, 2), 'count': count})
@@ -591,3 +593,62 @@ def create_order():
     db.session.commit()
 
     return {'success': True, 'order_id': order.order_id}
+
+@views.route('/api/related-products')
+def get_related_products():
+    product_id = request.args.get('product_id')
+    if not product_id:
+        return jsonify({'error': 'No product_id specified'}), 400
+    product = Product.query.get(product_id)
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    # Get products from the same category, excluding the current product
+    related_products = Product.query.filter(
+        Product.category_id == product.category_id,
+        Product.product_id != product.product_id
+    ).limit(10).all()
+    result = []
+    for p in related_products:
+        reviews = Review.query.filter_by(product_id=p.product_id).all()
+        avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
+        review_count = len(reviews)
+        result.append({
+            'product_id': p.product_id,
+            'name': p.product_name,
+            'price': float(p.base_price),
+            'image': get_product_image_url(p.product_name),
+            'sold': p.sold if hasattr(p, 'sold') else 0,
+            'rating': avg_rating,
+            'review_count': review_count
+        })
+    return jsonify(result)
+
+@views.route('/api/can-review')
+@login_required
+def can_review():
+    product_id = request.args.get('product_id')
+    if not product_id:
+        return jsonify({'can_review': False, 'reason': 'No product_id specified'}), 400
+    # Check if user has a completed order for this product
+    completed_orders = Order.query.filter_by(user_id=current_user.user_id, status='completed').all()
+    eligible = False
+    for order in completed_orders:
+        for item in order.order_items:
+            if str(item.product_id) == str(product_id):
+                eligible = True
+                break
+        if eligible:
+            break
+    return jsonify({'can_review': eligible})
+
+@views.route('/api/shipping-fee', methods=['GET'])
+@login_required
+def get_shipping_fee():
+    address = Address.query.filter_by(user_id=current_user.user_id, is_default=True).first()
+    if not address:
+        return jsonify({'success': False, 'message': 'No default address found.'}), 400
+    cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
+    if not cart_items:
+        return jsonify({'success': False, 'message': 'Cart is empty.'}), 400
+    shipping_fee = calculate_shipping_fee(address, cart_items)
+    return jsonify({'success': True, 'shipping_fee': shipping_fee})

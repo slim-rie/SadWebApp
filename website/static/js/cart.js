@@ -25,7 +25,8 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(data => {
             if (data.items) {
-                cartItems = data.items.map(item => ({
+                // Remove out-of-stock items for logged-in users
+                cartItems = data.items.filter(item => item.stock_quantity === undefined || item.stock_quantity > 0).map(item => ({
                     id: item.id,
                     name: item.name,
                     price: item.price,
@@ -40,8 +41,30 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         })
         .catch(() => {
-            cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-            renderCart(cartItems);
+            // For guests: fetch latest prices for products in localStorage cart
+            let localCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+            if (localCart.length > 0) {
+                // Collect product names (or IDs if available)
+                const productNames = localCart.map(item => encodeURIComponent(item.name));
+                fetch(`/api/products?names=${productNames.join(',')}`)
+                    .then(res => res.json())
+                    .then(products => {
+                        // Map product names to latest prices
+                        localCart = localCart.map(item => {
+                            const latest = products.find(p => p.name === item.name);
+                            if (latest) {
+                                item.price = latest.price;
+                            }
+                            return item;
+                        });
+                        renderCart(localCart);
+                    })
+                    .catch(() => {
+                        renderCart(localCart);
+                    });
+            } else {
+                renderCart(localCart);
+            }
         });
 
     function updateCartUI(cartItems) {
@@ -58,62 +81,79 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const shippingFee = 30; // Example static shipping fee
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
         const selectedItems = cartItems.filter(item => item.selected);
         const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const grandTotal = subtotal + (selectedItems.length > 0 ? shippingFee : 0);
 
-        cartContent.innerHTML = `
-            <div class="cart-items">
-                <div class="cart-header">
-                    <div class="header-select"><input type="checkbox" id="selectAll" ${cartItems.every(item => item.selected) ? 'checked' : ''}></div>
-                    <div>Product</div>
-                    <div>Price</div>
-                    <div>Quantity</div>
-                    <div>Total</div>
-                    <div></div>
-                </div>
-                ${cartItems.map(item => `
-                    <div class="cart-item" data-id="${item.id}">
-                        <input type="checkbox" class="item-checkbox" ${item.selected ? 'checked' : ''} data-id="${item.id}">
-                        <div class="product-info">
-                            <img src="${item.image}" alt="${item.name}">
-                            <div class="product-details">
-                                <h4>${item.name}</h4>
-                                <div style="color: #888; font-size: 0.95em;">Item# ${item.product_id || ''}</div>
-                            </div>
-                        </div>
-                        <div class="item-price">₱${item.price.toLocaleString(undefined, {minimumFractionDigits:2})}</div>
-                        <div class="item-quantity">
-                            <div class="quantity-selector">
-                                <button class="quantity-btn minus" data-id="${item.id}">-</button>
-                                <input type="text" class="quantity-input" value="${item.quantity}" readonly>
-                                <button class="quantity-btn plus" data-id="${item.id}">+</button>
-                            </div>
-                        </div>
-                        <div class="item-total">₱${(item.price * item.quantity).toLocaleString(undefined, {minimumFractionDigits:2})}</div>
-                        <span class="remove-item" data-id="${item.id}" title="Remove"><i class="fas fa-trash"></i></span>
+        function renderSummary(shippingFee) {
+            const grandTotal = subtotal + (selectedItems.length > 0 ? shippingFee : 0);
+            cartContent.innerHTML = `
+                <div class="cart-items">
+                    <div class="cart-header">
+                        <div class="header-select"><input type="checkbox" id="selectAll" ${cartItems.every(item => item.selected) ? 'checked' : ''}></div>
+                        <div>Product</div>
+                        <div>Price</div>
+                        <div>Quantity</div>
+                        <div>Total</div>
+                        <div></div>
                     </div>
-                `).join('')}
-            </div>
-            <div class="cart-summary">
-                <div class="summary-header">Order Summary</div>
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <span>₱${subtotal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                    ${cartItems.map(item => `
+                        <div class="cart-item" data-id="${item.id}">
+                            <input type="checkbox" class="item-checkbox" ${item.selected ? 'checked' : ''} data-id="${item.id}">
+                            <div class="product-info">
+                                <img src="${item.image}" alt="${item.name}">
+                                <div class="product-details">
+                                    <h4>${item.name}</h4>
+                                    <div style="color: #888; font-size: 0.95em;">Item# ${item.product_id || ''}</div>
+                                </div>
+                            </div>
+                            <div class="item-price">₱${item.price.toLocaleString(undefined, {minimumFractionDigits:2})}</div>
+                            <div class="item-quantity">
+                                <div class="quantity-selector">
+                                    <button class="quantity-btn minus" data-id="${item.id}">-</button>
+                                    <input type="text" class="quantity-input" value="${item.quantity}" readonly>
+                                    <button class="quantity-btn plus" data-id="${item.id}">+</button>
+                                </div>
+                            </div>
+                            <div class="item-total">₱${(item.price * item.quantity).toLocaleString(undefined, {minimumFractionDigits:2})}</div>
+                            <span class="remove-item" data-id="${item.id}" title="Remove"><i class="fas fa-trash"></i></span>
+                        </div>
+                    `).join('')}
                 </div>
-                <div class="summary-row">
-                    <span>Shipping</span>
-                    <span>₱${selectedItems.length > 0 ? shippingFee.toLocaleString(undefined, {minimumFractionDigits:2}) : '₱0.00'}</span>
+                <div class="cart-summary">
+                    <div class="summary-header">Order Summary</div>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>₱${subtotal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>₱${selectedItems.length > 0 ? shippingFee.toLocaleString(undefined, {minimumFractionDigits:2}) : '₱0.00'}</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Total</span>
+                        <span class="total-text">₱${grandTotal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                    </div>
+                    <button class="checkout-btn">Checkout</button>
                 </div>
-                <div class="total-row">
-                    <span>Total</span>
-                    <span class="total-text">₱${grandTotal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
-                </div>
-                <button class="checkout-btn">Checkout</button>
-            </div>
-        `;
-        setupCartActions();
+            `;
+            setupCartActions();
+        }
+
+        if (isLoggedIn) {
+            fetch('/api/shipping-fee')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        renderSummary(data.shipping_fee);
+                    } else {
+                        renderSummary(30); // fallback
+                    }
+                })
+                .catch(() => renderSummary(30));
+        } else {
+            renderSummary(30); // static for guests
+        }
     }
 
     function setupCartActions() {
@@ -187,10 +227,28 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateItemQuantity(id, quantity) {
         const itemIndex = cartItems.findIndex(item => item.id === id);
 
-        if (itemIndex !== -1) {
-            cartItems[itemIndex].quantity = quantity;
-            localStorage.setItem('cartItems', JSON.stringify(cartItems));
-            updateCartUI(cartItems);
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        if (isLoggedIn) {
+            // Update quantity in backend
+            fetch(`/api/cart/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: quantity > cartItems[itemIndex].quantity ? 'increase' : 'decrease' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Failed to update quantity: ' + (data.message || 'Unknown error'));
+                }
+            });
+        } else {
+            if (itemIndex !== -1) {
+                cartItems[itemIndex].quantity = quantity;
+                localStorage.setItem('cartItems', JSON.stringify(cartItems));
+                updateCartUI(cartItems);
+            }
         }
     }
 

@@ -1161,3 +1161,22 @@ footer {
     cursor: pointer;
     display: inline-block;
 }
+
+a {
+    text-decoration: none !important;
+}
+
+.category-list li.active > a,
+.category-list li > a.active {
+    background-color: #ff6666;
+    color: #fff !important;
+    border-radius: 5px;
+    font-weight: bold;
+    padding: 4px 10px;
+}
+
+.category-list li > a:hover {
+    background-color: #ffeaea;
+    color: #ff6666 !important;
+    border-radius: 5px;
+}

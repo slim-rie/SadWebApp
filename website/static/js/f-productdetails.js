@@ -26,17 +26,43 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('productBreadcrumb').textContent = product.name;
     document.getElementById('productTitle').textContent = product.name;
 
-    const mainImage = document.getElementById('mainProductImage');
-    mainImage.src = product.image;
-    mainImage.alt = product.name;
+    // Update breadcrumb parent category
+    const breadcrumbParent = document.getElementById('breadcrumbParent');
+    if (breadcrumbParent && product.category_name) {
+        breadcrumbParent.textContent = product.category_name;
+        // Optionally, update the href if you want the link to go to the correct category page
+        if (product.category_name === 'Sewing Parts') {
+            breadcrumbParent.href = '/sewingparts';
+        } else if (product.category_name === 'Sewing Machines') {
+            breadcrumbParent.href = '/sewingmachines';
+        } else if (product.category_name === 'Fabrics') {
+            breadcrumbParent.href = '/fabrics';
+        }
+    }
 
-    // Only one image for now
+    // Gallery logic for multiple images
+    const mainImage = document.getElementById('mainProductImage');
     const thumbnailGallery = document.getElementById('thumbnailGallery');
-    thumbnailGallery.innerHTML = '';
-    const mainThumbnail = document.createElement('div');
-    mainThumbnail.className = 'thumbnail active';
-    mainThumbnail.innerHTML = `<img src="${product.image}" alt="Main Thumbnail" class="thumbnail-img active">`;
-    thumbnailGallery.appendChild(mainThumbnail);
+    if (Array.isArray(product.images) && product.images.length > 0) {
+        mainImage.src = product.images[0];
+        mainImage.alt = product.name;
+        thumbnailGallery.innerHTML = '';
+        product.images.forEach((imgUrl, idx) => {
+            const thumb = document.createElement('div');
+            thumb.className = 'thumbnail' + (idx === 0 ? ' active' : '');
+            thumb.innerHTML = `<img src="${imgUrl}" alt="Thumbnail ${idx+1}" class="thumbnail-img">`;
+            thumb.addEventListener('click', function() {
+                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                thumb.classList.add('active');
+                mainImage.src = imgUrl;
+            });
+            thumbnailGallery.appendChild(thumb);
+        });
+    } else {
+        mainImage.src = product.image || '';
+        mainImage.alt = product.name;
+        thumbnailGallery.innerHTML = '';
+    }
 
     // Default rating and sold count
     // const rating = 4.5;
@@ -46,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // for (let i = 1; i <= 5; i++) { ... }
     // document.getElementById('ratingValue').textContent = rating.toFixed(1);
     // document.getElementById('reviewCount').textContent = "100+ reviews";
-    // document.getElementById('soldCount').textContent = sold + ' sold';
+    document.getElementById('soldCount').textContent = (product.sold ? product.sold : 0) + ' sold';
 
     document.getElementById('productPrice').textContent = '₱ ' + product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     document.getElementById('stockInfo').textContent = product.stock + ' pieces available';
@@ -280,65 +306,75 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Review submission form (for logged-in users)
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     if (isLoggedIn) {
-        const formHTML = `
-            <form id=\"reviewForm\" enctype=\"multipart/form-data\" class=\"review-form\">
-                <h4>Leave a Review</h4>
-                <div class=\"star-rating-input\">
-                    <span>Rating:</span>
-                    <span id=\"starInput\"></span>
-                </div>
-                <textarea id=\"reviewComment\" placeholder=\"Write your review...\" required></textarea>
-                <input type=\"file\" id=\"reviewMedia\" accept=\"image/*,video/*\">
-                <button type=\"submit\">Submit Review</button>
-            </form>
-        `;
-        reviewTab.insertAdjacentHTML('afterbegin', formHTML);
-        // Star input
-        const starInput = document.getElementById('starInput');
-        let selectedRating = 0;
-        for (let i = 1; i <= 5; i++) {
-            const star = document.createElement('i');
-            star.className = 'far fa-star';
-            star.dataset.value = i;
-            star.addEventListener('click', function() {
-                selectedRating = i;
-                document.querySelectorAll('#starInput i').forEach((s, idx) => {
-                    s.className = idx < i ? 'fas fa-star' : 'far fa-star';
-                });
-            });
-            starInput.appendChild(star);
-        }
-        // Submit handler
-        document.getElementById('reviewForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!selectedRating) {
-                alert('Please select a rating.');
-                return;
-            }
-            const comment = document.getElementById('reviewComment').value.trim();
-            const media = document.getElementById('reviewMedia').files[0];
-            const formData = new FormData();
-            formData.append('product_id', productId);
-            formData.append('rating', selectedRating);
-            formData.append('comment', comment);
-            if (media) formData.append('media', media);
-            fetch('/api/reviews', {
-                method: 'POST',
-                body: formData
-            })
+        fetch(`/api/can-review?product_id=${productId}`)
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    alert('Review submitted!');
-                    loadReviews();
-                    document.getElementById('reviewForm').reset();
-                    document.querySelectorAll('#starInput i').forEach(s => s.className = 'far fa-star');
-                    selectedRating = 0;
+                if (data.can_review) {
+                    // Render review form
+                    const formHTML = `
+                        <form id="reviewForm" enctype="multipart/form-data" class="review-form">
+                            <h4>Leave a Review</h4>
+                            <div class="star-rating-input">
+                                <span>Rating:</span>
+                                <span id="starInput"></span>
+                            </div>
+                            <textarea id="reviewComment" placeholder="Write your review..." required></textarea>
+                            <input type="file" id="reviewMedia" accept="image/*,video/*">
+                            <button type="submit">Submit Review</button>
+                        </form>
+                    `;
+                    reviewTab.insertAdjacentHTML('afterbegin', formHTML);
+                    // Star input
+                    const starInput = document.getElementById('starInput');
+                    let selectedRating = 0;
+                    for (let i = 1; i <= 5; i++) {
+                        const star = document.createElement('i');
+                        star.className = 'far fa-star';
+                        star.dataset.value = i;
+                        star.addEventListener('click', function() {
+                            selectedRating = i;
+                            document.querySelectorAll('#starInput i').forEach((s, idx) => {
+                                s.className = idx < i ? 'fas fa-star' : 'far fa-star';
+                            });
+                        });
+                        starInput.appendChild(star);
+                    }
+                    // Submit handler
+                    document.getElementById('reviewForm').addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        if (!selectedRating) {
+                            alert('Please select a rating.');
+                            return;
+                        }
+                        const comment = document.getElementById('reviewComment').value.trim();
+                        const media = document.getElementById('reviewMedia').files[0];
+                        const formData = new FormData();
+                        formData.append('product_id', productId);
+                        formData.append('rating', selectedRating);
+                        formData.append('comment', comment);
+                        if (media) formData.append('media', media);
+                        fetch('/api/reviews', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Review submitted!');
+                                loadReviews();
+                                document.getElementById('reviewForm').reset();
+                                document.querySelectorAll('#starInput i').forEach(s => s.className = 'far fa-star');
+                                selectedRating = 0;
+                            } else {
+                                alert(data.message || 'Failed to submit review.');
+                            }
+                        });
+                    });
                 } else {
-                    alert(data.message || 'Failed to submit review.');
+                    // Not eligible
+                    reviewTab.insertAdjacentHTML('afterbegin', '<div class="review-form-disabled">Only customers with completed orders for this product can leave a review.</div>');
                 }
             });
-        });
     }
 
     // Set breadcrumb to actual category and product name, and link category to correct page
@@ -383,6 +419,56 @@ document.addEventListener('DOMContentLoaded', async function () {
                 dropdownMenu.style.display = 'none';
             }
         });
+    }
+
+    // Fetch and render related products
+    fetch(`/api/related-products?product_id=${product.product_id}`)
+        .then(res => res.json())
+        .then(relatedProducts => {
+            const relatedGrid = document.getElementById('relatedProductsGrid');
+            relatedGrid.innerHTML = '';
+            if (Array.isArray(relatedProducts) && relatedProducts.length > 0) {
+                relatedProducts.forEach(rp => {
+                    const card = document.createElement('a');
+                    card.className = 'product-card';
+                    card.href = `/f-productdetails?product=${encodeURIComponent(rp.name)}`;
+                    card.style.textDecoration = 'none';
+                    card.innerHTML = `
+                        <img src="${rp.image}" alt="${rp.name}">
+                        <div class="product-info">
+                            <h3>${rp.name}</h3>
+                            <div class="product-price">₱ ${rp.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                            <div class="product-rating">
+                                <div class="stars">${generateStarsHTML(rp.rating)}</div>
+                                <span class="rating-value">${rp.rating.toFixed(1)}</span>
+                                <span class="review-count">${rp.review_count} review${rp.review_count === 1 ? '' : 's'}</span>
+                                <span class="sold-count">${rp.sold ? rp.sold : 0} sold</span>
+                            </div>
+                        </div>
+                    `;
+                    relatedGrid.appendChild(card);
+                });
+            } else {
+                relatedGrid.innerHTML = '<div class="no-products">No related products found.</div>';
+            }
+        });
+
+    // Helper for stars
+    function generateStarsHTML(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let starsHTML = '';
+        for (let i = 0; i < fullStars; i++) {
+            starsHTML += '<i class="fas fa-star"></i>';
+        }
+        if (hasHalfStar) {
+            starsHTML += '<i class="fas fa-star-half-alt"></i>';
+        }
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        for (let i = 0; i < emptyStars; i++) {
+            starsHTML += '<i class="far fa-star"></i>';
+        }
+        return starsHTML;
     }
 });
 

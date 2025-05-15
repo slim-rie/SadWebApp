@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
                         <span class="review-count">${product.review_count} review${product.review_count === 1 ? '' : 's'}</span>
+                        <span class="sold-count">${product.sold ? product.sold : 0} sold</span>
                     </div>
                 </div>
             `;
@@ -141,30 +142,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load products when page loads
     loadProducts();
 
-    categoryItems.forEach(item => {
-        item.addEventListener('click', function(e) {
+    const categoryLinks = document.querySelectorAll('.category-list li a');
+    categoryLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
             e.preventDefault();
             const category = this.getAttribute('data-category');
-            
-            categoryItems.forEach(el => el.classList.remove('active'));
-            this.classList.add('active');
-            
+            // Remove 'active' from all, add to parent li
+            document.querySelectorAll('.category-list li').forEach(li => li.classList.remove('active'));
+            this.parentElement.classList.add('active');
             currentFilters.category = category;
             renderProducts();
         });
     });
 
-ratingItems.forEach(item => {
-item.addEventListener('click', function() {
-const rating = parseInt(this.getAttribute('data-rating'));
+    ratingItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
 
             ratingItems.forEach(el => el.classList.remove('active'));
-this.classList.add('active');
+            this.classList.add('active');
 
-currentFilters.rating = rating;
-renderProducts();
-});
-});
+            currentFilters.rating = rating;
+            renderProducts();
+        });
+    });
 
     sortButtons.forEach(button => {
         button.addEventListener('click', function() {

@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const allCategoriesBtn = document.getElementById('allCategoriesBtn');
     const categoriesModal = document.getElementById('categoriesModal');
     const closeCategories = document.getElementById('closeCategories');
+    const breadcrumbCategory = document.getElementById('selectedCategory');
 
     let currentFilters = {
         category: 'All', 
@@ -103,6 +104,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
                         <span class="review-count">${product.review_count} review${product.review_count === 1 ? '' : 's'}</span>
+                        <span class="sold-count">${product.sold ? product.sold : 0} sold</span>
                     </div>
                 </div>
             `;
@@ -151,6 +153,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             renderProducts();
             
             categoriesModal.classList.remove('show-modal');
+            const categoryName = this.textContent.trim();
+            breadcrumbCategory.textContent = categoryName;
         });
     });
 
