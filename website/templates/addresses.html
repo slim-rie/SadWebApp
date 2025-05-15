@@ -46,15 +46,9 @@
 
                 <div class="user-dropdown">
                     <div class="header-user-info">
-<<<<<<< HEAD
-                        <img src="{% if user.profile_image and user.profile_image.startswith('http') %}{{ user.profile_image }}{% elif user.profile_image %}{{ url_for('static', filename='profile_images/' ~ user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}"
-                             alt="Profile" id="profileImage" class="profile-image" data-image="{{ user.profile_image if user.profile_image else '' }}">
-                        <span class="username" id="usernameDisplay">{{ user.username }}</span>                    </div>
-=======
                         <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
                         <span class="username" id="usernameDisplay">{{ user.username }}</span>
                     </div>
->>>>>>> 6ecedf0fe20729ae36b64299f181ac41185d548c
                     <div class="dropdown-container" id="dropdownMenu">
                         <a href="{{ url_for('auth.my_account') }}" class="dropdown-item">My Account</a>
                         <a href="{{ url_for('auth.orders') }}" class="dropdown-item">Orders</a>

@@ -14,36 +14,38 @@ document.addEventListener('DOMContentLoaded', function () {
         updateCartUI(cartItems);
     }
 
-    if (isLoggedIn) {
-        // Fetch cart items from backend
-        fetch('/api/cart')
-            .then(response => response.json())
-            .then(data => {
-                if (data.items) {
-                    cartItems = data.items.map(item => ({
-                        id: item.id,
-                        name: item.name,
-                        price: item.price,
-                        image: item.image_url,
-                        quantity: item.quantity,
-                        selected: true
-                    }));
-                    renderCart(cartItems);
-                } else {
-                    cartItems = [];
-                    renderCart(cartItems);
-                }
-            })
-            .catch(() => {
+    // Always try to fetch from backend first
+    fetch('/api/cart')
+        .then(response => {
+            if (response.status === 401 || response.status === 403) {
+                // Not logged in, use localStorage
+                return { items: JSON.parse(localStorage.getItem('cartItems')) || [] };
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.items) {
+                cartItems = data.items.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    image: item.image_url,
+                    quantity: item.quantity,
+                    selected: true
+                }));
+                renderCart(cartItems);
+            } else {
                 cartItems = [];
                 renderCart(cartItems);
-            });
-    } else {
-        cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-        renderCart(cartItems);
-    }
+            }
+        })
+        .catch(() => {
+            cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+            renderCart(cartItems);
+        });
 
     function updateCartUI(cartItems) {
+        console.log('updateCartUI called with:', cartItems);
         if (cartItems.length === 0) {
             cartContent.innerHTML = `
                 <div class="empty-cart">
@@ -53,132 +55,99 @@ document.addEventListener('DOMContentLoaded', function () {
                     <a href="/sewingmachines" class="continue-shopping">Continue Shopping</a>
                 </div>
             `;
-        } else {
-            const selectedItems = cartItems.filter(item => item.selected);
-            const selectedTotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-            const selectedCount = selectedItems.length;
+            return;
+        }
 
-            cartContent.innerHTML = `
-                <h1 class="cart-title">Shopping Cart</h1>
-                <div class="cart-items">
-                    <div class="cart-header">
-                        <div class="header-select">
-                            <input type="checkbox" id="selectAll" ${cartItems.every(item => item.selected) ? 'checked' : ''}>
+        const shippingFee = 30; // Example static shipping fee
+        const selectedItems = cartItems.filter(item => item.selected);
+        const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const grandTotal = subtotal + (selectedItems.length > 0 ? shippingFee : 0);
+
+        cartContent.innerHTML = `
+            <div class="cart-items">
+                <div class="cart-header">
+                    <div class="header-select"><input type="checkbox" id="selectAll" ${cartItems.every(item => item.selected) ? 'checked' : ''}></div>
+                    <div>Product</div>
+                    <div>Price</div>
+                    <div>Quantity</div>
+                    <div>Total</div>
+                    <div></div>
+                </div>
+                ${cartItems.map(item => `
+                    <div class="cart-item" data-id="${item.id}">
+                        <input type="checkbox" class="item-checkbox" ${item.selected ? 'checked' : ''} data-id="${item.id}">
+                        <div class="product-info">
+                            <img src="${item.image}" alt="${item.name}">
+                            <div class="product-details">
+                                <h4>${item.name}</h4>
+                                <div style="color: #888; font-size: 0.95em;">Item# ${item.product_id || ''}</div>
+                            </div>
                         </div>
-                        <div>Product</div>
-                        <div>Unit Price</div>
-                        <div>Quantity</div>
-                        <div>Total Price</div>
-                        <div>Actions</div>
-                    </div>
-                    ${cartItems.map(item => `
-                        <div class="cart-item">
-                            <div class="item-select">
-                                <input type="checkbox" class="item-checkbox" ${item.selected ? 'checked' : ''} data-id="${item.id}">
-                            </div>
-                            <div class="item-info">
-                                <img src="${item.image}" alt="${item.name}" class="item-image">
-                                <div class="item-details">
-                                    <h3>${item.name}</h3>
-                                </div>
-                            </div>
-                            <div class="item-price">₱${item.price.toFixed(2)}</div>
-                            <div class="item-quantity">
+                        <div class="item-price">₱${item.price.toLocaleString(undefined, {minimumFractionDigits:2})}</div>
+                        <div class="item-quantity">
+                            <div class="quantity-selector">
                                 <button class="quantity-btn minus" data-id="${item.id}">-</button>
-                                <input type="number" value="${item.quantity}" min="1" class="quantity-input" data-id="${item.id}">
+                                <input type="text" class="quantity-input" value="${item.quantity}" readonly>
                                 <button class="quantity-btn plus" data-id="${item.id}">+</button>
                             </div>
-                            <div class="item-total">₱${(item.price * item.quantity).toFixed(2)}</div>
-                            <div class="item-actions">
-                                <button class="remove-btn" data-id="${item.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
                         </div>
-                    `).join('')}
+                        <div class="item-total">₱${(item.price * item.quantity).toLocaleString(undefined, {minimumFractionDigits:2})}</div>
+                        <span class="remove-item" data-id="${item.id}" title="Remove"><i class="fas fa-trash"></i></span>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="cart-summary">
+                <div class="summary-header">Order Summary</div>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>₱${subtotal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
                 </div>
-                <div class="cart-summary">
-                    <div class="summary-row">
-                        <span>Selected Items (${selectedCount}):</span>
-                        <span>₱${selectedTotal.toFixed(2)}</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Shipping Fee:</span>
-                        <span>₱0.00</span>
-                    </div>
-                    <div class="summary-row total">
-                        <span>Total:</span>
-                        <span>₱${selectedTotal.toFixed(2)}</span>
-                    </div>
-                    <button class="checkout-btn" ${selectedCount === 0 ? 'disabled' : ''}>
-                        Proceed to Checkout
-                    </button>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span>₱${selectedItems.length > 0 ? shippingFee.toLocaleString(undefined, {minimumFractionDigits:2}) : '₱0.00'}</span>
                 </div>
-            `;
-
-            setupCartActions();
-        }
+                <div class="total-row">
+                    <span>Total</span>
+                    <span class="total-text">₱${grandTotal.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                </div>
+                <button class="checkout-btn">Checkout</button>
+            </div>
+        `;
+        setupCartActions();
     }
 
     function setupCartActions() {
-        const decreaseButtons = document.querySelectorAll('.decrease');
-        const increaseButtons = document.querySelectorAll('.increase');
-        const removeButtons = document.querySelectorAll('.remove-item');
-        const quantityInputs = document.querySelectorAll('.quantity-input');
-        const selectItems = document.querySelectorAll('.select-item');
+        const decreaseButtons = document.querySelectorAll('.quantity-btn.minus');
+        const increaseButtons = document.querySelectorAll('.quantity-btn.plus');
+        const removeLinks = document.querySelectorAll('.remove-item');
+        const selectItems = document.querySelectorAll('.item-checkbox');
         const selectAll = document.getElementById('selectAll');
-        const selectAllBottom = document.getElementById('selectAllBottom');
-        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-        const proceedToCheckoutBtn = document.getElementById('proceedToCheckoutBtn');
+        const checkoutBtn = document.querySelector('.checkout-btn');
 
         decreaseButtons.forEach(button => {
             button.addEventListener('click', function () {
-                const item = this.closest('.cart-item');
-                const id = parseInt(item.dataset.id);
-                const quantityInput = item.querySelector('.quantity-input');
-                if (quantityInput.value > 1) {
-                    quantityInput.value--;
-                    updateItemQuantity(id, parseInt(quantityInput.value));
+                const id = parseInt(this.dataset.id);
+                const itemIndex = cartItems.findIndex(item => item.id === id);
+                if (itemIndex !== -1 && cartItems[itemIndex].quantity > 1) {
+                    updateItemQuantity(id, cartItems[itemIndex].quantity - 1);
                 }
             });
         });
 
         increaseButtons.forEach(button => {
             button.addEventListener('click', function () {
-                const item = this.closest('.cart-item');
-                const id = parseInt(item.dataset.id);
-                const quantityInput = item.querySelector('.quantity-input');
-                if (quantityInput.value < 99) {
-                    quantityInput.value++;
-                    updateItemQuantity(id, parseInt(quantityInput.value));
+                const id = parseInt(this.dataset.id);
+                const itemIndex = cartItems.findIndex(item => item.id === id);
+                if (itemIndex !== -1) {
+                    updateItemQuantity(id, cartItems[itemIndex].quantity + 1);
                 }
             });
         });
 
-        quantityInputs.forEach(input => {
-            input.addEventListener('change', function () {
-                const item = this.closest('.cart-item');
-                const id = parseInt(item.dataset.id);
-                let value = parseInt(this.value);
-
-                if (isNaN(value) || value < 1) {
-                    value = 1;
-                    this.value = 1;
-                }
-                if (value > 99) {
-                    value = 99;
-                    this.value = 99;
-                }
-
-                updateItemQuantity(id, value);
-            });
-        });
-
-        removeButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const item = this.closest('.cart-item');
-                const id = parseInt(item.dataset.id);
-
+        removeLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const id = parseInt(this.dataset.id);
                 if (confirm('Are you sure you want to remove this item from your cart?')) {
                     removeCartItem(id);
                 }
@@ -189,82 +158,30 @@ document.addEventListener('DOMContentLoaded', function () {
             checkbox.addEventListener('change', function () {
                 const id = parseInt(this.dataset.id);
                 const isChecked = this.checked;
-                
                 const itemIndex = cartItems.findIndex(item => item.id === id);
                 if (itemIndex !== -1) {
                     cartItems[itemIndex].selected = isChecked;
                     localStorage.setItem('cartItems', JSON.stringify(cartItems));
-                    
-                    const allSelected = cartItems.every(item => item.selected);
-                    selectAll.checked = allSelected;
-                    selectAllBottom.checked = allSelected;
-                    
                     updateCartUI(cartItems);
                 }
             });
         });
 
-        selectAll.addEventListener('change', function () {
-            const isChecked = this.checked;
-            
-            cartItems.forEach(item => item.selected = isChecked);
-            localStorage.setItem('cartItems', JSON.stringify(cartItems));
-            
-            selectItems.forEach(checkbox => checkbox.checked = isChecked);
-            selectAllBottom.checked = isChecked;
-            
-            updateCartUI(cartItems);
-        });
-
-        selectAllBottom.addEventListener('change', function () {
-            const isChecked = this.checked;
-            
-            cartItems.forEach(item => item.selected = isChecked);
-            localStorage.setItem('cartItems', JSON.stringify(cartItems));
-            
-            selectItems.forEach(checkbox => checkbox.checked = isChecked);
-            selectAll.checked = isChecked;
-            
-            updateCartUI(cartItems);
-        });
-
-        deleteSelectedBtn.addEventListener('click', function () {
-            const selectedItemIds = cartItems.filter(item => item.selected).map(item => item.id);
-            
-            if (selectedItemIds.length === 0) {
-                alert('Please select at least one item to delete.');
-                return;
-            }
-            
-            if (confirm(`Are you sure you want to delete ${selectedItemIds.length} selected item(s)?`)) {
-                cartItems = cartItems.filter(item => !item.selected);
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                const isChecked = this.checked;
+                cartItems.forEach(item => item.selected = isChecked);
                 localStorage.setItem('cartItems', JSON.stringify(cartItems));
                 updateCartUI(cartItems);
-            }
-        });
+            });
+        }
 
-        proceedToCheckoutBtn.addEventListener('click', function (event) {
-            event.preventDefault();
-            const selectedItems = cartItems.filter(item => item.selected);
-
-            if (selectedItems.length === 0) {
-                alert('Please select at least one item to proceed to checkout.');
-                return;
-            }
-
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            if (!isLoggedIn) {
-                // Show login modal
-                const loginModal = document.getElementById('loginModal');
-                if (loginModal) {
-                    loginModal.style.display = 'block';
-                }
-                return;
-            }
-
-            localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
-            window.location.href = '/transaction';
-        });
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', function () {
+                // You can redirect to your checkout page or show a modal
+                window.location.href = '/transaction';
+            });
+        }
     }
 
     function updateItemQuantity(id, quantity) {
@@ -310,16 +227,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const username = localStorage.getItem('username') || 'Guest';
 
-    usernameDisplay.textContent = isLoggedIn ? username : 'Guest';
+    if (usernameDisplay) {
+        usernameDisplay.textContent = isLoggedIn ? username : 'Guest';
+    }
 
-    userIcon.addEventListener('click', function (event) {
-        event.stopPropagation(); 
-        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
-    });
+    if (userIcon && dropdownMenu) {
+        userIcon.addEventListener('click', function (event) {
+            event.stopPropagation(); 
+            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+        });
 
-    window.addEventListener('click', function () {
-        dropdownMenu.style.display = 'none';
-    });
+        window.addEventListener('click', function () {
+            dropdownMenu.style.display = 'none';
+        });
+    }
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function (e) {
@@ -330,7 +251,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    document.getElementById('loginBtn').addEventListener('click', function() {
-        window.location.href = '/sign-up';
-    });
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function() {
+            window.location.href = '/sign-up';
+        });
+    }
 });

@@ -91,11 +91,73 @@
 
     <div class="cart-page">
         <div class="container" id="cartContent">
-            {% if user.is_authenticated %}
-            <!-- Show cart content here -->
-            {% endif %}
+            <!-- Empty Cart Message (initially hidden or shown by JS) -->
+            <div class="empty-cart" style="display: none;">
+                <i class="fas fa-shopping-cart"></i>
+                <h2>Your cart is empty</h2>
+                <p>Looks like you haven't added any items to your cart yet.</p>
+                <a href="/sewingmachines" class="continue-shopping">Continue Shopping</a>
+            </div>
+
+            <!-- Cart Items Area (shown when cart is not empty) -->
+            <div class="cart-items-container" style="display: none;">
+                <div class="cart-items">
+                    <div class="cart-header">
+                        <div class="header-select"><input type="checkbox" id="selectAll"></div>
+                        <div>Product</div>
+                        <div>Price</div>
+                        <div>Quantity</div>
+                        <div>Total</div>
+                        <div>Action</div>
+                    </div>
+                    <div class="cart-items-list">
+                        <!-- Cart items will be appended here by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="cart-summary">
+                    <div class="summary-header">Order Summary</div>
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="cart-subtotal">₱0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span id="cart-shipping">₱0.00</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Total</span>
+                        <span class="total-text" id="cart-grandtotal">₱0.00</span>
+                    </div>
+                    <button class="checkout-btn">Checkout</button>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Hidden Template for a Single Cart Item -->
+    <template id="cart-item-template">
+        <div class="cart-item" data-id="">
+            <input type="checkbox" class="item-checkbox" data-id="">
+            <div class="product-info">
+                <img src="" alt="" class="product-image">
+                <div class="product-details">
+                    <h4 class="product-name">Product Name</h4>
+                    <div style="color: #888; font-size: 0.95em;" class="product-item-number">Item#</div>
+                </div>
+            </div>
+            <div class="item-price">₱0.00</div>
+            <div class="item-quantity">
+                <div class="quantity-selector">
+                    <button class="quantity-btn minus" data-id="">-</button>
+                    <input type="text" class="quantity-input" value="1" readonly>
+                    <button class="quantity-btn plus" data-id="">+</button>
+                </div>
+            </div>
+            <div class="item-total">₱0.00</div>
+            <span class="remove-item" data-id="" title="Remove"><i class="fas fa-trash"></i></span>
+        </div>
+    </template>
 
     <footer>
         <div class="container footer-grid">

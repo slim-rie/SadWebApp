@@ -146,13 +146,6 @@ def cart():
     return render_template("cart.html", user=current_user, cart_items=cart_items,
                          total_items=total_items, total_amount=total_amount)
 
-@auth.route('/add-to-cart/<int:product_id>')
-@login_required
-def add_to_cart(product_id):
-    # Add product to cart logic here
-    flash('Product added to cart successfully!', category='success')
-    return redirect(url_for('auth.cart'))
-
 @auth.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
