@@ -161,7 +161,15 @@
                     <p class="delivery-status">Estimated delivery: April 27, 2025</p>
                 </div>
                 <div class="shipping-details">
-                    <p><strong>Delivery Address:</strong> <span id="deliveryAddress">123 Main St, Quezon City, Metro Manila</span></p>
+                    <p><strong>Delivery Address:</strong> <span id="deliveryAddress">
+                        {% if address %}
+                            {{ address.street_address }}, {{ address.full_address }}, Postal Code: {{ address.postal_code }}
+                        {% elif order and order.shipping_address %}
+                            {{ order.shipping_address }}
+                        {% else %}
+                            Address not available
+                        {% endif %}
+                    </span></p>
                     <p><strong>Courier:</strong> <span id="courierName">J&T Express</span></p>
                     <p><strong>Tracking Number:</strong> <span id="trackingNumber">JNTPH892347651</span></p>
                 </div>

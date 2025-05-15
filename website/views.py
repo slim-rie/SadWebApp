@@ -269,6 +269,8 @@ def transaction():
         'full_name': f"{address.first_name} {address.last_name}",
         'phone': address.phone_number,
         'full_address': address.complete_address,
+        'street_address': address.street_address,
+        'postal_code': address.postal_code,
         'is_default': address.is_default
     }
 
@@ -283,7 +285,8 @@ def transaction():
         else:
             unique_cart[item.product_id] = item
     db.session.commit()
-    cart_items = list(unique_cart.values())
+    # Exclude items with quantity 0
+    cart_items = [item for item in unique_cart.values() if item.quantity > 0]
     if not cart_items:
         flash('Your cart is empty', 'error')
         return redirect(url_for('views.cart'))
@@ -309,9 +312,11 @@ def transaction():
         })
 
     # Shipping option (can be made dynamic based on user selection)
+    start_date = datetime.now() + timedelta(days=2)
+    end_date = datetime.now() + timedelta(days=3)
     shipping_option = {
         'method': 'Standard Delivery',
-        'delivery_date': (datetime.now() + timedelta(days=3)).strftime('%B %d, %Y')
+        'delivery_date_range': f"Guaranteed to get by {start_date.strftime('%b %d')} - {end_date.strftime('%b %d, %Y')}"
     }
 
     # Order summary

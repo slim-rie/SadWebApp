@@ -65,7 +65,9 @@
                 <div class="address-details">
                     <h2>Shipping Address</h2>
                     <div class="customer-name">{{ address.full_name }} ({{ address.phone }})</div>
-                    <div class="customer-address">{{ address.full_address }}</div>
+                    <div class="customer-address">
+                        {{ address.full_address }}
+                    </div>
                     {% if address.is_default %}<span class="default-tag">Default</span>{% endif %}
                     <a href="{{ url_for('auth.addresses') }}" class="change-btn">Change</a>
                 </div>
@@ -99,7 +101,7 @@
                 </div>
                 <div class="delivery-info">
                     <i class="fa-solid fa-box shipping-icon-small"></i>
-                    <span class="delivery-date">{{ shipping_option.delivery_date }}</span>
+                    <span class="delivery-date">{{ shipping_option.delivery_date_range }}</span>
                 </div>
             </div>
             
