@@ -134,7 +134,7 @@
                         
                         
                         <div class="action-buttons">
-                            <button class="action-btn btn-primary">Rate</button>
+                            <button class="action-btn btn-primary" {% if order.status != 'delivered' %}disabled{% endif %}>Rate</button>
                             <button class="action-btn btn-secondary">Contact Seller</button>
                             <button class="action-btn btn-secondary">Buy Again</button>
                         </div>
@@ -142,12 +142,12 @@
                         <div class="delivery-address">
                             <div class="address-title">
                                 <span>Delivery Address</span>
-                                <span>J&T Express<br>PD265042B3201-FIL</span>
+                                <span>{{ order.courier }}<br>{{ order.tracking_number }}</span>
                             </div>
                             <div class="shipping-info">
-                                <p><strong>Customer</strong></p>
-                                <p>(+63) 9265544412</p>
-                                <p>{{ address.street_address }}<br>{{ address.full_address }}<br>Postal Code: {{ address.postal_code }}</p>
+                                <p><strong>{{ order.customer_name }}</strong></p>
+                                <p>{{ order.customer_phone }}</p>
+                                <p>{{ order.address.street_address }}<br>{{ order.address.complete_address }}<br>Postal Code: {{ order.address.postal_code }}</p>
                             </div>
                         </div>
                         
@@ -356,5 +356,23 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/trackorder.js') }}" defer></script>
+
+    {% if is_staff_or_admin %}
+    <div class="manual-status-update" style="margin: 30px 0; padding: 20px; background: #f8f8f8; border-radius: 8px;">
+        <h4>Manual Order Status Update (Staff/Admin Only)</h4>
+        <form method="post" action="/update-order-status/{{ order.order_id }}">
+            <label for="order_status">Order Status:</label>
+            <select name="order_status" id="order_status">
+                <option value="pending">Pending</option>
+                <option value="paid">Paid</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="refunded">Refunded</option>
+            </select>
+            <button type="submit" class="action-btn btn-primary" style="margin-left: 10px;">Update Status</button>
+        </form>
+    </div>
+    {% endif %}
 </body>
 </html>

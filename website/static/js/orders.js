@@ -89,23 +89,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
                     `;
-                } else if (mappedStatus === 'pending' || mappedStatus === 'to-ship' || mappedStatus === 'to-pay') {
+                } else if (mappedStatus === 'pending' || mappedStatus === 'to-pay') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
                         <button class="action-btn cancel-order-btn">Cancel Order</button>
                     `;
-                } else if (mappedStatus === 'shipped' || mappedStatus === 'to-receive') {
+                } else if (mappedStatus === 'to-ship' || mappedStatus === 'shipped' || mappedStatus === 'to-receive' || mappedStatus === 'delivered' || mappedStatus === 'cancelled' || mappedStatus === 'refunded') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn track-order-btn">Track Order</button>
                         <button class="action-btn order-received-btn">Order Received</button>
-                    `;
-                } else if (mappedStatus === 'cancelled') {
-                    orderHtml += `
-                        <button class="action-btn view-details-btn">View Cancellation Details</button>
-                        <button class="action-btn contact-seller-btn">Contact Seller</button>
-                        <button class="action-btn buy-again-btn">Buy Again</button>
                     `;
                 }
                 
@@ -254,23 +248,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
                     `;
-                } else if (mappedStatus === 'pending' || mappedStatus === 'to-ship' || mappedStatus === 'to-pay') {
+                } else if (mappedStatus === 'pending' || mappedStatus === 'to-pay') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
                         <button class="action-btn cancel-order-btn">Cancel Order</button>
                     `;
-                } else if (mappedStatus === 'shipped' || mappedStatus === 'to-receive') {
+                } else if (mappedStatus === 'to-ship' || mappedStatus === 'shipped' || mappedStatus === 'to-receive' || mappedStatus === 'delivered' || mappedStatus === 'cancelled' || mappedStatus === 'refunded') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn track-order-btn">Track Order</button>
                         <button class="action-btn order-received-btn">Order Received</button>
-                    `;
-                } else if (mappedStatus === 'cancelled') {
-                    orderHtml += `
-                        <button class="action-btn view-details-btn">View Cancellation Details</button>
-                        <button class="action-btn contact-seller-btn">Contact Seller</button>
-                        <button class="action-btn buy-again-btn">Buy Again</button>
                     `;
                 }
                 

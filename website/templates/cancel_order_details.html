@@ -79,7 +79,7 @@
                         <div class="back-button">
                             <a href="/orders"><i class="fas fa-arrow-left"></i> BACK</a>
                         </div>
-                        <span class="requested-date">Requested at: {{ order.updated_at.strftime('%m/%d/%Y %H:%M') if order.updated_at else '' }}</span>
+                        <span class="requested-date">Requested at: {{ order.created_at.strftime('%m/%d/%Y %H:%M') if order.created_at else '' }}</span>
                     </div>
                     <div class="cancellation-header">
                         <h2 class="cancellation-title">Cancellation Completed</h2>
@@ -104,7 +104,7 @@
                     <div class="order-info">
                         <div class="info-row">
                             <span class="info-label">Requested by</span>
-                            <span class="info-value">Buyer</span>
+                            <span class="info-value">{{ 'Admin' if order.cancellation_requested_by == 'admin' else 'Buyer' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Payment method</span>
@@ -118,8 +118,12 @@
                     <div class="cancellation-reason">
                         <h4>Reason: {{ order.cancellation_reason or '(No reason provided)' }}</h4>
                         <p>
-                            {% if order.status == 'cancelled' %}
+                            {% if order.status == 'cancelled' and order.payment_method and order.payment_method.lower() == 'cod' %}
                                 The order was cancelled by the buyer. No payment has been made for this order.
+                            {% elif order.status == 'cancelled' and order.payment_method and order.payment_method.lower() != 'cod' %}
+                                The order was cancelled by the buyer. Refund will be processed within 2-3 days.
+                            {% elif order.status == 'cancelled' %}
+                                The order was cancelled by the buyer.
                             {% else %}
                                 Order is not cancelled.
                             {% endif %}

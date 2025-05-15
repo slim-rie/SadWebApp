@@ -916,6 +916,7 @@ def api_cancel_order():
         return jsonify({'success': False, 'message': 'Order is already cancelled.'}), 400
     order.status = 'cancelled'
     order.cancellation_reason = reason
+    order.cancellation_requested_by = 'buyer' if getattr(current_user, 'role', None) == 'buyer' else 'admin'
     db.session.commit()
     return jsonify({'success': True, 'message': 'Order cancelled successfully.'})
 
@@ -1001,17 +1002,43 @@ def trackorder(order_id):
             'active': False
         })
 
-    # Prepare order data for template
+    # Fetch customer info
+    customer = order.user
+    address = Address.query.filter_by(user_id=order.user_id, is_default=True).first()
+    courier = order.courier if hasattr(order, 'courier') and order.courier else 'J&T Express'
+    tracking_number = order.tracking_number if hasattr(order, 'tracking_number') and order.tracking_number else f'JNTPH{order.order_id:08d}'
+
     order_data = {
         'order_id': order.order_id,
         'estimated_delivery': estimated_delivery.strftime('%B %d, %Y') if estimated_delivery else 'Not available',
         'shipping_address': order.shipping_address,
-        'courier': 'J&T Express',
-        'tracking_number': f'JNTPH{order.order_id:08d}',
+        'courier': courier,
+        'tracking_number': tracking_number,
         'tracking_status': tracking_status,
         'estimated_arrival_time': 'Today, 2:30 PM - 5:30 PM' if order.status == 'shipped' else 'Not available',
         'distance': '5.2 km away from your location' if order.status == 'shipped' else 'Not available',
-        'estimated_time': 'Approximately 25 minutes' if order.status == 'shipped' else 'Not available'
+        'estimated_time': 'Approximately 25 minutes' if order.status == 'shipped' else 'Not available',
+        'customer_name': f'{customer.first_name} {customer.last_name}' if customer else '',
+        'customer_phone': address.phone_number if address else '',
+        'address': address
     }
 
-    return render_template('trackorder.html', order=order_data) 
+    is_staff_or_admin = getattr(current_user, 'role', None) in ['admin', 'staff']
+    return render_template('trackorder.html', order=order_data, is_staff_or_admin=is_staff_or_admin)
+
+@auth.route('/update-order-status/<int:order_id>', methods=['POST'])
+@login_required
+def update_order_status(order_id):
+    if getattr(current_user, 'role', None) not in ['admin', 'staff']:
+        flash('Unauthorized access.', 'error')
+        return redirect(url_for('auth.orders'))
+    new_status = request.form.get('order_status')
+    from .models import Order
+    order = Order.query.filter_by(order_id=order_id).first()
+    if not order:
+        flash('Order not found.', 'error')
+        return redirect(url_for('auth.orders'))
+    order.status = new_status
+    db.session.commit()
+    flash('Order status updated successfully.', 'success')
+    return redirect(url_for('auth.trackorder', order_id=order_id)) 

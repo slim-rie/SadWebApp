@@ -90,6 +90,7 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     cancellation_reason = db.Column(db.String(255))
+    cancellation_requested_by = db.Column(db.String(50))  # 'buyer' or 'admin'
     
     # Relationships
     items = db.relationship('OrderItem', backref='order', lazy=True)
