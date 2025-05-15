@@ -370,6 +370,17 @@
         {{ orders|tojson|safe }}
     </script>
     <script src="{{ url_for('static', filename='js/orders.js') }}" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add click event listener to track order buttons
+        document.querySelectorAll('.track-order-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.dataset.orderId;
+                window.location.href = `/track-order/${orderId}`;
+            });
+        });
+    });
+    </script>
 
 </body>
 </html>

@@ -14,7 +14,7 @@ from werkzeug.utils import secure_filename
 import uuid
 import re
 from werkzeug.security import generate_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Allow OAuth over HTTP for development
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -917,4 +917,101 @@ def api_cancel_order():
     order.status = 'cancelled'
     order.cancellation_reason = reason
     db.session.commit()
-    return jsonify({'success': True, 'message': 'Order cancelled successfully.'}) 
+    return jsonify({'success': True, 'message': 'Order cancelled successfully.'})
+
+@auth.route('/trackorder/<int:order_id>')
+@login_required
+def trackorder(order_id):
+    # Get the order for the current user
+    order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+    if not order:
+        flash('Order not found', 'error')
+        return redirect(url_for('auth.orders'))
+
+    # Calculate estimated delivery date (3-5 days from shipping)
+    estimated_delivery = None
+    if order.status == 'shipped':
+        shipping_date = order.updated_at
+        estimated_delivery = shipping_date + timedelta(days=3)
+    elif order.status == 'delivered':
+        estimated_delivery = order.updated_at
+
+    # Format tracking status based on order status
+    tracking_status = []
+    
+    # Order Confirmed
+    tracking_status.append({
+        'title': 'Order Confirmed',
+        'date': order.created_at.strftime('%B %d, %Y - %I:%M %p'),
+        'description': 'Your order has been confirmed and is being processed.',
+        'icon': 'fas fa-check-circle',
+        'completed': True,
+        'active': False
+    })
+
+    # Packed
+    if order.status in ['paid', 'shipped', 'delivered']:
+        packed_date = order.created_at + timedelta(hours=2)
+        tracking_status.append({
+            'title': 'Packed',
+            'date': packed_date.strftime('%B %d, %Y - %I:%M %p'),
+            'description': 'Your order has been packed and is ready for pickup.',
+            'icon': 'fas fa-box',
+            'completed': True,
+            'active': False
+        })
+
+    # Shipped
+    if order.status in ['shipped', 'delivered']:
+        shipped_date = order.created_at + timedelta(days=1)
+        tracking_status.append({
+            'title': 'Shipped',
+            'date': shipped_date.strftime('%B %d, %Y - %I:%M %p'),
+            'description': 'Your package has been picked up by J&T Express.',
+            'icon': 'fas fa-shipping-fast',
+            'completed': True,
+            'active': False
+        })
+
+    # Out for Delivery
+    if order.status == 'shipped':
+        delivery_date = order.updated_at
+        tracking_status.append({
+            'title': 'Out for Delivery',
+            'date': delivery_date.strftime('%B %d, %Y - %I:%M %p'),
+            'description': 'Your package is out for delivery today.',
+            'icon': 'fas fa-truck',
+            'completed': False,
+            'active': True,
+            'driver_info': {
+                'name': 'Marco Santos',
+                'contact': '+63 917-555-1234',
+                'image': url_for('static', filename='pictures/driver-icon.png')
+            }
+        })
+
+    # Delivered
+    if order.status == 'delivered':
+        tracking_status.append({
+            'title': 'Delivered',
+            'date': order.updated_at.strftime('%B %d, %Y - %I:%M %p'),
+            'description': 'Your package has been delivered to the shipping address.',
+            'icon': 'fas fa-home',
+            'completed': True,
+            'active': False
+        })
+
+    # Prepare order data for template
+    order_data = {
+        'order_id': order.order_id,
+        'estimated_delivery': estimated_delivery.strftime('%B %d, %Y') if estimated_delivery else 'Not available',
+        'shipping_address': order.shipping_address,
+        'courier': 'J&T Express',
+        'tracking_number': f'JNTPH{order.order_id:08d}',
+        'tracking_status': tracking_status,
+        'estimated_arrival_time': 'Today, 2:30 PM - 5:30 PM' if order.status == 'shipped' else 'Not available',
+        'distance': '5.2 km away from your location' if order.status == 'shipped' else 'Not available',
+        'estimated_time': 'Approximately 25 minutes' if order.status == 'shipped' else 'Not available'
+    }
+
+    return render_template('trackorder.html', order=order_data) 

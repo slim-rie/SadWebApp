@@ -154,7 +154,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.querySelectorAll('.track-order-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                window.location.href = '/trackorder';
+                const orderId = this.closest('.order-card').getAttribute('data-order-id');
+                if (orderId) {
+                    window.location.href = `/trackorder/${orderId}`;
+                }
             });
         });
 
