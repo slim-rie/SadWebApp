@@ -91,52 +91,25 @@
                     
                     <div class="track-order-container">
                         <div class="order-header">
-                            <div class="order-id">ORDER ID: 254684E0JMJGJB</div>
-                            <div class="order-status">ORDER COMPLETED</div>
+                            <div class="order-id">ORDER ID: {{ order.order_id }}</div>
+                            <div class="order-status">{{ order.status|upper }}</div>
                         </div>
                         
                         <div class="track-progress">
-                            <div class="progress-step completed">
+                            {% for step in order.tracking_status %}
+                            <div class="progress-step {% if step.completed %}completed{% endif %}{% if step.active %} active{% endif %}">
                                 <div class="step-icon">
-                                    <i class="fas fa-file-alt"></i>
+                                    <i class="{{ step.icon }}"></i>
                                 </div>
-                                <div class="step-label">Order Placed<br>04/04/2025 13:14</div>
+                                <div class="step-label">{{ step.title }}<br>{{ step.date }}</div>
                             </div>
-                            
-                            <div class="progress-step completed">
-                                <div class="step-icon">
-                                    <i class="fas fa-credit-card"></i>
-                                </div>
-                                <div class="step-label">Payment Info<br>Confirmed<br>04/05/2025 00:34</div>
-                            </div>
-                            
-                            <div class="progress-step completed">
-                                <div class="step-icon">
-                                    <i class="fas fa-truck"></i>
-                                </div>
-                                <div class="step-label">Order Shipped Out<br>04/05/2025 08:20</div>
-                            </div>
-                            
-                            <div class="progress-step completed">
-                                <div class="step-icon">
-                                    <i class="fas fa-box"></i>
-                                </div>
-                                <div class="step-label">Order Received<br>04/05/2025 08:40</div>
-                            </div>
-                            
-                            <div class="progress-step active">
-                                <div class="step-icon">
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <div class="step-label">To Rate</div>
-                            </div>
+                            {% endfor %}
                         </div>
                         
-                        
                         <div class="action-buttons">
-                            <button class="action-btn btn-primary" {% if order.status != 'delivered' %}disabled{% endif %}>Rate</button>
+                            <a href="/product/{{ order.order_items[0].product_id }}" class="action-btn btn-primary" {% if order.status != 'delivered' %}disabled{% endif %}>Rate</a>
+                            <a href="{{ url_for('auth.cart') }}" class="action-btn btn-secondary">Buy Again</a>
                             <button class="action-btn btn-secondary">Contact Seller</button>
-                            <button class="action-btn btn-secondary">Buy Again</button>
                         </div>
                         
                         <div class="delivery-address">
@@ -152,125 +125,58 @@
                         </div>
                         
                         <div class="delivery-timeline">
+                            {% for event in order.tracking_status|reverse %}
                             <div class="timeline-event">
                                 <div class="timeline-dot"></div>
                                 <div class="timeline-content">
-                                    <div class="event-title">Delivered</div>
-                                    <div class="event-desc">Parcel has been delivered</div>
-                                    <div class="event-time">04/06/2025 18:02</div>
+                                    {% if event.title %}<div class="event-title">{{ event.title }}</div>{% endif %}
+                                    <div class="event-desc">{{ event.description }}</div>
+                                    <div class="event-time">{{ event.date }}</div>
                                 </div>
                             </div>
-                            
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-title">In transit</div>
-                                    <div class="event-desc">Parcel is out for delivery</div>
-                                    <div class="event-time">04/06/2025 13:46</div>
-                                </div>
-                            </div>
-                            
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-desc">Delivery driver has been assigned</div>
-                                    <div class="event-time">04/06/2025 12:44</div>
-                                </div>
-                            </div>
-                            
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-desc">Your parcel has arrived at the delivery hub - Bocaue Hub</div>
-                                    <div class="event-time">04/06/2025 13:35</div>
-                                </div>
-                            </div>
-                            
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-desc">Delivery driver has been assigned</div>
-                                    <div class="event-time">04/06/2025 13:07</div>
-                                </div>
-                            </div>
-                            
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-desc">Your parcel has arrived at the delivery hub - Bocaue Hub</div>
-                                    <div class="event-time">04/06/2025 01:10</div>
-                                </div>
-                            </div>
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-desc">Parcel has arrived and to be received by the delivery hub</div>
-                                    <div class="event-time">04/05/2025 17:32</div>
-                                </div>
-                            </div>
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-desc">Your parcel has been picked up by our logistics partner</div>
-                                    <div class="event-time">04/05/2025 17:32</div>
-                                </div>
-                            </div>
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-title">Preparing to ship</div>
-                                    <div class="event-desc">Seller is preparing to ship your parcel</div>
-                                    <div class="event-time">04/05/2025 07:19</div>
-                                </div>
-                            </div>
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    <div class="event-title">Order placed</div>
-                                    <div class="event-desc">Order is placed</div>
-                                    <div class="event-time">04/04/2025 23:54</div>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
                         
                         <div class="product-details">
+                            {% for item in order.order_items %}
                             <div class="product-item">
                                 <div class="product-image">
-                                    <img src="{{ url_for('static', filename='pictures/face-rhinestone.jpg') }}" alt="Face Rhinestone Diamond Sticker">
+                                    <img src="{{ item.image }}" alt="{{ item.name }}">
                                 </div>
                                 <div class="product-info">
-                                    <div class="product-title">Face Rhinestone Diamond Sticker Eyebrow Face Decoration Acrylic Crystal Party Diamond Sticker LB</div>
-                                    <div class="product-variation">Variation: White diamond</div>
-                                    <div class="product-quantity">x1</div>
+                                    <div class="product-title">{{ item.name }}</div>
+                                    <div class="product-variation">Variation: {{ item.variation }}</div>
+                                    <div class="product-quantity">x{{ item.quantity }}</div>
                                 </div>
                                 <div class="product-pricing">
-                                    <div class="price-original">₱35</div>
-                                    <div class="price-final">₱25</div>
+                                    <div class="price-original">₱{{ item.originalPrice }}</div>
+                                    <div class="price-final">₱{{ item.price }}</div>
                                 </div>
                             </div>
+                            {% endfor %}
                             
                             <div class="order-summary">
                                 <div class="summary-row">
                                     <div>Merchandise Subtotal</div>
-                                    <div>₱25</div>
+                                    <div>₱{{ order.subtotal }}</div>
                                 </div>
                                 <div class="summary-row">
                                     <div>Shipping Fee</div>
-                                    <div>₱35</div>
+                                    <div>₱{{ order.shipping_fee }}</div>
                                 </div>
                                 <div class="summary-row total">
                                     <div>Order Total</div>
-                                    <div>₱60</div>
+                                    <div>₱{{ order.subtotal + order.shipping_fee }}</div>
                                 </div>
                             </div>
                             
                             <div class="payment-note">
-                                <i class="fas fa-info-circle"></i> Please pay ₱60 upon delivery.
+                                <i class="fas fa-info-circle"></i> Please pay ₱{{ order.subtotal + order.shipping_fee }} upon delivery.
                             </div>
                             
                             <div class="payment-method">
                                 <div class="payment-title">Payment Method</div>
-                                <div class="payment-value">Cash on Delivery</div>
+                                <div class="payment-value">{{ order.payment_method }}</div>
                             </div>
                         </div>
                     </div>

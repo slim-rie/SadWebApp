@@ -8,31 +8,24 @@ from website.models import Product, ProductImage
 app = create_app()
 
 with app.app_context():
-    # Fix image for W562-02BB
-    prod = Product.query.filter_by(product_name='Juki W562-02BB – Piping Machine').first()
-    if prod:
-        img = ProductImage.query.filter_by(product_id=prod.product_id).first()
-        correct_url = '/static/pictures/Juki W562-02BB – Piping Machine.jpg'
-        if img:
-            img.image_url = correct_url
-            db.session.commit()
-            print(f'Fixed image for: {prod.product_name}')
+    updates = [
+        ('Juki LK-1900S – Computer-Controlled Bartacking Machine', 'Juki LK-1900S – Computer-Controlled Bartacking Machine.jpg'),
+        ('Juki LU-1508N – Walking Foot Lockstitch Machine', 'Juki LU-1508N – Walking Foot Lockstitch Machine.jpg'),
+        ('Juki W562-02BB – Piping Machine', 'Juki W562-02BB – Piping Machine.jpg'),
+    ]
+    for prod_name, img_file in updates:
+        prod = Product.query.filter_by(product_name=prod_name).first()
+        if prod:
+            img = ProductImage.query.filter_by(product_id=prod.product_id).first()
+            img_url = f'/static/pictures/{img_file}'
+            if img:
+                img.image_url = img_url
+                img.alt_text = prod_name
+            else:
+                img = ProductImage(product_id=prod.product_id, image_url=img_url, image_type='main', display_order=0, alt_text=prod_name)
+                db.session.add(img)
+            print(f'Updated image for: {prod_name}')
         else:
-            img = ProductImage(product_id=prod.product_id, image_url=correct_url, image_type='main', display_order=0, alt_text=prod.product_name)
-            db.session.add(img)
-            db.session.commit()
-            print(f'Added image for: {prod.product_name}')
-    else:
-        print('W562-02BB product not found!')
-
-    # Print all Juki products and their images
-    juki_products = Product.query.filter(Product.product_name.ilike('%juki%')).all()
-    for product in juki_products:
-        images = ProductImage.query.filter_by(product_id=product.product_id).all()
-        print(f"ID: {product.product_id}\nName: {product.product_name}")
-        if images:
-            for img in images:
-                print(f"  Image: {img.image_url}")
-        else:
-            print("  No images found!")
-        print('-' * 40) 
+            print(f'Product not found: {prod_name}')
+    db.session.commit()
+print('Done.') 

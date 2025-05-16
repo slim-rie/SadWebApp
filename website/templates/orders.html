@@ -312,27 +312,31 @@
     </div>
 </div>
 
-<div class="modal" id="cancelModal">
-    <div class="modal-content" style="max-width: 400px;">
-        <h2>Select Cancellation Reason</h2>
-        <p style="color: red; font-size: 15px;">
-            <b>! Please select a cancellation reason. Please take note that this will cancel all items in the order and the action cannot be undone.</b>
-        </p>
-        <form id="cancelForm">
-            <label><input type="radio" name="cancel_reason" value="Need to change delivery address" required> Need to change delivery address</label><br>
-            <label><input type="radio" name="cancel_reason" value="Need to input/change voucher code"> Need to input/change voucher code</label><br>
-            <label><input type="radio" name="cancel_reason" value="Need to modify order (size, color, quantity, etc.)"> Need to modify order (size, color, quantity, etc.)</label><br>
-            <label><input type="radio" name="cancel_reason" value="Payment procedure too troublesome"> Payment procedure too troublesome</label><br>
-            <label><input type="radio" name="cancel_reason" value="Found cheaper elsewhere"> Found cheaper elsewhere</label><br>
-            <label><input type="radio" name="cancel_reason" value="Don't want to buy anymore"> Don't want to buy anymore</label><br>
-            <label><input type="radio" name="cancel_reason" value="Others"> Others</label><br>
-            <div style="margin-top: 20px;">
-                <button type="button" id="cancelModalNotNowBtn">Not Now</button>
-                <button type="button" id="confirmCancelBtn" style="background: #ff6666; color: white;">Cancel Order</button>
-            </div>
-        </form>
-    </div>
+<!-- Cancel Reason Modal Modernized -->
+<div class="cancel-modal-overlay" id="cancelModalOverlay">
+  <div class="cancel-modal" role="dialog" aria-modal="true" aria-labelledby="cancelTitle">
+    <h2 id="cancelTitle">Cancel Order</h2>
+    <p style="color:#444; font-size:15px; margin-bottom:18px;">Please let us know why you want to cancel this order. This helps us improve our service. <br><b style="color:#e63946; font-weight:500;">This will cancel all items in the order and cannot be undone.</b></p>
+    <form id="cancelForm">
+      <div class="cancel-reason">
+        <label><input type="radio" name="cancel_reason" value="Need to change delivery address"> Need to change delivery address</label><br>
+        <label><input type="radio" name="cancel_reason" value="Need to input/change voucher code"> Need to input/change voucher code</label><br>
+        <label><input type="radio" name="cancel_reason" value="Need to modify order (size, color, quantity, etc.)"> Need to modify order (size, color, quantity, etc.)</label><br>
+        <label><input type="radio" name="cancel_reason" value="Payment procedure too troublesome"> Payment procedure too troublesome</label><br>
+        <label><input type="radio" name="cancel_reason" value="Found cheaper elsewhere"> Found cheaper elsewhere</label><br>
+        <label><input type="radio" name="cancel_reason" value="Don't want to buy anymore"> Don't want to buy anymore</label><br>
+        <label><input type="radio" name="cancel_reason" value="Other" id="otherRadio"> Other
+          <input type="text" id="otherText" name="otherText" placeholder="Please specify" style="display:none; margin-left:10px; width:70%;">
+        </label>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+        <button type="button" class="modal-btn" id="cancelModalNotNowBtn">Not Now</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="confirmCancelBtn" disabled>Cancel Order</button>
+      </div>
+    </form>
+  </div>
 </div>
+<!-- End Cancel Reason Modal Modernized -->
 
     <footer>
         <div class="container footer-grid">

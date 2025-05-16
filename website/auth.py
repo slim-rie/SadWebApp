@@ -618,6 +618,7 @@ def orders():
                 else:
                     image_path = url_for('static', filename='pictures/default.png')
             order_items.append({
+                'id': product.product_id,
                 'name': product.product_name,
                 'variation': '',  # Add variation if you have it
                 'quantity': item.quantity,
@@ -1008,6 +1009,35 @@ def trackorder(order_id):
     courier = order.courier if hasattr(order, 'courier') and order.courier else 'J&T Express'
     tracking_number = order.tracking_number if hasattr(order, 'tracking_number') and order.tracking_number else f'JNTPH{order.order_id:08d}'
 
+    # Build order_items list
+    order_items = []
+    for item in order.items:
+        product = Product.query.get(item.product_id)
+        # Dynamic image path logic
+        if getattr(product, 'image_url', None):
+            image_path = url_for('static', filename=product.image_url)
+        else:
+            jpg_path = f"pictures/{product.product_name}.jpg"
+            png_path = f"pictures/{product.product_name}.png"
+            static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+            jpg_full = os.path.join(static_dir, jpg_path)
+            png_full = os.path.join(static_dir, png_path)
+            if os.path.exists(jpg_full):
+                image_path = url_for('static', filename=jpg_path)
+            elif os.path.exists(png_full):
+                image_path = url_for('static', filename=png_path)
+            else:
+                image_path = url_for('static', filename='pictures/default.png')
+        order_items.append({
+            'id': product.product_id,
+            'name': product.product_name,
+            'variation': '',  # Add variation if you have it
+            'quantity': item.quantity,
+            'price': float(item.price),
+            'originalPrice': float(product.base_price),
+            'image': image_path
+        })
+
     order_data = {
         'order_id': order.order_id,
         'estimated_delivery': estimated_delivery.strftime('%B %d, %Y') if estimated_delivery else 'Not available',
@@ -1020,7 +1050,14 @@ def trackorder(order_id):
         'estimated_time': 'Approximately 25 minutes' if order.status == 'shipped' else 'Not available',
         'customer_name': f'{customer.first_name} {customer.last_name}' if customer else '',
         'customer_phone': address.phone_number if address else '',
-        'address': address
+        'address': address,
+        'order_items': order_items,
+        # Add subtotal, shipping_fee, total_amount, payment_method, etc. as needed
+        'subtotal': sum(i['originalPrice'] * i['quantity'] for i in order_items),
+        'shipping_fee': 35,  # Replace with actual shipping fee logic if available
+        'total_amount': float(order.total_amount),
+        'payment_method': order.payment_method,
+        'status': order.status
     }
 
     is_staff_or_admin = getattr(current_user, 'role', None) in ['admin', 'staff']
@@ -1041,4 +1078,16 @@ def update_order_status(order_id):
     order.status = new_status
     db.session.commit()
     flash('Order status updated successfully.', 'success')
-    return redirect(url_for('auth.trackorder', order_id=order_id)) 
+    return redirect(url_for('auth.trackorder', order_id=order_id))
+
+@auth.route('/api/orders/<int:order_id>/received', methods=['POST'])
+@login_required
+def mark_order_received(order_id):
+    order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+    if not order:
+        return jsonify({'success': False, 'message': 'Order not found.'}), 404
+    if order.status not in ['shipped', 'to-receive', 'paid']:
+        return jsonify({'success': False, 'message': 'Order cannot be marked as received in its current status.'}), 400
+    order.status = 'delivered'
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Order marked as received.'}) 

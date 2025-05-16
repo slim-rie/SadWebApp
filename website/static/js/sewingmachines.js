@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${product.discount ? `<span class="discount-badge">-${product.discount}</span>` : ''}
                     ${product.refurbished ? `<span class="refurbished-badge">Refurbished</span>` : ''}
                 </div>
-                <img src="${product.image}" alt="${product.name}">
+                ${product.image ? `<img src="${product.image}" alt="${product.name}">` : ''}
                 <div class="product-info">
                     <h3>${product.name}</h3>
                     <div class="product-price">₱ ${product.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>

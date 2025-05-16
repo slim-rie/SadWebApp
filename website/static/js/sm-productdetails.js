@@ -1,13 +1,19 @@
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('sm-productdetails.js loaded');
     const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('product_id');
-    console.log('product_id from URL:', productId);
-
+    let productId = urlParams.get('product_id');
     if (!productId) {
-        window.location.href = '/sewingmachines';
+        // Try to extract from URL path: /product/(
+        const match = window.location.pathname.match(/\/product\/(\d+)/);
+        if (match) {
+            productId = match[1];
+        }
+    }
+    if (!productId) {
+        document.getElementById('productTitle').textContent = 'Product Not Found';
         return;
     }
+    console.log('product_id from URL:', productId);
 
     const apiUrl = `/api/productdetails?product_id=${encodeURIComponent(productId)}`;
     console.log('Fetching API URL:', apiUrl);

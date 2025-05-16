@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Order ID not found.');
                     return;
                 }
-                document.getElementById('cancelModal').style.display = 'block';
+                document.getElementById('cancelModalOverlay').style.display = 'flex';
             });
         });
         
@@ -169,6 +169,69 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = `/cancel-order-details?order_id=${orderId}`;
                 } else {
                     window.location.href = '/cancel-order-details';
+                }
+            });
+        });
+
+        document.querySelectorAll('.order-received-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderCard = btn.closest('.order-card');
+                const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
+                if (!orderId) {
+                    alert('Order ID not found.');
+                    return;
+                }
+                btn.disabled = true;
+                btn.textContent = 'Processing...';
+                fetch(`/api/orders/${orderId}/received`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        btn.textContent = 'Received';
+                        btn.classList.add('received');
+                        showSuccessMessage('Order marked as received!');
+                        // Optionally, update the order status in the UI
+                        const statusText = orderCard.querySelector('.status-text');
+                        if (statusText) statusText.textContent = 'Parcel has been delivered';
+                        const statusBadge = orderCard.querySelector('.status-badge');
+                        if (statusBadge) {
+                            statusBadge.textContent = 'COMPLETED';
+                            statusBadge.className = 'status-badge completed';
+                        }
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Order Received';
+                        alert(data.message || 'Failed to mark order as received.');
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Order Received';
+                    alert('Network error. Please try again.');
+                });
+            });
+        });
+
+        document.querySelectorAll('.rate-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const orderCard = btn.closest('.order-card');
+                if (!orderCard) return;
+                // Find the first product in this order
+                const orderId = orderCard.getAttribute('data-order-id');
+                const order = (window.orders || []).find(o => o.id == orderId);
+                if (order && order.products && order.products.length > 0) {
+                    console.log('DEBUG: First product in order:', order.products[0]); // Debug log
+                    const productId = order.products[0].id;
+                    window.location.href = `/product/${productId}`;
+                } else {
+                    alert('Product not found for this order.');
                 }
             });
         });
@@ -453,7 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Order ID not found.');
                 return;
             }
-            document.getElementById('cancelModal').style.display = 'block';
+            document.getElementById('cancelModalOverlay').style.display = 'flex';
         }
     });
 
@@ -461,22 +524,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelModalNotNowBtn = document.getElementById('cancelModalNotNowBtn');
     if (cancelModalNotNowBtn) {
         cancelModalNotNowBtn.addEventListener('click', function() {
-            document.getElementById('cancelModal').style.display = 'none';
+            document.getElementById('cancelModalOverlay').style.display = 'none';
             cancelOrderId = null;
             document.getElementById('cancelForm').reset();
+            document.getElementById('confirmCancelBtn').disabled = true;
+            document.getElementById('otherText').style.display = 'none';
+        });
+    }
+
+    // Enable/disable Cancel Order button and show/hide Other text
+    const cancelForm = document.getElementById('cancelForm');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    const otherRadio = document.getElementById('otherRadio');
+    const otherText = document.getElementById('otherText');
+
+    if (cancelForm) {
+        cancelForm.addEventListener('change', function() {
+            const checked = cancelForm.querySelector('input[name="cancel_reason"]:checked');
+            confirmCancelBtn.disabled = !checked;
+            if (checked && checked.value === 'Other') {
+                otherText.style.display = 'inline-block';
+                otherText.required = true;
+            } else {
+                otherText.style.display = 'none';
+                otherText.required = false;
+            }
         });
     }
 
     // Confirm cancellation
-    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
     if (confirmCancelBtn) {
         confirmCancelBtn.addEventListener('click', function() {
-            const reasonInput = document.querySelector('input[name="cancel_reason"]:checked');
-            if (!reasonInput) {
+            const reasonInput = cancelForm.querySelector('input[name="cancel_reason"]:checked');
+            let reason = reasonInput ? reasonInput.value : '';
+            if (reason === 'Other') {
+                reason = otherText.value.trim();
+                if (!reason) {
+                    otherText.focus();
+                    return;
+                }
+            }
+            if (!reason) {
                 alert('Please select a cancellation reason.');
                 return;
             }
-            const reason = reasonInput.value;
             fetch('/api/cancel_order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -491,9 +582,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert(data.message);
                 }
             });
-            document.getElementById('cancelModal').style.display = 'none';
+            document.getElementById('cancelModalOverlay').style.display = 'none';
             cancelOrderId = null;
-            document.getElementById('cancelForm').reset();
+            cancelForm.reset();
+            confirmCancelBtn.disabled = true;
+            otherText.style.display = 'none';
         });
     }
 
@@ -515,7 +608,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Prevent accidental modal opening on page load
-    document.getElementById('cancelModal').style.display = 'none';
+    document.getElementById('cancelModalOverlay').style.display = 'none';
 });
 
 function createRatingModal() {

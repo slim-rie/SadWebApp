@@ -1,7 +1,13 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('product_id');
-
+    let productId = urlParams.get('product_id');
+    if (!productId) {
+        // Try to extract from URL path: /product/58
+        const match = window.location.pathname.match(/\/product\/(\d+)/);
+        if (match) {
+            productId = match[1];
+        }
+    }
     if (!productId) {
         document.getElementById('productTitle').textContent = 'Product Not Found';
         return;

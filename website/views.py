@@ -1,11 +1,12 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload, subqueryload
 
 views = Blueprint('views', __name__)
 
@@ -32,7 +33,28 @@ def products_by_category(category):
 @views.route('/product/<int:product_id>')
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
-    return render_template("product_detail.html", user=current_user, product=product)
+    # Get category name (assume relationship is product.category)
+    category_name = None
+    if hasattr(product, 'category') and product.category:
+        category_name = product.category.category_name.lower()
+    else:
+        # fallback: try to get category by id
+        category = Category.query.get(product.category_id)
+        if category:
+            category_name = category.category_name.lower()
+    # Choose template based on category
+    if category_name:
+        if 'sewing machine' in category_name:
+            template = 'sm-productdetails.html'
+        elif 'sewing part' in category_name:
+            template = 'sp-productdetails.html'
+        elif 'fabric' in category_name:
+            template = 'f-productdetails.html'
+        else:
+            template = 'sm-productdetails.html'  # fallback
+    else:
+        template = 'sm-productdetails.html'  # fallback
+    return render_template(template, user=current_user, product=product)
 
 @views.route('/sewingmachines')
 def sewing_machines():
@@ -394,7 +416,19 @@ def get_products():
             return jsonify({'error': 'No products found'}), 404
         subcategories = Category.query.filter_by(parent_category_id=parent_cat.category_id).all()
         category_ids = [parent_cat.category_id] + [subcat.category_id for subcat in subcategories]
-        products = Product.query.filter(Product.category_id.in_(category_ids)).all()
+        products = Product.query.options(subqueryload(Product.images)).filter(Product.category_id.in_(category_ids)).all()
+    elif category.strip().lower() in ['sewing machines', 'shunfa industrial sewing machines']:
+        # Always include both main and subcategory
+        cat1 = Category.query.filter(func.lower(func.trim(Category.category_name)) == 'sewing machines').first()
+        cat4 = Category.query.filter(func.lower(func.trim(Category.category_name)) == 'shunfa industrial sewing machines').first()
+        category_ids = []
+        if cat1:
+            subcategories1 = Category.query.filter_by(parent_category_id=cat1.category_id).all()
+            category_ids += [cat1.category_id] + [subcat.category_id for subcat in subcategories1]
+        if cat4:
+            subcategories4 = Category.query.filter_by(parent_category_id=cat4.category_id).all()
+            category_ids += [cat4.category_id] + [subcat.category_id for subcat in subcategories4]
+        products = Product.query.options(subqueryload(Product.images)).filter(Product.category_id.in_(category_ids)).all()
     else:
         # Case-insensitive, trimmed category lookup
         cat_obj = Category.query.filter(
@@ -405,7 +439,7 @@ def get_products():
             return jsonify({'error': 'No products found'}), 404
         subcategories = Category.query.filter_by(parent_category_id=cat_obj.category_id).all()
         category_ids = [cat_obj.category_id] + [subcat.category_id for subcat in subcategories]
-        products = Product.query.filter(Product.category_id.in_(category_ids)).all()
+        products = Product.query.options(subqueryload(Product.images)).filter(Product.category_id.in_(category_ids)).all()
 
     print(f"[DEBUG] Number of products found: {len(products)}")
     if not products:
@@ -413,11 +447,25 @@ def get_products():
     # Fetch real average rating and review count for each product
     product_list = []
     for product in products:
+        print(f"DEBUG: {product.product_id} {product.product_name} images: {product.images}")
         reviews = Review.query.filter_by(product_id=product.product_id).all()
         avg_rating = sum(review.rating for review in reviews) / len(reviews) if reviews else 0
         review_count = len(reviews)
-        # Use ProductImage if available
-        img = product.images[0].image_url if product.images else '/static/pictures/Skylab – Lacoste Fabric.jpg'
+        # Always use ProductImage from DB if available
+        img = None
+        if product.images and len(product.images) > 0:
+            img = product.images[0].image_url
+        if not img:
+            # Directly query ProductImage if relationship is empty
+            img_obj = ProductImage.query.filter_by(product_id=product.product_id).first()
+            if img_obj:
+                img = img_obj.image_url
+            else:
+                img = ''  # Return empty string if no image
+        # Fallback: use get_product_image_url if img is still empty
+        if not img:
+            img = get_product_image_url(product.product_name)
+        print(f"DEBUG: Final image for {product.product_name}: {img}")
         product_list.append({
             'product_id': product.product_id,
             'name': product.product_name,
@@ -650,6 +698,8 @@ def get_related_products():
         review_count = len(reviews)
         # Use ProductImage if available
         img = p.images[0].image_url if p.images else '/static/pictures/Skylab – Lacoste Fabric.jpg'
+        if img and not img.startswith('/static/'):
+            img = '/static/' + img.lstrip('/')
         result.append({
             'product_id': p.product_id,
             'name': p.product_name,
