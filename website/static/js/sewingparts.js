@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             productLink.className = 'product-card product-link';
             productLink.setAttribute('data-authenticated', isLoggedIn ? '1' : '0');
             if (isLoggedIn) {
-                productLink.href = `/sp-productdetails?product=${encodeURIComponent(product.name)}&category=Sewing%20Parts`;
+                productLink.href = `/sp-productdetails?product_id=${product.product_id}&category=Sewing%20Parts`;
             } else {
                 productLink.href = '#'; // Will be intercepted by global handler
             }

@@ -1,8 +1,14 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('product_id');
     const productName = urlParams.get('product');
 
-    if (!productName) {
+    let apiUrl = '';
+    if (productId) {
+        apiUrl = `/api/productdetails?product_id=${encodeURIComponent(productId)}`;
+    } else if (productName) {
+        apiUrl = `/api/productdetails?product=${encodeURIComponent(productName)}`;
+    } else {
         document.getElementById('productTitle').textContent = 'Product Not Found';
         return;
     }
@@ -10,10 +16,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Fetch product details from API
     let product = null;
     try {
-        const response = await fetch(`/api/productdetails?product=${encodeURIComponent(productName)}`);
+        const response = await fetch(apiUrl);
         if (response.ok) {
             product = await response.json();
-    } else {
+        } else {
             document.getElementById('productTitle').textContent = 'Product Not Found';
             return;
         }
@@ -59,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             thumbnailGallery.appendChild(thumb);
         });
     } else {
-        mainImage.src = product.image || '';
+        mainImage.src = product.image || '/static/pictures/default.jpg';
         mainImage.alt = product.name;
         thumbnailGallery.innerHTML = '';
     }
@@ -193,10 +199,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     // --- Reviews Section ---
     const reviewsContainer = document.getElementById('reviewsContainer');
     const reviewTab = document.getElementById('reviewsTab');
-    let productId = product.product_id;
 
     // Fetch and display average rating
-    fetch(`/api/reviews/average?product_id=${productId}`)
+    fetch(`/api/reviews/average?product_id=${product.product_id}`)
         .then(res => res.json())
         .then(data => {
             if (data.success) {
@@ -250,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Fetch and display reviews
     function loadReviews() {
-        fetch(`/api/reviews?product_id=${productId}`)
+        fetch(`/api/reviews?product_id=${product.product_id}`)
             .then(res => res.json())
             .then(data => {
                 reviewsContainer.innerHTML = '';
@@ -306,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Review submission form (for logged-in users)
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     if (isLoggedIn) {
-        fetch(`/api/can-review?product_id=${productId}`)
+        fetch(`/api/can-review?product_id=${product.product_id}`)
             .then(res => res.json())
             .then(data => {
                 if (data.can_review) {
@@ -349,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                         const comment = document.getElementById('reviewComment').value.trim();
                         const media = document.getElementById('reviewMedia').files[0];
                         const formData = new FormData();
-                        formData.append('product_id', productId);
+                        formData.append('product_id', product.product_id);
                         formData.append('rating', selectedRating);
                         formData.append('comment', comment);
                         if (media) formData.append('media', media);
@@ -402,7 +407,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 relatedProducts.forEach(rp => {
                     const card = document.createElement('a');
                     card.className = 'product-card';
-                    card.href = `/sp-productdetails?product=${encodeURIComponent(rp.name)}`;
+                    card.href = `/sp-productdetails?product_id=${rp.product_id}`;
                     card.style.textDecoration = 'none';
                     card.innerHTML = `
                         <img src="${rp.image}" alt="${rp.name}">

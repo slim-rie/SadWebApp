@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             productLink.className = 'product-card product-link';
             productLink.setAttribute('data-authenticated', isLoggedIn ? '1' : '0');
             if (isLoggedIn) {
-                productLink.href = `/f-productdetails?product=${encodeURIComponent(product.name)}`;
+                productLink.href = `/f-productdetails?product_id=${product.product_id}`;
             } else {
                 productLink.href = '#'; // Will be intercepted by global handler
             }
@@ -145,13 +145,21 @@ document.addEventListener('DOMContentLoaded', async function () {
     renderProducts();
 
     categoryLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', async function(e) {
             e.preventDefault();
             const category = this.getAttribute('data-category');
-            
             currentFilters.category = category;
+
+            // Fetch new products for the selected category
+            try {
+                const response = await fetch(`/api/products?category=${encodeURIComponent(category)}`);
+                products = await response.json();
+            } catch (error) {
+                console.error('Error loading products:', error);
+                products = [];
+            }
+
             renderProducts();
-            
             categoriesModal.classList.remove('show-modal');
             const categoryName = this.textContent.trim();
             breadcrumbCategory.textContent = categoryName;

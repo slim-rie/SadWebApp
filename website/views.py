@@ -386,14 +386,27 @@ def get_products():
     if not category:
         print("[DEBUG] No category specified in request.")
         return jsonify({'error': 'No category specified'}), 400
-    cat_obj = Category.query.filter_by(category_name=category).first()
-    if not cat_obj:
-        print(f"[DEBUG] No category found in DB for: {category}")
-        return jsonify({'error': 'No products found'}), 404
-    # Get all subcategory IDs
-    subcategories = Category.query.filter_by(parent_category_id=cat_obj.category_id).all()
-    category_ids = [cat_obj.category_id] + [subcat.category_id for subcat in subcategories]
-    products = Product.query.filter(Product.category_id.in_(category_ids)).all()
+
+    # Handle 'All' or 'Fabrics' as parent category (show all fabrics)
+    if category.strip().lower() in ['all', 'fabrics']:
+        parent_cat = Category.query.filter(func.lower(func.trim(Category.category_name)) == 'fabrics').first()
+        if not parent_cat:
+            return jsonify({'error': 'No products found'}), 404
+        subcategories = Category.query.filter_by(parent_category_id=parent_cat.category_id).all()
+        category_ids = [parent_cat.category_id] + [subcat.category_id for subcat in subcategories]
+        products = Product.query.filter(Product.category_id.in_(category_ids)).all()
+    else:
+        # Case-insensitive, trimmed category lookup
+        cat_obj = Category.query.filter(
+            func.lower(func.trim(Category.category_name)) == category.strip().lower()
+        ).first()
+        if not cat_obj:
+            print(f"[DEBUG] No category found in DB for: {category}")
+            return jsonify({'error': 'No products found'}), 404
+        subcategories = Category.query.filter_by(parent_category_id=cat_obj.category_id).all()
+        category_ids = [cat_obj.category_id] + [subcat.category_id for subcat in subcategories]
+        products = Product.query.filter(Product.category_id.in_(category_ids)).all()
+
     print(f"[DEBUG] Number of products found: {len(products)}")
     if not products:
         return jsonify({'error': 'No products found'}), 404
@@ -403,11 +416,13 @@ def get_products():
         reviews = Review.query.filter_by(product_id=product.product_id).all()
         avg_rating = sum(review.rating for review in reviews) / len(reviews) if reviews else 0
         review_count = len(reviews)
+        # Use ProductImage if available
+        img = product.images[0].image_url if product.images else '/static/pictures/Skylab – Lacoste Fabric.jpg'
         product_list.append({
             'product_id': product.product_id,
             'name': product.product_name,
             'price': float(product.base_price),
-            'image': get_product_image_url(product.product_name),
+            'image': img,
             'discount': None,
             'refurbished': product.refurbished if hasattr(product, 'refurbished') else None,
             'sold': product.sold if hasattr(product, 'sold') else None,
@@ -423,14 +438,17 @@ def addresses():
 
 @views.route('/api/productdetails')
 def get_product_details():
+    product_id = request.args.get('product_id')
     product_name = request.args.get('product')
-    if not product_name:
-        return jsonify({'error': 'No product specified'}), 400
-    product = Product.query.filter(func.lower(func.trim(Product.product_name)) == product_name.strip().lower()).first()
+    product = None
+    if product_id:
+        product = Product.query.get(product_id)
+    elif product_name:
+        product = Product.query.filter(func.lower(func.trim(Product.product_name)) == product_name.strip().lower()).first()
     if not product:
         return jsonify({'error': 'Product not found'}), 404
     # Fetch brand name
-    brand_name = product.brand_obj.name if product.brand_obj else None
+    brand_name = product.brand_obj.brand_name if product.brand_obj else None
     # Fetch category name
     category_name = product.category.category_name if product.category else None
     # Fetch all specifications, ordered by display_order, excluding 'Category ID'
@@ -442,6 +460,18 @@ def get_product_details():
     # Insert category name as the first spec
     if category_name:
         specs.insert(0, {'name': 'Category', 'value': category_name, 'order': 0})
+    # Fetch all models in the same family (same brand and type)
+    model_family = Product.query.filter(
+        Product.brand_id == product.brand_id,
+        Product.category_id == product.category_id
+    ).all()
+    model_options = [
+        {
+            'product_id': m.product_id,
+            'name': m.product_name,
+            'model_number': m.model_number
+        } for m in model_family
+    ]
     return jsonify({
         'product_id': product.product_id,
         'name': product.product_name,
@@ -454,7 +484,8 @@ def get_product_details():
         'category_id': product.category_id,
         'category_name': category_name,
         'brand': brand_name,
-        'specifications': specs
+        'specifications': specs,
+        'model_options': model_options
     })
 
 ALLOWED_REVIEW_MEDIA = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
@@ -617,11 +648,13 @@ def get_related_products():
         reviews = Review.query.filter_by(product_id=p.product_id).all()
         avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
         review_count = len(reviews)
+        # Use ProductImage if available
+        img = p.images[0].image_url if p.images else '/static/pictures/Skylab – Lacoste Fabric.jpg'
         result.append({
             'product_id': p.product_id,
             'name': p.product_name,
             'price': float(p.base_price),
-            'image': get_product_image_url(p.product_name),
+            'image': img,
             'sold': p.sold if hasattr(p, 'sold') else 0,
             'rating': avg_rating,
             'review_count': review_count

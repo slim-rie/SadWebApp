@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const urlParams = new URLSearchParams(window.location.search);
-    const productName = urlParams.get('product');
+    const productId = urlParams.get('product_id');
 
-    if (!productName) {
+    if (!productId) {
         document.getElementById('productTitle').textContent = 'Product Not Found';
         return;
     }
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Fetch product details from API
     let product = null;
     try {
-        const response = await fetch(`/api/productdetails?product=${encodeURIComponent(productName)}`);
+        const response = await fetch(`/api/productdetails?product_id=${encodeURIComponent(productId)}`);
         if (response.ok) {
             product = await response.json();
         } else {
@@ -25,6 +25,12 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Render product details
     document.getElementById('productBreadcrumb').textContent = product.name;
     document.getElementById('productTitle').textContent = product.name;
+
+    // Set material as plain text
+    const materialValue = document.getElementById('materialValue');
+    if (materialValue) {
+        materialValue.textContent = product.composition || product.fabric_type || '';
+    }
 
     // Update breadcrumb parent category
     const breadcrumbParent = document.getElementById('breadcrumbParent');
@@ -193,10 +199,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     // --- Reviews Section ---
     const reviewsContainer = document.getElementById('reviewsContainer');
     const reviewTab = document.getElementById('reviewsTab');
-    let productId = product.product_id;
+    let reviewProductId = product.product_id;
 
     // Fetch and display average rating
-    fetch(`/api/reviews/average?product_id=${productId}`)
+    fetch(`/api/reviews/average?product_id=${reviewProductId}`)
         .then(res => res.json())
         .then(data => {
             if (data.success) {
@@ -250,7 +256,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Fetch and display reviews
     function loadReviews() {
-        fetch(`/api/reviews?product_id=${productId}`)
+        fetch(`/api/reviews?product_id=${reviewProductId}`)
             .then(res => res.json())
             .then(data => {
                 reviewsContainer.innerHTML = '';
@@ -306,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Review submission form (for logged-in users)
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     if (isLoggedIn) {
-        fetch(`/api/can-review?product_id=${productId}`)
+        fetch(`/api/can-review?product_id=${reviewProductId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.can_review) {
@@ -349,7 +355,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                         const comment = document.getElementById('reviewComment').value.trim();
                         const media = document.getElementById('reviewMedia').files[0];
                         const formData = new FormData();
-                        formData.append('product_id', productId);
+                        formData.append('product_id', reviewProductId);
                         formData.append('rating', selectedRating);
                         formData.append('comment', comment);
                         if (media) formData.append('media', media);
@@ -431,7 +437,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 relatedProducts.forEach(rp => {
                     const card = document.createElement('a');
                     card.className = 'product-card';
-                    card.href = `/f-productdetails?product=${encodeURIComponent(rp.name)}`;
+                    card.href = `/f-productdetails?product_id=${encodeURIComponent(rp.product_id)}`;
                     card.style.textDecoration = 'none';
                     card.innerHTML = `
                         <img src="${rp.image}" alt="${rp.name}">

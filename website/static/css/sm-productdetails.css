@@ -783,22 +783,22 @@ footer {
 .submit-btn:hover {
     background-color: #e05555;
 }
+
+/* Boxed model number button style */
 .model-option {
-    background-color: white; 
-    border: 1px solid #ddd;
-    padding: 10px 15px;
-    border-radius: 4px;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    padding: 4px 12px;
+    margin-right: 8px;
+    background: #fff;
+    font-weight: bold;
     cursor: pointer;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    transition: background 0.2s, border 0.2s;
 }
 
 .model-option.active {
-    border-color: #c9302c; 
-    box-shadow: 0 0 5px rgba(201, 48, 44, 0.5); 
-}
-
-.model-option:hover {
-    border-color: #c9302c; 
+    background: #e6f0ff;
+    border-color: #0056b3;
 }
 
 .review {

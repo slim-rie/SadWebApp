@@ -1,52 +1,66 @@
 document.addEventListener('DOMContentLoaded', async function () {
+    console.log('sm-productdetails.js loaded');
     const urlParams = new URLSearchParams(window.location.search);
-    const productName = urlParams.get('product');
+    const productId = urlParams.get('product_id');
+    console.log('product_id from URL:', productId);
 
-    if (!productName) {
-        document.getElementById('productTitle').textContent = 'Product Not Found';
+    if (!productId) {
+        window.location.href = '/sewingmachines';
         return;
     }
+
+    const apiUrl = `/api/productdetails?product_id=${encodeURIComponent(productId)}`;
+    console.log('Fetching API URL:', apiUrl);
 
     // Fetch product details from API
     let product = null;
     try {
-        const response = await fetch(`/api/productdetails?product=${encodeURIComponent(productName)}`);
+        const response = await fetch(apiUrl);
         if (response.ok) {
             product = await response.json();
+            console.log('Product data from API:', product);
     } else {
             document.getElementById('productTitle').textContent = 'Product Not Found';
             return;
         }
     } catch (error) {
         document.getElementById('productTitle').textContent = 'Error loading product';
+        console.error('Error fetching product:', error);
         return;
     }
 
     // Render product details
-    document.getElementById('productBreadcrumb').textContent = product.name;
-    document.getElementById('productTitle').textContent = product.name;
+    document.getElementById('productBreadcrumb').textContent = product.name || 'Product';
+    document.getElementById('productTitle').textContent = product.name || 'Product Title';
+    document.getElementById('productPrice').textContent = '₱ ' + (product.price ? product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00');
+    document.getElementById('stockInfo').textContent = (product.stock || 0) + ' pieces available';
+    document.getElementById('productDescription').innerHTML = product.description || '';
 
-    // Update breadcrumb parent category
-    const breadcrumbParent = document.getElementById('breadcrumbParent');
-    if (breadcrumbParent && product.category_name) {
-        breadcrumbParent.textContent = product.category_name;
-        // Optionally, update the href if you want the link to go to the correct category page
-        if (product.category_name === 'Sewing Parts') {
-            breadcrumbParent.href = '/sewingparts';
-        } else if (product.category_name === 'Sewing Machines') {
-            breadcrumbParent.href = '/sewingmachines';
-        } else if (product.category_name === 'Fabrics') {
-            breadcrumbParent.href = '/fabrics';
-        }
+    // Image
+        const mainImage = document.getElementById('mainProductImage');
+    if (product.image) {
+    mainImage.src = product.image;
+    mainImage.alt = product.name;
+    } else {
+        mainImage.src = '/static/pictures/default.jpg';
+        mainImage.alt = 'Product Image';
+    }
+
+    // Specifications table (dynamic)
+    const specsTableBody = document.getElementById('specsTableBody');
+    specsTableBody.innerHTML = '';
+    if (Array.isArray(product.specifications)) {
+        product.specifications.forEach(spec => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td class='spec-label'>${spec.name}</td><td class='spec-value'>${spec.value}</td>`;
+            specsTableBody.appendChild(row);
+        });
     }
 
     // Gallery logic for single image (reverted)
-    const mainImage = document.getElementById('mainProductImage');
-    const thumbnailGallery = document.getElementById('thumbnailGallery');
-    mainImage.src = product.image || '';
-    mainImage.alt = product.name;
-    thumbnailGallery.innerHTML = '';
-
+        const thumbnailGallery = document.getElementById('thumbnailGallery');
+        thumbnailGallery.innerHTML = '';
+        
     // Default rating and sold count
     const rating = 4.5;
     const sold = 0;
@@ -68,36 +82,31 @@ document.addEventListener('DOMContentLoaded', async function () {
         document.getElementById('reviewCount').textContent = "100+ reviews"; 
     document.getElementById('soldCount').textContent = (product.sold ? product.sold : 0) + ' sold';
 
-        document.getElementById('productPrice').textContent = '₱ ' + product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('stockInfo').textContent = product.stock + ' pieces available';
-        document.getElementById('productDescription').innerHTML = product.description;
-
-    // Specifications table (dynamic)
-    const specsTableBody = document.getElementById('specsTableBody');
-    specsTableBody.innerHTML = '';
-    if (product.brand) {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td class="spec-label">Brand</td><td class="spec-value">${product.brand}</td>`;
-        specsTableBody.appendChild(row);
-    }
-    if (Array.isArray(product.specifications)) {
-        product.specifications.forEach(spec => {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td class="spec-label">${spec.name}</td><td class="spec-value">${spec.value}</td>`;
-            specsTableBody.appendChild(row);
-        });
-    }
-
     // Option row for model
         const optionRow = document.querySelector('.option-row');
-    if (optionRow) {
+    if (optionRow && Array.isArray(product.model_options) && product.model_options.length > 0) {
         optionRow.querySelector('.option-label').textContent = 'Model';
         const optionValueContainer = optionRow.querySelector('.option-value');
-        optionValueContainer.innerHTML = `<button class="model-option active">${product.model_number || ''}</button>`;
-        const modelOption = optionValueContainer.querySelector('.model-option');
-        modelOption.addEventListener('click', function () {
+        optionValueContainer.innerHTML = '';
+        product.model_options.forEach((model, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'model-option' + (model.product_id === product.product_id ? ' active' : '');
+            btn.textContent = model.model_number || model.name;
+            btn.style.border = '2px solid #007bff';
+            btn.style.borderRadius = '8px';
+            btn.style.padding = '4px 12px';
+            btn.style.marginRight = '8px';
+            btn.style.background = model.product_id === product.product_id ? '#e6f0ff' : '#fff';
+            btn.style.fontWeight = 'bold';
+            btn.addEventListener('click', async function () {
             document.querySelectorAll('.model-option').forEach(option => option.classList.remove('active'));
             this.classList.add('active');
+                // Fetch and update details for the selected model
+                if (model.product_id !== product.product_id) {
+                    window.location.search = `?product_id=${encodeURIComponent(model.product_id)}`;
+                }
+            });
+            optionValueContainer.appendChild(btn);
         });
     }
 
@@ -406,7 +415,6 @@ if (closeChatBtn) {
     // --- Reviews Section ---
     const reviewsContainer = document.getElementById('reviewsContainer');
     const reviewTab = document.getElementById('reviewsTab');
-    let productId = product.product_id;
 
     // Use the already declared isLoggedIn variable
     if (isLoggedIn) {

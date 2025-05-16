@@ -39,9 +39,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/api/products?category=Sewing Machines');
             const data = await response.json();
             
-            // Group products by brand
-            products.Shunfa = data.filter(p => p.name.includes('SHUNFA'));
-            products.Juki = data.filter(p => p.name.includes('JUKI'));
+            // Group products by brand (case-insensitive, prefer brand field)
+            products.Shunfa = data.filter(p => (p.brand && p.brand.toUpperCase() === 'SHUNFA') || (p.name && p.name.toUpperCase().includes('SHUNFA')));
+            products.Juki = data.filter(p => (p.brand && p.brand.toUpperCase() === 'JUKI') || (p.name && p.name.toUpperCase().includes('JUKI')));
             
             renderProducts();
         } catch (error) {
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         filteredProducts.forEach(product => {
             const productLink = document.createElement('a');
-            productLink.href = `/sm-productdetails?product=${encodeURIComponent(product.name)}`;
+            productLink.href = `/sm-productdetails?product_id=${product.product_id}`;
             productLink.className = 'product-card';
 
             const starsHTML = generateStarsHTML(product.rating);
