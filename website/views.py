@@ -223,57 +223,6 @@ def create_supply_request():
         return jsonify({'success': False, 'message': str(e)}), 500
 
 # Payment Routes
-@views.route('/api/payment/process', methods=['POST'])
-@login_required
-def process_payment_route():
-    try:
-        data = request.get_json()
-        payment_method_id = data.get('payment_method_id')
-        amount = float(data.get('amount'))
-
-        if not all([payment_method_id, amount]):
-            return jsonify({'success': False, 'message': 'Missing required payment information'}), 400
-
-        success, message = process_payment(payment_method_id, amount)
-        
-        if success:
-            return jsonify({'success': True, 'message': 'Payment successful'})
-        else:
-            return jsonify({'success': False, 'message': message}), 400
-
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-def calculate_shipping_fee(address, cart_items):
-    """Calculate shipping fee based on location and items"""
-    # Base shipping fee
-    base_fee = 50
-
-    # Location-based fee
-    # Add more locations and fees as needed
-    location_fees = {
-        'Manila': 50,
-        'Quezon City': 70,
-        'Makati': 70,
-        'Taguig': 80,
-        'Other': 100
-    }
-
-    # Get city from address or default to 'Other'
-    city = None
-    for known_city in location_fees.keys():
-        if known_city.lower() in address.complete_address.lower():
-            city = known_city
-            break
-    location_fee = location_fees.get(city, location_fees['Other'])
-
-    # Weight/quantity-based fee
-    total_quantity = sum(item.quantity for item in cart_items)
-    quantity_fee = max(0, (total_quantity - 1) * 20)  # ₱20 for each additional item
-
-    total_fee = base_fee + location_fee + quantity_fee
-    return total_fee
-
 @views.route('/transaction')
 @login_required
 def transaction():
@@ -690,14 +639,27 @@ def get_related_products():
     related_products = Product.query.filter(
         Product.category_id == product.category_id,
         Product.product_id != product.product_id
-    ).limit(10).all()
+    ).limit(4).all()
+    # Fallback: if no related products, get up to 10 other products (excluding current)
+    if not related_products:
+        related_products = Product.query.filter(Product.product_id != product.product_id).limit(10).all()
     result = []
     for p in related_products:
         reviews = Review.query.filter_by(product_id=p.product_id).all()
         avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
         review_count = len(reviews)
-        # Use ProductImage if available
-        img = p.images[0].image_url if p.images else '/static/pictures/Skylab – Lacoste Fabric.jpg'
+        # Use ProductImage if available, fallback to get_product_image_url
+        img = None
+        if p.images and len(p.images) > 0:
+            img = p.images[0].image_url
+        if not img:
+            img_obj = ProductImage.query.filter_by(product_id=p.product_id).first()
+            if img_obj:
+                img = img_obj.image_url
+            else:
+                img = ''
+        if not img:
+            img = get_product_image_url(p.product_name)
         if img and not img.startswith('/static/'):
             img = '/static/' + img.lstrip('/')
         result.append({

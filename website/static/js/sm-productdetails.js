@@ -42,14 +42,50 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('stockInfo').textContent = (product.stock || 0) + ' pieces available';
     document.getElementById('productDescription').innerHTML = product.description || '';
 
-    // Image
+    // --- Image Gallery/Slider Logic ---
+    function getImageUrl(imgUrl) {
+        if (imgUrl.startsWith('/static/')) return imgUrl;
+        return '/static/' + imgUrl.replace(/^\/+/,'');
+    }
         const mainImage = document.getElementById('mainProductImage');
-    if (product.image) {
-    mainImage.src = product.image;
+    const thumbnailGallery = document.getElementById('thumbnailGallery');
+    let currentImageIndex = 0;
+    if (Array.isArray(product.images) && product.images.length > 0) {
+        function showImage(idx) {
+            mainImage.src = getImageUrl(product.images[idx]);
+            mainImage.alt = product.name;
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === idx);
+            });
+        }
+        thumbnailGallery.innerHTML = '';
+        product.images.forEach((imgUrl, idx) => {
+            const thumb = document.createElement('div');
+            thumb.className = 'thumbnail' + (idx === 0 ? ' active' : '');
+            thumb.innerHTML = `<img src="${getImageUrl(imgUrl)}" alt="Thumbnail ${idx+1}" class="thumbnail-img">`;
+            thumb.addEventListener('click', function() {
+                currentImageIndex = idx;
+                showImage(idx);
+            });
+            thumbnailGallery.appendChild(thumb);
+        });
+        document.getElementById('prevImage').onclick = function() {
+            currentImageIndex = (currentImageIndex - 1 + product.images.length) % product.images.length;
+            showImage(currentImageIndex);
+        };
+        document.getElementById('nextImage').onclick = function() {
+            currentImageIndex = (currentImageIndex + 1) % product.images.length;
+            showImage(currentImageIndex);
+        };
+        showImage(0);
+    } else if (product.image) {
+        mainImage.src = getImageUrl(product.image);
     mainImage.alt = product.name;
+        thumbnailGallery.innerHTML = '';
     } else {
         mainImage.src = '/static/pictures/default.jpg';
         mainImage.alt = 'Product Image';
+        thumbnailGallery.innerHTML = '';
     }
 
     // Specifications table (dynamic)
@@ -62,10 +98,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             specsTableBody.appendChild(row);
         });
     }
-
-    // Gallery logic for single image (reverted)
-        const thumbnailGallery = document.getElementById('thumbnailGallery');
-        thumbnailGallery.innerHTML = '';
         
     // Default rating and sold count
     const rating = 4.5;
@@ -90,30 +122,21 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Option row for model
         const optionRow = document.querySelector('.option-row');
-    if (optionRow && Array.isArray(product.model_options) && product.model_options.length > 0) {
+    if (optionRow && product.model_number) {
         optionRow.querySelector('.option-label').textContent = 'Model';
         const optionValueContainer = optionRow.querySelector('.option-value');
         optionValueContainer.innerHTML = '';
-        product.model_options.forEach((model, idx) => {
+        // Only show the current product's model as a single button (active)
             const btn = document.createElement('button');
-            btn.className = 'model-option' + (model.product_id === product.product_id ? ' active' : '');
-            btn.textContent = model.model_number || model.name;
+        btn.className = 'model-option active';
+        btn.textContent = product.model_number || product.name;
             btn.style.border = '2px solid #007bff';
             btn.style.borderRadius = '8px';
             btn.style.padding = '4px 12px';
             btn.style.marginRight = '8px';
-            btn.style.background = model.product_id === product.product_id ? '#e6f0ff' : '#fff';
+        btn.style.background = '#e6f0ff';
             btn.style.fontWeight = 'bold';
-            btn.addEventListener('click', async function () {
-            document.querySelectorAll('.model-option').forEach(option => option.classList.remove('active'));
-            this.classList.add('active');
-                // Fetch and update details for the selected model
-                if (model.product_id !== product.product_id) {
-                    window.location.search = `?product_id=${encodeURIComponent(model.product_id)}`;
-                }
-            });
             optionValueContainer.appendChild(btn);
-        });
     }
 
     // Initialize quantity selector
@@ -490,14 +513,16 @@ if (closeChatBtn) {
                     });
                 } else {
                     // Not eligible
-                    reviewTab.insertAdjacentHTML('afterbegin', '<div class="review-form-disabled">Only customers with completed orders for this product can leave a review.</div>');
                 }
             });
     }
 
-    document.getElementById('loginBtn').addEventListener('click', function() {
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function() {
         window.location.href = '/sign-up';
     });
+    }
 
     // Fetch and render related products
     fetch(`/api/related-products?product_id=${product.product_id}`)
@@ -656,4 +681,11 @@ if (closeChatBtn) {
             });
     }
     loadReviews();
+
+    // Set breadcrumb link for Sewing Machines
+    const breadcrumbParent = document.getElementById('breadcrumbParent');
+    if (breadcrumbParent) {
+        breadcrumbParent.href = '/sewingmachines';
+        breadcrumbParent.textContent = 'Sewing Machines';
+    }
 });

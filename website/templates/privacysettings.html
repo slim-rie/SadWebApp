@@ -45,7 +45,7 @@
                 </a>
 
                 <div class="user-dropdown">
-                    <div class="user-info">
+                    <div class="user-info" id="userInfo">
                         <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
                         <span class="username" id="usernameDisplay">{{ user.username }}</span>
                     </div>
@@ -161,6 +161,7 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/privacysettings.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 
 </body>
 </html>

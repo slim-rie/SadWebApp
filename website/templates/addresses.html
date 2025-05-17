@@ -45,7 +45,7 @@
                 </a>
 
                 <div class="user-dropdown">
-                    <div class="header-user-info">
+                    <div class="user-info" id="userInfo">
                         <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
                         <span class="username" id="usernameDisplay">{{ user.username }}</span>
                     </div>
@@ -201,14 +201,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
-    <script>
-      var current_user = {
-        username: "{{ user.username|escape }}",
-        profile_image: "{{ user.profile_image|escape }}"
-      };
-    </script>
-=======
     <div class="chat-modal" id="chatModal">
         <div class="chat-header">
             <h3>Customer Support</h3>
@@ -244,7 +236,6 @@
         <div id="filePreview" class="file-preview"></div>
     </div>
 
->>>>>>> 6ecedf0fe20729ae36b64299f181ac41185d548c
     <script src="{{ url_for('static', filename='js/addresses.js') }}" defer></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
