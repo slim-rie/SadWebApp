@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const breadcrumbCategory = document.getElementById('selectedCategory');
 
     let currentFilters = {
-        category: 'All', 
+        category: 'SewingMachineComponents',
         rating: 0,
         minPrice: 0,
         maxPrice: Infinity,
@@ -231,6 +231,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             categoriesModal.classList.remove('show-modal');
         });
     }
+
+    // Ensure the correct category is highlighted on load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCategoryHighlighting();
+    });
 });
 
 // User authentication UI

@@ -388,7 +388,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                     });
                 } else {
                     // Not eligible
-                    reviewTab.insertAdjacentHTML('afterbegin', '<div class="review-form-disabled">Only customers with completed orders for this product can leave a review.</div>');
                 }
             });
     }

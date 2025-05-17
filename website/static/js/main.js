@@ -66,32 +66,43 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let scrollAmount = 350; 
     
+    if (prevBtn && slider) {
     prevBtn.addEventListener('click', function() {
         slider.scrollBy({
             left: -scrollAmount,
             behavior: 'smooth'
         });
     });
+    }
     
+    if (nextBtn && slider) {
     nextBtn.addEventListener('click', function() {
         slider.scrollBy({
             left: scrollAmount,
             behavior: 'smooth'
         });
     });
+    }
     
     const userIcon = document.getElementById('user-icon');
+    const userInfo = document.getElementById('userInfo');
     const dropdownMenu = document.getElementById('dropdownMenu');
     
-    userIcon.addEventListener('click', function() {
+    if (userIcon) {
+        userIcon.addEventListener('click', function(event) {
+            event.stopPropagation();
+            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+        });
+    }
+    if (userInfo) {
+        userInfo.addEventListener('click', function(event) {
+            event.stopPropagation();
         dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
     });
-    
+    }
     window.addEventListener('click', function(event) {
-        if (!event.target.matches('#user-icon')) {
-            if (dropdownMenu.style.display === 'block') {
+        if (!event.target.closest('.user-dropdown')) {
                 dropdownMenu.style.display = 'none';
-            }
         }
     });
     
@@ -298,37 +309,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const shopNowLinks = document.querySelectorAll('.shop-now-link');
         const cartLinks = document.querySelectorAll('.cart-icon');
         const categoryCards = document.querySelectorAll('.category-card');
+        const sewingMachinesCard = document.getElementById('sewingMachinesCard');
+        const sewingPartsCard = document.getElementById('sewingPartsCard');
+        const fabricsCard = document.getElementById('fabricsCard');
         
         if (isLoggedIn && username) {
+            if (usernameDisplay) {
             usernameDisplay.textContent = username;
             usernameDisplay.style.display = 'inline-block';
-            
+            }
+            if (dropdownMenu) {
             dropdownMenu.innerHTML = `
                 <a href="/my-account" class="dropdown-item">My Account</a>
                 <a href="/orders" class="dropdown-item">Orders</a>
                 <a href="/logout" class="dropdown-item" id="logoutBtn">Logout</a>
             `;
-            
-            document.getElementById('sewingMachinesCard').onclick = function() {
-                window.location.href = '/sewingmachines';
-            };
-            document.getElementById('sewingPartsCard').onclick = function() {
-                window.location.href = '/sewingparts';
-            };
-            document.getElementById('fabricsCard').onclick = function() {
-                window.location.href = '/fabrics';
-            };
-            
-            heroShopNowBtn.onclick = function(event) {
-                window.location.href = '/sewingmachines';
-            };
-            
-            footerShopLink.onclick = function(e) {
-                e.preventDefault();
-                window.location.href = '/products?category=Sewing Machines';
-            };
-            
-            shopNowLinks.forEach(link => {
+            }
+            if (sewingMachinesCard) sewingMachinesCard.onclick = function() { window.location.href = '/sewingmachines'; };
+            if (sewingPartsCard) sewingPartsCard.onclick = function() { window.location.href = '/sewingparts'; };
+            if (fabricsCard) fabricsCard.onclick = function() { window.location.href = '/fabrics'; };
+            if (heroShopNowBtn) heroShopNowBtn.onclick = function(event) { window.location.href = '/sewingmachines'; };
+            if (footerShopLink) footerShopLink.onclick = function(e) { e.preventDefault(); window.location.href = '/products?category=Sewing Machines'; };
+            if (shopNowLinks) shopNowLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const category = this.getAttribute('data-category');
@@ -346,48 +348,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             });
-            
-            cartLinks.forEach(link => {
+            if (cartLinks) cartLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     window.location.href = '/cart';
                 });
             });
-            
         } else {
+            if (usernameDisplay) {
             usernameDisplay.textContent = '';
             usernameDisplay.style.display = 'none';
-            
+            }
+            if (dropdownMenu) {
             dropdownMenu.innerHTML = `
                 <button class="login-btn" id="loginBtn">LOGIN</button>
                 <a href="${SIGNUP_URL}" class="signup-btn">SIGN UP</a>
             `;
-            
-            document.getElementById('loginBtn').addEventListener('click', function() {
-                openLoginModal();
-            });
-            
-            document.getElementById('sewingMachinesCard').onclick = function() {
-                openLoginModal('/sewingmachines');
-            };
-            document.getElementById('sewingPartsCard').onclick = function() {
-                openLoginModal('/sewingparts');
-            };
-            document.getElementById('fabricsCard').onclick = function() {
-                openLoginModal('/fabrics');
-            };
-            
-            heroShopNowBtn.onclick = function(event) {
-                event.preventDefault();
-                openLoginModal('/sewingmachines');
-            };
-            
-            footerShopLink.onclick = function(e) {
-                e.preventDefault();
-                openLoginModal('/products?category=Sewing Machines');
-            };
-            
-            shopNowLinks.forEach(link => {
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) {
+                    loginBtn.addEventListener('click', function() { openLoginModal(); });
+                }
+            }
+            if (sewingMachinesCard) sewingMachinesCard.onclick = function() { openLoginModal('/sewingmachines'); };
+            if (sewingPartsCard) sewingPartsCard.onclick = function() { openLoginModal('/sewingparts'); };
+            if (fabricsCard) fabricsCard.onclick = function() { openLoginModal('/fabrics'); };
+            if (heroShopNowBtn) heroShopNowBtn.onclick = function(event) { event.preventDefault(); openLoginModal('/sewingmachines'); };
+            if (footerShopLink) footerShopLink.onclick = function(e) { e.preventDefault(); openLoginModal('/products?category=Sewing Machines'); };
+            if (shopNowLinks) shopNowLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     const category = this.getAttribute('data-category');
@@ -405,8 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             });
-            
-            cartLinks.forEach(link => {
+            if (cartLinks) cartLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
                     e.preventDefault();
                     openLoginModal('/cart');

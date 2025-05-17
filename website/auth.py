@@ -652,7 +652,7 @@ def orders():
             'deliveryDate': '',  # Add delivery date if you have it
             'paymentMethod': order.payment_method
         })
-    return render_template('orders.html', orders=formatted_orders)
+    return render_template('orders.html', orders=formatted_orders, user=current_user)
 
 @auth.route('/chat')
 @login_required
