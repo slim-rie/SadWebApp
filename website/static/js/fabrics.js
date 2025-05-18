@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const breadcrumbCategory = document.getElementById('selectedCategory');
 
     let currentFilters = {
-        category: 'All', 
+        category: 'Cotton Fabric', 
         rating: 0,
         minPrice: 0,
         maxPrice: Infinity,

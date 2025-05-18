@@ -66,7 +66,9 @@ def sewing_parts():
 
 @views.route('/fabrics')
 def fabrics():
-    return render_template('fabrics.html', user=current_user)
+    fabric_categories = Category.query.filter(Category.category_name.in_([
+        'Cotton Fabric', 'Polyester-Blend Fabrics', 'Lacoste Fabrics', 'Silk Fabrics'])).all()
+    return render_template('fabrics.html', user=current_user, categories=fabric_categories)
 
 @views.route('/about')
 def about():
@@ -360,11 +362,13 @@ def get_products():
 
     # Handle 'All' or 'Fabrics' as parent category (show all fabrics)
     if category.strip().lower() in ['all', 'fabrics']:
-        parent_cat = Category.query.filter(func.lower(func.trim(Category.category_name)) == 'fabrics').first()
-        if not parent_cat:
+        # Get all fabric-related categories
+        fabric_categories = Category.query.filter(
+            Category.category_name.in_(['Cotton Fabric', 'Polyester-Blend Fabrics', 'Lacoste Fabrics', 'Silk Fabrics'])
+        ).all()
+        if not fabric_categories:
             return jsonify({'error': 'No products found'}), 404
-        subcategories = Category.query.filter_by(parent_category_id=parent_cat.category_id).all()
-        category_ids = [parent_cat.category_id] + [subcat.category_id for subcat in subcategories]
+        category_ids = [cat.category_id for cat in fabric_categories]
         products = Product.query.options(subqueryload(Product.images)).filter(Product.category_id.in_(category_ids)).all()
     elif category.strip().lower() in ['sewing machines', 'shunfa industrial sewing machines']:
         # Always include both main and subcategory
