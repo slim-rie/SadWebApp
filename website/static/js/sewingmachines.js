@@ -22,45 +22,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const priceDropdownBtn = priceDropdown.querySelector('.dropdown-toggle');
 
     let currentFilters = {
-        category: 'Shunfa',
+        category: 'Shunfa Industrial Sewing Machines',
         rating: 0,
         minPrice: 0,
         maxPrice: Infinity,
         sort: 'popular'
     };
 
-    let products = {
-        Shunfa: [],
-        Juki: []
-    };
-
-    // Check for stored brand filter
-    const selectedBrand = localStorage.getItem('selectedBrand');
-    if (selectedBrand) {
-        currentFilters.category = selectedBrand;
-        // Update active state in category list
-        const categoryItemsArr = Array.from(document.querySelectorAll('.category-list li'));
-        categoryItemsArr.forEach(li => {
-            const a = li.querySelector('a');
-            if (a && a.getAttribute('data-category') === selectedBrand) {
-                li.classList.add('active');
-            } else {
-                li.classList.remove('active');
-            }
-        });
-        renderProducts();
-    }
+    let products = [];
 
     // Load products from API
     async function loadProducts() {
         try {
-            const response = await fetch('/api/products?category=Sewing Machines');
+            console.log('[DEBUG] Fetching products for category:', currentFilters.category);
+            const response = await fetch(`/api/products?category=${encodeURIComponent(currentFilters.category)}`);
             const data = await response.json();
-            
-            // Group products by brand (case-insensitive, prefer brand field)
-            products.Shunfa = data.filter(p => (p.brand && p.brand.toUpperCase() === 'SHUNFA') || (p.name && p.name.toUpperCase().includes('SHUNFA')));
-            products.Juki = data.filter(p => (p.brand && p.brand.toUpperCase() === 'JUKI') || (p.name && p.name.toUpperCase().includes('JUKI')));
-            
+            products = Array.isArray(data) ? data : [];
             renderProducts();
         } catch (error) {
             console.error('Error loading products:', error);
@@ -71,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderProducts() {
         productGrid.innerHTML = '';
         
-        let filteredProducts = [...(products[currentFilters.category] || [])];
+        let filteredProducts = [...products];
         
         if (currentFilters.rating > 0) {
             filteredProducts = filteredProducts.filter(product => product.rating >= currentFilters.rating);
@@ -123,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="review-count">${product.sold ? product.sold : 0} sold</span></span>
+                        <span class="sold-count">${product.sold ? product.sold : 0} sold</span>
                     </div>
                 </div>
             `;
@@ -159,16 +136,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load products when page loads
     loadProducts();
 
+    function highlightActiveCategory(categoryName) {
+        document.querySelectorAll('.category-list li').forEach(li => li.classList.remove('active'));
+        const link = document.querySelector(`.category-list li a[data-category="${categoryName}"]`);
+        if (link) {
+            link.parentElement.classList.add('active');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // On first load, force Shunfa as the default
+        currentFilters.category = 'Shunfa Industrial Sewing Machines';
+        highlightActiveCategory(currentFilters.category);
+        // Update breadcrumb to match
+        const breadcrumbCategory = document.getElementById('selectedCategory');
+        if (breadcrumbCategory) {
+            breadcrumbCategory.textContent = 'Shunfa Industrial Sewing Machines';
+        }
+        loadProducts();
+    });
+
     const categoryLinks = document.querySelectorAll('.category-list li a');
     categoryLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const category = this.getAttribute('data-category');
-            // Remove 'active' from all, add to parent li
-            document.querySelectorAll('.category-list li').forEach(li => li.classList.remove('active'));
-            this.parentElement.classList.add('active');
             currentFilters.category = category;
-            renderProducts();
+            highlightActiveCategory(category);
+            loadProducts();
         });
     });
 
@@ -231,20 +226,9 @@ document.addEventListener('DOMContentLoaded', function() {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const category = this.getAttribute('data-category');
-            
-            if (products[category]) {
-                categoryItems.forEach(item => {
-                    if (item.getAttribute('data-category') === category) {
-                        item.classList.add('active');
-                    } else {
-                        item.classList.remove('active');
-                    }
-                });
-                
-                currentFilters.category = category;
-                renderProducts();
-            }
-            
+            currentFilters.category = category;
+            highlightActiveCategory(category);
+            loadProducts();
             categoriesModal.style.display = 'none';
         });
     });

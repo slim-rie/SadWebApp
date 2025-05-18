@@ -120,13 +120,22 @@ document.addEventListener('DOMContentLoaded', async function () {
         const productImage = document.getElementById('mainProductImage').src;
         const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const selectedColorBtn = document.querySelector('.color-choice.selected');
+        const selectedColor = selectedColorBtn ? selectedColorBtn.textContent.trim() : null;
+        const selectedWidthBtn = document.querySelector('.width-choice.selected');
+        const selectedWidth = selectedWidthBtn ? selectedWidthBtn.textContent.trim() : null;
 
         if (isLoggedIn && product.product_id) {
             // Logged in: send to backend
             fetch('/api/cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ product_id: product.product_id, quantity: productQuantity })
+                body: JSON.stringify({
+                    product_id: product.product_id,
+                    quantity: productQuantity,
+                    color: selectedColor,
+                    width: selectedWidth
+                })
             })
             .then(response => response.json())
             .then(data => {
@@ -140,11 +149,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         } else {
             // Guest: use localStorage
             const cartItem = {
-                id: productName,
+                id: productName + (selectedColor || '') + (selectedWidth || ''),
                 name: productName,
                 price: productPrice,
                 image: productImage,
-                quantity: productQuantity
+                quantity: productQuantity,
+                color: selectedColor,
+                width: selectedWidth
             };
             let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
             const existingItemIndex = cartItems.findIndex(item => item.id === cartItem.id);
@@ -163,41 +174,39 @@ document.addEventListener('DOMContentLoaded', async function () {
         buyNowBtn.addEventListener('click', function () {
             const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const selectedColorBtn = document.querySelector('.color-choice.selected');
+            const selectedColor = selectedColorBtn ? selectedColorBtn.textContent.trim() : null;
+            const selectedWidthBtn = document.querySelector('.width-choice.selected');
+            const selectedWidth = selectedWidthBtn ? selectedWidthBtn.textContent.trim() : null;
             if (isLoggedIn && product.product_id) {
-                fetch('/api/cart', {
+                fetch('/buy-now', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ product_id: product.product_id, quantity: productQuantity })
+                    body: JSON.stringify({
+                        product_id: product.product_id,
+                        quantity: productQuantity,
+                        color: selectedColor,
+                        width: selectedWidth
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.href = '/transaction';
+                        window.location.href = '/transaction?buy_now=1';
                     } else {
-                        alert('Failed to add to cart: ' + (data.message || 'Unknown error'));
+                        alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
                     }
                 });
             } else {
-                // Guest: use localStorage
-                const productName = document.getElementById('productTitle').textContent;
-                const productPrice = parseFloat(document.getElementById('productPrice').textContent.replace('₱', '').replace(',', ''));
-                const productImage = document.getElementById('mainProductImage').src;
-                const cartItem = {
-                    id: productName,
-                    name: productName,
-                    price: productPrice,
-                    image: productImage,
-                    quantity: productQuantity
+                // Guest: use sessionStorage
+                const buyNowItem = {
+                    product_id: product.product_id,
+                    quantity: productQuantity,
+                    color: selectedColor,
+                    width: selectedWidth
                 };
-                let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-                const existingItemIndex = cartItems.findIndex(item => item.id === cartItem.id);
-                if (existingItemIndex !== -1) {
-                    cartItems[existingItemIndex].quantity += productQuantity;
-                } else {
-                    cartItems.push(cartItem);
-                }
-                localStorage.setItem('cartItems', JSON.stringify(cartItems));
-                window.location.href = '/transaction';
+                sessionStorage.setItem('buyNowItem', JSON.stringify(buyNowItem));
+                window.location.href = '/transaction?buy_now=1';
             }
         });
     }
@@ -480,6 +489,63 @@ document.addEventListener('DOMContentLoaded', async function () {
             starsHTML += '<i class="far fa-star"></i>';
         }
         return starsHTML;
+    }
+
+    // --- Dynamic Color and Width Options ---
+    // Color
+    let colorSpec = product.specifications.find(spec => spec.name.toLowerCase().includes('color'));
+    let colorOptions = [];
+    if (colorSpec && colorSpec.value) {
+        colorOptions = colorSpec.value.split(',').map(c => c.trim());
+    }
+    const colorMap = {
+        'black': '#000',
+        'white': '#fff',
+        'gray': '#888',
+        'grey': '#888',
+        'orange': '#f60',
+        'red': '#f00',
+        'blue': '#00f',
+        'green': '#0a0',
+        'yellow': '#ff0',
+        'pink': '#f6a',
+        // add more as needed
+    };
+    const colorOptionsDiv = document.getElementById('colorOptions');
+    if (colorOptionsDiv && colorOptions.length > 0) {
+        colorOptionsDiv.innerHTML = '';
+        colorOptions.forEach((color, idx) => {
+            const colorKey = color.toLowerCase();
+            const colorHex = colorMap[colorKey] || '#ccc';
+            const btn = document.createElement('button');
+            btn.className = 'color-choice' + (idx === 0 ? ' selected' : '');
+            btn.innerHTML = `<span class="color-swatch" style="background:${colorHex};${colorHex==='#fff'?'border:1px solid #ccc;':''}"></span> ${color}`;
+            btn.addEventListener('click', function () {
+                colorOptionsDiv.querySelectorAll('.color-choice').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            });
+            colorOptionsDiv.appendChild(btn);
+        });
+    }
+    // Width
+    let widthSpec = product.specifications.find(spec => spec.name.toLowerCase().includes('width'));
+    let widthOptions = [];
+    if (widthSpec && widthSpec.value) {
+        widthOptions = widthSpec.value.split(',').map(w => w.trim());
+    }
+    const widthOptionsDiv = document.getElementById('widthOptions');
+    if (widthOptionsDiv && widthOptions.length > 0) {
+        widthOptionsDiv.innerHTML = '';
+        widthOptions.forEach((width, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'width-choice' + (idx === 0 ? ' selected' : '');
+            btn.textContent = width;
+            btn.addEventListener('click', function () {
+                widthOptionsDiv.querySelectorAll('.width-choice').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            });
+            widthOptionsDiv.appendChild(btn);
+        });
     }
 });
 

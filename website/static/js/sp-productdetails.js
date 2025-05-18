@@ -168,41 +168,38 @@ document.addEventListener('DOMContentLoaded', async function () {
         buyNowBtn.addEventListener('click', function () {
             const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const selectedMaterial = document.getElementById('materialSelect') ? document.getElementById('materialSelect').value : null;
+            const selectedModelBtn = document.querySelector('.model-choice.selected');
+            const selectedModel = selectedModelBtn ? selectedModelBtn.textContent.trim() : null;
             if (isLoggedIn && product.product_id) {
-                fetch('/api/cart', {
+                fetch('/buy-now', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ product_id: product.product_id, quantity: productQuantity })
+                    body: JSON.stringify({
+                        product_id: product.product_id,
+                        quantity: productQuantity,
+                        material: selectedMaterial,
+                        model: selectedModel
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        window.location.href = '/transaction';
+                        window.location.href = '/transaction?buy_now=1';
                     } else {
-                        alert('Failed to add to cart: ' + (data.message || 'Unknown error'));
+                        alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
                     }
                 });
             } else {
-                // Guest: use localStorage
-                const productName = document.getElementById('productTitle').textContent;
-                const productPrice = parseFloat(document.getElementById('productPrice').textContent.replace('₱', '').replace(',', ''));
-                const productImage = document.getElementById('mainProductImage').src;
-                const cartItem = {
-                    id: productName,
-                    name: productName,
-                    price: productPrice,
-                    image: productImage,
-                    quantity: productQuantity
+                // Guest: use sessionStorage
+                const buyNowItem = {
+                    product_id: product.product_id,
+                    quantity: productQuantity,
+                    material: selectedMaterial,
+                    model: selectedModel
                 };
-                let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-                const existingItemIndex = cartItems.findIndex(item => item.id === cartItem.id);
-                if (existingItemIndex !== -1) {
-                    cartItems[existingItemIndex].quantity += productQuantity;
-                } else {
-                    cartItems.push(cartItem);
-                }
-                localStorage.setItem('cartItems', JSON.stringify(cartItems));
-                window.location.href = '/transaction';
+                sessionStorage.setItem('buyNowItem', JSON.stringify(buyNowItem));
+                window.location.href = '/transaction?buy_now=1';
             }
         });
     }

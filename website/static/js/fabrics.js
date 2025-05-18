@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', async function () {
     let products = [];
     try {
-        const response = await fetch('/api/products?category=Fabrics');
+        // Fetch only the default category on load
+        const response = await fetch('/api/products?category=Cotton Fabric');
         products = await response.json();
     } catch (error) {
         console.error('Error loading products:', error);
@@ -103,7 +104,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="review-count">${product.review_count} review${product.review_count === 1 ? '' : 's'}</span>
                         <span class="sold-count">${product.sold ? product.sold : 0} sold</span>
                     </div>
                 </div>

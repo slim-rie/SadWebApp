@@ -74,6 +74,9 @@ class CartItem(db.Model):
     quantity = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    color = db.Column(db.String(50))
+    width = db.Column(db.String(50))
+    model = db.Column(db.String(50))
     
     __table_args__ = (db.UniqueConstraint('user_id', 'product_id', name='_user_product_uc'),)
 

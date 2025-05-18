@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request
+from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
 from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage
@@ -9,6 +9,40 @@ from sqlalchemy import func
 from sqlalchemy.orm import joinedload, subqueryload
 
 views = Blueprint('views', __name__)
+
+def calculate_shipping_fee(address, cart_items):
+    # --- Address-based logic ---
+    address_str = (address.complete_address or "").lower()
+    metro_manila_keywords = [
+        'manila', 'quezon city', 'makati', 'pasig', 'mandaluyong', 'taguig',
+        'parañaque', 'caloocan', 'malabon', 'navotas', 'valenzuela', 'las piñas',
+        'muntinlupa', 'pasay', 'san juan', 'marikina', 'pateros'
+    ]
+    is_metro_manila = any(city in address_str for city in metro_manila_keywords)
+
+    # --- Cart-based logic ---
+    total_items = sum(item.quantity for item in cart_items)
+    subtotal = sum(item.product.base_price * item.quantity for item in cart_items)
+
+    # --- Free shipping threshold ---
+    FREE_SHIPPING_THRESHOLD = 2000
+
+    # --- Base rates ---
+    if is_metro_manila:
+        base_fee = 35
+    else:
+        base_fee = 60
+
+    # --- Per-item fee (optional, for large orders) ---
+    per_item_fee = 0
+    if total_items > 5:
+        per_item_fee = 5 * (total_items - 5)  # ₱5 per item after 5
+
+    # --- Free shipping if subtotal is high enough ---
+    if subtotal >= FREE_SHIPPING_THRESHOLD:
+        return 0
+
+    return base_fee + per_item_fee
 
 # Home and Product Routes
 @views.route('/')
@@ -23,7 +57,7 @@ def home():
 
 @views.route('/products')
 def products_redirect():
-    return redirect(url_for('views.sewing_machines'))
+    return redirect(url_for('views.sewingmachines'))
 
 @views.route('/products/<category>')
 def products_by_category(category):
@@ -57,8 +91,9 @@ def product_detail(product_id):
     return render_template(template, user=current_user, product=product)
 
 @views.route('/sewingmachines')
-def sewing_machines():
-    return render_template('sewingmachines.html', user=current_user)
+def sewingmachines():
+    sewing_categories = Category.query.filter_by(parent_category_id=1).all()
+    return render_template('sewingmachines.html', user=current_user, categories=sewing_categories)
 
 @views.route('/sewingparts')
 def sewing_parts():
@@ -111,7 +146,8 @@ def get_cart():
             'name': item.product.product_name,
             'price': float(item.product.base_price),
             'quantity': item.quantity,
-            'image_url': get_product_image_url(item.product.product_name),
+            # Use ProductImage from DB if available, fallback to static folder
+            'image_url': (('/static/' + item.product.images[0].image_url.lstrip('/')) if item.product.images and len(item.product.images) > 0 and not item.product.images[0].image_url.startswith('/static/') else (item.product.images[0].image_url if item.product.images and len(item.product.images) > 0 else get_product_image_url(item.product.product_name))),
             'stock_quantity': item.product.stock_quantity
         } for item in cart_items]
     })
@@ -122,21 +158,37 @@ def add_to_cart():
     data = request.get_json()
     product_id = data.get('product_id')
     quantity = data.get('quantity', 1)
-    
+    color = data.get('color')
+    width = data.get('width')
+    model = data.get('model')
+
     if not product_id:
         return jsonify({'success': False, 'message': 'Product ID is required'}), 400
-    
+
     product = Product.query.get_or_404(product_id)
-    
-    # Check if item already in cart
-    cart_item = CartItem.query.filter_by(user_id=current_user.user_id, product_id=product_id).first()
-    
+
+    # Check if item with same product/color/width/model is already in cart
+    cart_item = CartItem.query.filter_by(
+        user_id=current_user.user_id,
+        product_id=product_id,
+        color=color,
+        width=width,
+        model=model
+    ).first()
+
     if cart_item:
         cart_item.quantity += quantity
     else:
-        cart_item = CartItem(user_id=current_user.user_id, product_id=product_id, quantity=quantity)
+        cart_item = CartItem(
+            user_id=current_user.user_id,
+            product_id=product_id,
+            quantity=quantity,
+            color=color,
+            width=width,
+            model=model
+        )
         db.session.add(cart_item)
-    
+
     db.session.commit()
     return jsonify({'success': True, 'message': 'Item added to cart'})
 
@@ -228,109 +280,197 @@ def create_supply_request():
 @views.route('/transaction')
 @login_required
 def transaction():
-    # Get user's default address
-    address = Address.query.filter_by(user_id=current_user.user_id, is_default=True).first()
-    if not address:
-        # If no default address, get the first address or redirect to add address
-        address = Address.query.filter_by(user_id=current_user.user_id).first()
-        if not address:
-            flash('Please add a shipping address first', 'error')
-            return redirect(url_for('auth.addresses'))
-
-    # Format address for template
-    formatted_address = {
-        'full_name': f"{address.first_name} {address.last_name}",
-        'phone': address.phone_number,
-        'full_address': address.complete_address,
-        'street_address': address.street_address,
-        'postal_code': address.postal_code,
-        'is_default': address.is_default
-    }
-
-    # Get cart items
-    cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
-    # Remove duplicates: keep only one entry per product_id, sum quantities
-    unique_cart = {}
-    for item in cart_items:
-        if item.product_id in unique_cart:
-            unique_cart[item.product_id].quantity += item.quantity
-            db.session.delete(item)  # Remove duplicate
-        else:
-            unique_cart[item.product_id] = item
-    db.session.commit()
-    # Exclude items with quantity 0
-    cart_items = [item for item in unique_cart.values() if item.quantity > 0]
-    if not cart_items:
-        flash('Your cart is empty', 'error')
-        return redirect(url_for('views.cart'))
-
-    # Calculate order summary
-    subtotal = sum(item.product.base_price * item.quantity for item in cart_items)
-
-    # Calculate dynamic shipping fee
-    shipping_fee = calculate_shipping_fee(address, cart_items)
-    total = subtotal + shipping_fee
-
-    # Format cart items for template
-    formatted_cart_items = []
-    for item in cart_items:
-        product = Product.query.get(item.product_id)
-        formatted_cart_items.append({
+    buy_now_mode = request.args.get('buy_now')
+    buy_now_item = session.get('buy_now_item') if buy_now_mode else None
+    if buy_now_mode and buy_now_item:
+        # Use only the buy now item for checkout
+        product = Product.query.get(buy_now_item['product_id'])
+        formatted_cart_items = [{
             'product_name': product.product_name,
-            'image_url': url_for('static', filename=f'pictures/{product.product_name}.jpg'),
-            'color': item.color if hasattr(item, 'color') else None,
+            'image_url': (('/static/' + product.images[0].image_url.lstrip('/')) if product.images and len(product.images) > 0 and not product.images[0].image_url.startswith('/static/') else (product.images[0].image_url if product.images and len(product.images) > 0 else get_product_image_url(product.product_name))),
+            'color': buy_now_item.get('color'),
+            'width': buy_now_item.get('width'),
+            'model': buy_now_item.get('model'),
             'price': float(product.base_price),
-            'quantity': item.quantity,
-            'subtotal': float(product.base_price * item.quantity)
-        })
-
-    # Shipping option (can be made dynamic based on user selection)
-    start_date = datetime.now() + timedelta(days=2)
-    end_date = datetime.now() + timedelta(days=3)
-    shipping_option = {
-        'method': 'Standard Delivery',
-        'delivery_date_range': f"Guaranteed to get by {start_date.strftime('%b %d')} - {end_date.strftime('%b %d, %Y')}"
-    }
-
-    # Order summary
-    order_summary = {
-        'subtotal': subtotal,
-        'shipping': shipping_fee,
-        'total': total,
-        'total_items': sum(item.quantity for item in cart_items)
-    }
-
-    # QR code URLs and payment details for different methods
-    qr_codes = {
-        'bank': {
-            'name': 'Bank Account',
-            'qr_url': url_for('static', filename='pictures/bank_qr.png'),
-            'account_name': 'JBR Tanching C.O',
-            'account_number': '1234-5678-9012',
-            'bank_name': 'BDO'
-        },
-        'gcash': {
-            'name': 'GCash',
-            'qr_url': url_for('static', filename='pictures/gcash_qr.png'),
-            'account_name': 'JBR Tanching',
-            'phone_number': '0912-345-6789'
-        },
-        'maya': {
-            'name': 'Maya',
-            'qr_url': url_for('static', filename='pictures/maya_qr.png'),
-            'account_name': 'JBR Tanching',
-            'phone_number': '0912-345-6789'
+            'quantity': buy_now_item.get('quantity', 1),
+            'subtotal': float(product.base_price * buy_now_item.get('quantity', 1))
+        }]
+        subtotal = formatted_cart_items[0]['subtotal']
+        # Get user's default address
+        address = Address.query.filter_by(user_id=current_user.user_id, is_default=True).first()
+        if not address:
+            address = Address.query.filter_by(user_id=current_user.user_id).first()
+            if not address:
+                flash('Please add a shipping address first', 'error')
+                return redirect(url_for('auth.addresses'))
+        formatted_address = {
+            'full_name': f"{address.first_name} {address.last_name}",
+            'phone': address.phone_number,
+            'full_address': address.complete_address,
+            'street_address': address.street_address,
+            'postal_code': address.postal_code,
+            'is_default': address.is_default
         }
-    }
+        shipping_fee = calculate_shipping_fee(address, [type('FakeCartItem', (), {'product': product, 'quantity': buy_now_item.get('quantity', 1)})()])
+        total = subtotal + shipping_fee
+        order_summary = {
+            'subtotal': subtotal,
+            'shipping': shipping_fee,
+            'total': total,
+            'total_items': buy_now_item.get('quantity', 1)
+        }
+        # Shipping option (can be made dynamic based on user selection)
+        start_date = datetime.now() + timedelta(days=2)
+        end_date = datetime.now() + timedelta(days=3)
+        shipping_option = {
+            'method': 'Standard Delivery',
+            'delivery_date_range': f"Guaranteed to get by {start_date.strftime('%b %d')} - {end_date.strftime('%b %d, %Y')}"
+        }
+        # QR code URLs and payment details for different methods
+        qr_codes = {
+            'bank': {
+                'name': 'Bank Account',
+                'qr_url': url_for('static', filename='pictures/bank_qr.png'),
+                'account_name': 'JBR Tanching C.O',
+                'account_number': '1234-5678-9012',
+                'bank_name': 'BDO'
+            },
+            'gcash': {
+                'name': 'GCash',
+                'qr_url': url_for('static', filename='pictures/gcash_qr.png'),
+                'account_name': 'JBR Tanching',
+                'phone_number': '0912-345-6789'
+            },
+            'maya': {
+                'name': 'Maya',
+                'qr_url': url_for('static', filename='pictures/maya_qr.png'),
+                'account_name': 'JBR Tanching',
+                'phone_number': '0912-345-6789'
+            }
+        }
+        return render_template('transaction.html',
+            user=current_user,
+            address=formatted_address,
+            cart_items=formatted_cart_items,
+            shipping_option=shipping_option,
+            order_summary=order_summary,
+            qr_codes=qr_codes
+        )
+    else:
+        # Get user's default address
+        address = Address.query.filter_by(user_id=current_user.user_id, is_default=True).first()
+        if not address:
+            # If no default address, get the first address or redirect to add address
+            address = Address.query.filter_by(user_id=current_user.user_id).first()
+            if not address:
+                flash('Please add a shipping address first', 'error')
+                return redirect(url_for('auth.addresses'))
 
-    return render_template('transaction.html',
-        user=current_user,
-        address=formatted_address,
-        cart_items=formatted_cart_items,
-        shipping_option=shipping_option,
-        order_summary=order_summary,
-        qr_codes=qr_codes
-    )
+        # Format address for template
+        formatted_address = {
+            'full_name': f"{address.first_name} {address.last_name}",
+            'phone': address.phone_number,
+            'full_address': address.complete_address,
+            'street_address': address.street_address,
+            'postal_code': address.postal_code,
+            'is_default': address.is_default
+        }
+
+        # Get cart items
+        cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
+        # Remove duplicates: keep only one entry per product_id, sum quantities
+        unique_cart = {}
+        for item in cart_items:
+            if item.product_id in unique_cart:
+                unique_cart[item.product_id].quantity += item.quantity
+                db.session.delete(item)  # Remove duplicate
+            else:
+                unique_cart[item.product_id] = item
+        db.session.commit()
+        # Exclude items with quantity 0
+        cart_items = [item for item in unique_cart.values() if item.quantity > 0]
+        if not cart_items:
+            flash('Your cart is empty', 'error')
+            return redirect(url_for('views.cart'))
+
+        # Calculate order summary
+        subtotal = sum(item.product.base_price * item.quantity for item in cart_items)
+
+        # Calculate dynamic shipping fee
+        shipping_fee = calculate_shipping_fee(address, cart_items)
+        total = subtotal + shipping_fee
+
+        # Format cart items for template
+        formatted_cart_items = []
+        for item in cart_items:
+            product = Product.query.get(item.product_id)
+            # Use ProductImage from DB if available, fallback to static folder
+            img = None
+            if product.images and len(product.images) > 0:
+                img = product.images[0].image_url
+            if not img:
+                img = get_product_image_url(product.product_name)
+            # Ensure image URL starts with /static/
+            if img and not img.startswith('/static/'):
+                img = '/static/' + img.lstrip('/')
+            formatted_cart_items.append({
+                'product_name': product.product_name,
+                'image_url': img,
+                'color': item.color,
+                'width': item.width,
+                'model': item.model,
+                'price': float(product.base_price),
+                'quantity': item.quantity,
+                'subtotal': float(product.base_price * item.quantity)
+            })
+
+        # Shipping option (can be made dynamic based on user selection)
+        start_date = datetime.now() + timedelta(days=2)
+        end_date = datetime.now() + timedelta(days=3)
+        shipping_option = {
+            'method': 'Standard Delivery',
+            'delivery_date_range': f"Guaranteed to get by {start_date.strftime('%b %d')} - {end_date.strftime('%b %d, %Y')}"
+        }
+
+        # Order summary
+        order_summary = {
+            'subtotal': subtotal,
+            'shipping': shipping_fee,
+            'total': total,
+            'total_items': sum(item.quantity for item in cart_items)
+        }
+
+        # QR code URLs and payment details for different methods
+        qr_codes = {
+            'bank': {
+                'name': 'Bank Account',
+                'qr_url': url_for('static', filename='pictures/bank_qr.png'),
+                'account_name': 'JBR Tanching C.O',
+                'account_number': '1234-5678-9012',
+                'bank_name': 'BDO'
+            },
+            'gcash': {
+                'name': 'GCash',
+                'qr_url': url_for('static', filename='pictures/gcash_qr.png'),
+                'account_name': 'JBR Tanching',
+                'phone_number': '0912-345-6789'
+            },
+            'maya': {
+                'name': 'Maya',
+                'qr_url': url_for('static', filename='pictures/maya_qr.png'),
+                'account_name': 'JBR Tanching',
+                'phone_number': '0912-345-6789'
+            }
+        }
+
+        return render_template('transaction.html',
+            user=current_user,
+            address=formatted_address,
+            cart_items=formatted_cart_items,
+            shipping_option=shipping_option,
+            order_summary=order_summary,
+            qr_codes=qr_codes
+        )
 
 @views.route('/confirmation')
 def confirmation():
@@ -370,18 +510,6 @@ def get_products():
             return jsonify({'error': 'No products found'}), 404
         category_ids = [cat.category_id for cat in fabric_categories]
         products = Product.query.options(subqueryload(Product.images)).filter(Product.category_id.in_(category_ids)).all()
-    elif category.strip().lower() in ['sewing machines', 'shunfa industrial sewing machines']:
-        # Always include both main and subcategory
-        cat1 = Category.query.filter(func.lower(func.trim(Category.category_name)) == 'sewing machines').first()
-        cat4 = Category.query.filter(func.lower(func.trim(Category.category_name)) == 'shunfa industrial sewing machines').first()
-        category_ids = []
-        if cat1:
-            subcategories1 = Category.query.filter_by(parent_category_id=cat1.category_id).all()
-            category_ids += [cat1.category_id] + [subcat.category_id for subcat in subcategories1]
-        if cat4:
-            subcategories4 = Category.query.filter_by(parent_category_id=cat4.category_id).all()
-            category_ids += [cat4.category_id] + [subcat.category_id for subcat in subcategories4]
-        products = Product.query.options(subqueryload(Product.images)).filter(Product.category_id.in_(category_ids)).all()
     else:
         # Case-insensitive, trimmed category lookup
         cat_obj = Category.query.filter(
@@ -418,6 +546,9 @@ def get_products():
         # Fallback: use get_product_image_url if img is still empty
         if not img:
             img = get_product_image_url(product.product_name)
+        # Ensure image URL starts with /static/
+        if img and not img.startswith('/static/'):
+            img = '/static/' + img.lstrip('/')
         print(f"DEBUG: Final image for {product.product_name}: {img}")
         product_list.append({
             'product_id': product.product_id,
@@ -576,9 +707,63 @@ def create_order():
 
     # Get cart items and validate stock
     cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
+    
+    # If cart is empty, check for buy-now item in session
     if not cart_items:
-        return {'success': False, 'message': 'Cart is empty.'}, 400
+        buy_now_item = session.get('buy_now_item')
+        if not buy_now_item:
+            return {'success': False, 'message': 'Cart is empty and no buy-now item found.'}, 400
+        
+        # Create a pseudo cart item for buy-now
+        product = Product.query.get(buy_now_item['product_id'])
+        if not product:
+            return {'success': False, 'message': 'Product not found.'}, 400
+            
+        if product.stock_quantity < buy_now_item['quantity']:
+            return {
+                'success': False,
+                'message': 'Item is out of stock',
+                'out_of_stock_items': [{
+                    'product_name': product.product_name,
+                    'requested': buy_now_item['quantity'],
+                    'available': product.stock_quantity
+                }]
+            }, 400
+            
+        # Calculate total with dynamic shipping
+        subtotal = product.base_price * buy_now_item['quantity']
+        shipping_fee = calculate_shipping_fee(address, [type('FakeCartItem', (), {'product': product, 'quantity': buy_now_item['quantity']})()])
+        total = subtotal + shipping_fee
 
+        # Create order
+        order = Order(
+            user_id=current_user.user_id,
+            total_amount=total,
+            status='pending',
+            payment_method=payment_method,
+            payment_status='pending',
+            shipping_address=address.complete_address
+        )
+        db.session.add(order)
+        db.session.flush()  # Get order_id
+
+        # Add order item and update stock
+        product.stock_quantity -= buy_now_item['quantity']  # Reduce stock
+        order_item = OrderItem(
+            order_id=order.order_id,
+            product_id=product.product_id,
+            quantity=buy_now_item['quantity'],
+            price=float(product.base_price)
+        )
+        db.session.add(order_item)
+        
+        # Clear buy-now session
+        session.pop('buy_now_item', None)
+        db.session.commit()
+        
+        return {'success': True, 'order_id': order.order_id}
+
+    # Regular cart flow
     # Check stock availability for all items
     out_of_stock_items = []
     for item in cart_items:
@@ -671,6 +856,7 @@ def get_related_products():
                 img = ''
         if not img:
             img = get_product_image_url(p.product_name)
+        # Ensure image URL starts with /static/
         if img and not img.startswith('/static/'):
             img = '/static/' + img.lstrip('/')
         result.append({
@@ -714,3 +900,23 @@ def get_shipping_fee():
         return jsonify({'success': False, 'message': 'Cart is empty.'}), 400
     shipping_fee = calculate_shipping_fee(address, cart_items)
     return jsonify({'success': True, 'shipping_fee': shipping_fee})
+
+@views.route('/buy-now', methods=['POST'])
+@login_required
+def buy_now():
+    data = request.get_json()
+    product_id = data.get('product_id')
+    quantity = data.get('quantity', 1)
+    color = data.get('color')
+    width = data.get('width')
+    model = data.get('model')
+    if not product_id:
+        return jsonify({'success': False, 'message': 'Product ID is required'}), 400
+    session['buy_now_item'] = {
+        'product_id': product_id,
+        'quantity': quantity,
+        'color': color,
+        'width': width,
+        'model': model
+    }
+    return jsonify({'success': True})

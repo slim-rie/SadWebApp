@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             productLink.innerHTML = `
                 <div class="product-badge">
-                    ${product.discount ? `<span class="discount-badge">-${product.discount}</span>` : ''}
-                    ${product.refurbished ? `<span class="refurbished-badge">Refurbished</span>` : ''}
+                    ${product.discount ? `<span class=\"discount-badge\">-${product.discount}</span>` : ''}
+                    ${product.refurbished ? `<span class=\"refurbished-badge\">Refurbished</span>` : ''}
                 </div>
                 ${product.image ? `<img src=\"${product.image}\" alt=\"${product.name}\">` : ''}
                 <div class="product-info">
@@ -103,7 +103,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="review-count">${product.review_count} review${product.review_count === 1 ? '' : 's'}</span>
                         <span class="sold-count">${product.sold ? product.sold : 0} sold</span>
                     </div>
                 </div>

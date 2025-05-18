@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <img src="${product.image}" alt="${product.name}">
                         </div>
                         <div class="order-item-details">
-                            <h3>${product.name}</h3>
+                            <h3><a href="/orders/${order.id}/item/${product.id}" class="order-item-link" data-order-id="${order.id}" data-item-id="${product.id}">${product.name}</a></h3>
                             ${product.variation ? `<p>Variation: ${product.variation}</p>` : ''}
                             <p>x${product.quantity}</p>
                             <div class="price-container">
@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <img src="${product.image}" alt="${product.name}">
                         </div>
                         <div class="order-item-details">
-                            <h3>${product.name}</h3>
+                            <h3><a href="/orders/${order.id}/item/${product.id}" class="order-item-link" data-order-id="${order.id}" data-item-id="${product.id}">${product.name}</a></h3>
                             ${product.variation ? `<p>Variation: ${product.variation}</p>` : ''}
                             <p>x${product.quantity}</p>
                             <div class="price-container">
@@ -617,6 +617,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (accountContent) {
         originalAccountContentHTML = accountContent.innerHTML;
     }
+
+    // Add event listeners for product links
+    document.querySelectorAll('.order-item-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const orderId = this.getAttribute('data-order-id');
+            const itemId = this.getAttribute('data-item-id');
+            window.location.href = `/orders/${orderId}/item/${itemId}`;
+        });
+    });
 });
 
 function createRatingModal() {
@@ -771,21 +781,6 @@ function showOrderDetails(order) {
         });
     };
 }
-
-// Make order cards clickable to show details
-// Use event delegation for dynamically loaded cards
-// Place this after loadOrders is defined
-
-document.addEventListener('click', function(e) {
-    const card = e.target.closest('.order-card');
-    // Only show details if the click is not on a button or inside a button
-    if (card && card.parentNode && card.parentNode.id === 'ordersContainer') {
-        if (e.target.closest('button')) return; // Ignore clicks on buttons
-        const orderId = card.getAttribute('data-order-id');
-        const order = (window.orders || []).find(o => o.id == orderId);
-        if (order) showOrderDetails(order);
-    }
-});
 
 // Add CSS for order details panel (optional, can be moved to your CSS file)
 (function addOrderDetailsStyles() {

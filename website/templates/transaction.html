@@ -40,7 +40,7 @@
                 <a href="#" class="chat-link" id="chatLink">
                     <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                 </a>
-                <a href="cart.html" class="cart-link">
+                <a href="{{ url_for('views.cart') }}" class="cart-link">
                     <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
                 </a>
 
@@ -85,7 +85,9 @@
                     <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="product-image">
                     <div class="product-details">
                         <h3>{{ item.product_name }}</h3>
-                        <div class="product-color">Color: {{ item.color }}</div>
+                        {% if item.color %}<div class="product-color">Color: {{ item.color }}</div>{% endif %}
+                        {% if item.width %}<div class="product-width">Width: {{ item.width }}</div>{% endif %}
+                        {% if item.model %}<div class="product-model">Model: {{ item.model }}</div>{% endif %}
                         <div class="product-price">Price: ₱ {{ '%.2f'|format(item.price) }}</div>
                     </div>
                 </div>
