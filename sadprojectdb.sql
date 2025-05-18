@@ -163,9 +163,7 @@ INSERT INTO `categories` VALUES
 (5,'Juki Sewing Machines',1),
 (29,'Silk Fabric',3),
 (30,'Cotton Fabric',3),
-(31,'Polyester-Blend Fabrics',3),
-(32,'Knitted Fabrics',3),
-(33,'Woven Fabrics',3);
+(31,'Polyester-Blend Fabrics',3);
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
