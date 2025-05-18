@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginModal = document.getElementById('loginModal');
     const closeModal = document.querySelector('.close-modal');
     const modalOverlay = document.querySelector('.modal-overlay');
+    const priceDropdownBtn = priceDropdown.querySelector('.dropdown-toggle');
 
     let currentFilters = {
         category: 'Shunfa',
@@ -32,6 +33,23 @@ document.addEventListener('DOMContentLoaded', function() {
         Shunfa: [],
         Juki: []
     };
+
+    // Check for stored brand filter
+    const selectedBrand = localStorage.getItem('selectedBrand');
+    if (selectedBrand) {
+        currentFilters.category = selectedBrand;
+        // Update active state in category list
+        const categoryItemsArr = Array.from(document.querySelectorAll('.category-list li'));
+        categoryItemsArr.forEach(li => {
+            const a = li.querySelector('a');
+            if (a && a.getAttribute('data-category') === selectedBrand) {
+                li.classList.add('active');
+            } else {
+                li.classList.remove('active');
+            }
+        });
+        renderProducts();
+    }
 
     // Load products from API
     async function loadProducts() {
@@ -105,8 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="review-count">${product.review_count} review${product.review_count === 1 ? '' : 's'}</span>
-                        <span class="sold-count">${product.sold ? product.sold : 0} sold</span>
+                        <span class="review-count">${product.sold ? product.sold : 0} sold</span></span>
                     </div>
                 </div>
             `;
@@ -258,6 +275,19 @@ document.addEventListener('DOMContentLoaded', function() {
         loginModal.classList.remove('show-modal');
         document.body.style.overflow = ''; 
     });
+
+    // Remove duplicate event listeners for price dropdown
+    if (priceDropdownBtn && priceDropdownMenu) {
+        priceDropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            priceDropdownMenu.style.display = priceDropdownMenu.style.display === 'block' ? 'none' : 'block';
+        });
+        window.addEventListener('click', function(e) {
+            if (!priceDropdown.contains(e.target)) {
+                priceDropdownMenu.style.display = 'none';
+            }
+        });
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function () {

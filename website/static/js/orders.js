@@ -91,8 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                 } else if (mappedStatus === 'pending' || mappedStatus === 'to-pay') {
                     orderHtml += `
+                        <button class="action-btn pending-btn" disabled>Pending</button>
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
-                        <button class="action-btn buy-again-btn">Buy Again</button>
                         <button class="action-btn cancel-order-btn">Cancel Order</button>
                     `;
                 } else if (mappedStatus === 'to-ship' || mappedStatus === 'shipped' || mappedStatus === 'to-receive' || mappedStatus === 'delivered' || mappedStatus === 'cancelled' || mappedStatus === 'refunded') {
@@ -313,8 +313,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                 } else if (mappedStatus === 'pending' || mappedStatus === 'to-pay') {
                     orderHtml += `
+                        <button class="action-btn pending-btn" disabled>Pending</button>
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
-                        <button class="action-btn buy-again-btn">Buy Again</button>
                         <button class="action-btn cancel-order-btn">Cancel Order</button>
                     `;
                 } else if (mappedStatus === 'to-ship' || mappedStatus === 'shipped' || mappedStatus === 'to-receive' || mappedStatus === 'delivered' || mappedStatus === 'cancelled' || mappedStatus === 'refunded') {

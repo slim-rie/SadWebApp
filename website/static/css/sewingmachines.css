@@ -383,6 +383,12 @@
     color: #777;
 }
 
+.gray-small {
+    color: #888;
+    font-size: 0.95em;
+    margin-left: 6px;
+}
+
 .categories-modal {
     display: none;
     position: fixed;

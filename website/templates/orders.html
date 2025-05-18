@@ -51,7 +51,7 @@
                     </div>
                     <div class="dropdown-container" id="dropdownMenu">
                     </div>
-                </div>
+                </div> 
             </div> 
         </nav>
     </header>
@@ -148,140 +148,6 @@
         </form>
         <div id="filePreview" class="file-preview"></div>
     </div>
-
-<div class="modal" id="trackingModal">
-    <div class="modal-content tracking-modal">
-        <div class="modal-header">
-            <h3>Track Your Order</h3>
-            <span class="close-btn" id="closeTrackingModal">&times;</span>
-        </div>
-        <div class="modal-body">
-            <div class="tracking-header">
-                <div class="tracking-id">
-                    <h4>Order ID: <span id="trackingOrderId">ORD-78965</span></h4>
-                    <p class="delivery-status">Estimated delivery: April 27, 2025</p>
-                </div>
-                <div class="shipping-details">
-                    <p><strong>Delivery Address:</strong> <span id="deliveryAddress">
-                        {% if address %}
-                            {{ address.street_address }}, {{ address.full_address }}, Postal Code: {{ address.postal_code }}
-                        {% elif order and order.shipping_address %}
-                            {{ order.shipping_address }}
-                        {% else %}
-                            Address not available
-                        {% endif %}
-                    </span></p>
-                    <p><strong>Courier:</strong> <span id="courierName">J&T Express</span></p>
-                    <p><strong>Tracking Number:</strong> <span id="trackingNumber">JNTPH892347651</span></p>
-                </div>
-            </div>
-
-            <div class="tracking-tabs">
-                <div class="tab active" data-tracking-tab="timeline">Timeline</div>
-                <div class="tab" data-tracking-tab="map">Map View</div>
-            </div>
-
-            <div class="tracking-content" id="timelineContent">
-                <div class="tracking-timeline">
-                    <div class="timeline-item completed">
-                        <div class="timeline-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h4>Order Confirmed</h4>
-                            <p class="timeline-date">April 23, 2025 - 10:23 AM</p>
-                            <p class="timeline-desc">Your order has been confirmed and is being processed.</p>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item completed">
-                        <div class="timeline-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h4>Packed</h4>
-                            <p class="timeline-date">April 24, 2025 - 02:45 PM</p>
-                            <p class="timeline-desc">Your order has been packed and is ready for pickup.</p>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item completed">
-                        <div class="timeline-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h4>Shipped</h4>
-                            <p class="timeline-date">April 25, 2025 - 09:12 AM</p>
-                            <p class="timeline-desc">Your package has been picked up by J&T Express.</p>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item active">
-                        <div class="timeline-icon">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h4>Out for Delivery</h4>
-                            <p class="timeline-date">April 26, 2025 - 08:30 AM</p>
-                            <p class="timeline-desc">Your package is out for delivery today.</p>
-                            <div class="driver-info">
-                                <div class="driver-profile">
-                                    <img src="{{ url_for('static', filename='pictures/driver-icon.png') }}" alt="Driver">
-                                    <div class="driver-details">
-                                        <p class="driver-name">Marco Santos</p>
-                                        <p class="driver-contact">+63 917-555-1234</p>
-                                    </div>
-                                </div>
-                                <button class="call-driver-btn">
-                                    <i class="fas fa-phone"></i> Call Driver
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-icon">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h4>Delivered</h4>
-                            <p class="timeline-date">Expected: April 27, 2025</p>
-                            <p class="timeline-desc">Your package will be delivered to the shipping address.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tracking-content hidden" id="mapContent">
-                <div class="map-container">
-                    <div class="map-placeholder">
-                        <img src="/api/placeholder/600/350" alt="Map View">
-                        <div class="delivery-marker">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <div class="destination-marker">
-                            <i class="fas fa-home"></i>
-                        </div>
-                    </div>
-                    <div class="map-details">
-                        <div class="estimated-arrival">
-                            <h4>Estimated Arrival</h4>
-                            <p class="arrival-time">Today, 2:30 PM - 5:30 PM</p>
-                        </div>
-                        <div class="distance-info">
-                            <p><i class="fas fa-route"></i> 5.2 km away from your location</p>
-                            <p><i class="fas fa-clock"></i> Approximately 25 minutes</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-cancel" id="cancelTrackingBtn">CLOSE</button>
-            <button class="btn btn-contact">CONTACT SUPPORT</button>
-        </div>
-    </div>
-</div>
 
 <div class="rating-modal-overlay">
     <div class="rating-modal">

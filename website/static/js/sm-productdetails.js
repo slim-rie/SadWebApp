@@ -531,26 +531,28 @@ if (closeChatBtn) {
             const relatedGrid = document.getElementById('relatedProductsGrid');
             relatedGrid.innerHTML = '';
             if (Array.isArray(relatedProducts) && relatedProducts.length > 0) {
-                relatedProducts.forEach(rp => {
-                    const card = document.createElement('a');
-                    card.className = 'product-card';
-                    card.href = `/sm-productdetails?product=${encodeURIComponent(rp.name)}`;
-                    card.style.textDecoration = 'none';
-                    card.innerHTML = `
-                        <img src="${rp.image}" alt="${rp.name}">
-                        <div class="product-info">
-                            <h3>${rp.name}</h3>
-                            <div class="product-price">₱ ${rp.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                            <div class="product-rating">
-                                <div class="stars">${generateStarsHTML(rp.rating)}</div>
-                                <span class="rating-value">${rp.rating.toFixed(1)}</span>
-                                <span class="review-count">${rp.review_count} review${rp.review_count === 1 ? '' : 's'}</span>
-                                <span class="sold-count">${rp.sold ? rp.sold : 0} sold</span>
+                relatedProducts
+                    .filter(rp => rp.brand === product.brand) // Only show products with the same brand
+                    .forEach(rp => {
+                        const card = document.createElement('a');
+                        card.className = 'product-card';
+                        card.href = `/sm-productdetails?product=${encodeURIComponent(rp.name)}`;
+                        card.style.textDecoration = 'none';
+                        card.innerHTML = `
+                            <img src="${rp.image}" alt="${rp.name}">
+                            <div class="product-info">
+                                <h3>${rp.name}</h3>
+                                <div class="product-price">₱ ${rp.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                                <div class="product-rating">
+                                    <div class="stars">${generateStarsHTML(rp.rating)}</div>
+                                    <span class="rating-value">${rp.rating.toFixed(1)}</span>
+                                    <span class="review-count">${rp.review_count} review${rp.review_count === 1 ? '' : 's'}</span>
+                                    <span class="review-count">${rp.sold ? rp.sold : 0} sold</span>
+                                </div>
                             </div>
-                        </div>
-                    `;
-                    relatedGrid.appendChild(card);
-                });
+                        `;
+                        relatedGrid.appendChild(card);
+                    });
             } else {
                 relatedGrid.innerHTML = '<div class="no-products">No related products found.</div>';
             }
@@ -681,6 +683,11 @@ if (closeChatBtn) {
             });
     }
     loadReviews();
+
+    // Store the current product's brand in localStorage
+    if (product.brand) {
+        localStorage.setItem('selectedBrand', product.brand);
+    }
 
     // Set breadcrumb link for Sewing Machines
     const breadcrumbParent = document.getElementById('breadcrumbParent');

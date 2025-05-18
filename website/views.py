@@ -635,14 +635,21 @@ def get_related_products():
     product = Product.query.get(product_id)
     if not product:
         return jsonify({'error': 'Product not found'}), 404
-    # Get products from the same category, excluding the current product
+    
+    # Get products from the same brand and category, excluding the current product
     related_products = Product.query.filter(
+        Product.brand_id == product.brand_id,  # Filter by brand_id
         Product.category_id == product.category_id,
         Product.product_id != product.product_id
     ).limit(4).all()
-    # Fallback: if no related products, get up to 10 other products (excluding current)
+    
+    # Fallback: if no related products from same brand, get other products from same brand
     if not related_products:
-        related_products = Product.query.filter(Product.product_id != product.product_id).limit(10).all()
+        related_products = Product.query.filter(
+            Product.brand_id == product.brand_id,
+            Product.product_id != product.product_id
+        ).limit(10).all()
+    
     result = []
     for p in related_products:
         reviews = Review.query.filter_by(product_id=p.product_id).all()
@@ -669,7 +676,8 @@ def get_related_products():
             'image': img,
             'sold': p.sold if hasattr(p, 'sold') else 0,
             'rating': avg_rating,
-            'review_count': review_count
+            'review_count': review_count,
+            'brand': p.brand_obj.brand_name if p.brand_obj else None
         })
     return jsonify(result)
 
