@@ -12,6 +12,9 @@ window.orders = orders; // If you want to keep it globally accessible
 
 console.log('DEBUG: orders loaded from backend:', window.orders);
 
+// Save the original account content for restoration
+let originalAccountContentHTML = '';
+
 document.addEventListener('DOMContentLoaded', function() {
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const username = localStorage.getItem('username');
@@ -609,6 +612,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Prevent accidental modal opening on page load
     document.getElementById('cancelModalOverlay').style.display = 'none';
+
+    const accountContent = document.querySelector('.account-content');
+    if (accountContent) {
+        originalAccountContentHTML = accountContent.innerHTML;
+    }
 });
 
 function createRatingModal() {
@@ -717,3 +725,87 @@ function mapStatus(status) {
     };
     return mapping[status] || status;
 }
+
+// Function to show order details in the right panel
+function showOrderDetails(order) {
+    const accountContent = document.querySelector('.account-content');
+    if (!accountContent) return;
+    const mappedStatus = mapStatus(order.status);
+    let html = `<div class="order-details-box">
+        <button class="back-to-orders-btn">&larr; Back to Orders</button>
+        <h2>Order Details</h2>
+        <div class="order-details-section">
+            <div class="order-details-row"><span class="order-details-label">Order ID:</span> <span>${order.id}</span></div>
+            ${order.statusText ? `<div class="order-details-row"><span class="order-details-label">Status:</span> <span class="order-details-status">${order.statusText}</span></div>` : ''}
+            ${order.total ? `<div class="order-details-row"><span class="order-details-label">${(mappedStatus === 'pending' || mappedStatus === 'to-pay') ? 'Amount Payable' : 'Order Total'}:</span> <span class="order-details-total">₱${order.total.toFixed(2)}</span></div>` : ''}
+            ${order.paymentMethod ? `<div class="order-details-row"><span class="order-details-label">Payment Method:</span> <span>${order.paymentMethod}</span></div>` : ''}
+            ${order.deliveryDate ? `<div class="order-details-row"><span class="order-details-label">Delivery Date:</span> <span>${order.deliveryDate}</span></div>` : ''}
+        </div>
+        <h3>Products</h3>
+        <table class="order-products-table">
+            <thead><tr><th>Image</th><th>Name</th><th>Qty</th><th>Price</th></tr></thead>
+            <tbody>`;
+    order.products.forEach(product => {
+        html += `<tr>
+            <td><img src="${product.image}" alt="${product.name}" class="order-product-img"></td>
+            <td>${product.name}</td>
+            <td>x${product.quantity}</td>
+            <td>₱${product.price.toFixed(2)}</td>
+        </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    accountContent.innerHTML = html;
+    // Back button event
+    accountContent.querySelector('.back-to-orders-btn').onclick = function() {
+        accountContent.innerHTML = originalAccountContentHTML;
+        // Re-initialize events after restoring
+        if (typeof loadOrders === 'function') loadOrders(document.querySelector('.tab.active')?.getAttribute('data-tab') || 'all');
+        // Re-initialize tab click handlers
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                if (typeof loadOrders === 'function') loadOrders(this.getAttribute('data-tab'));
+            });
+        });
+    };
+}
+
+// Make order cards clickable to show details
+// Use event delegation for dynamically loaded cards
+// Place this after loadOrders is defined
+
+document.addEventListener('click', function(e) {
+    const card = e.target.closest('.order-card');
+    // Only show details if the click is not on a button or inside a button
+    if (card && card.parentNode && card.parentNode.id === 'ordersContainer') {
+        if (e.target.closest('button')) return; // Ignore clicks on buttons
+        const orderId = card.getAttribute('data-order-id');
+        const order = (window.orders || []).find(o => o.id == orderId);
+        if (order) showOrderDetails(order);
+    }
+});
+
+// Add CSS for order details panel (optional, can be moved to your CSS file)
+(function addOrderDetailsStyles() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+    .order-details-box { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 24px 18px; }
+    .order-details-box h2 { margin-bottom: 18px; font-size: 1.5rem; }
+    .order-details-box h3 { margin-top: 28px; margin-bottom: 12px; font-size: 1.1rem; }
+    .order-details-section { margin-bottom: 14px; }
+    .order-details-row { display: flex; align-items: center; margin-bottom: 8px; gap: 2px; }
+    .order-details-label { font-weight: 600; color: #444; min-width: 0; margin-right: 4px; }
+    .order-details-status { color: #333; }
+    .order-details-total { font-weight: bold; color: #ff6666; }
+    .order-products-table { width: 100%; border-collapse: collapse; background: #fafbfc; border-radius: 8px; overflow: hidden; }
+    .order-products-table th, .order-products-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #eee; }
+    .order-products-table th { background: #f5f5f5; font-weight: 600; }
+    .order-products-table tr:last-child td { border-bottom: none; }
+    .order-product-img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+    .back-to-orders-btn { background: #ff6666; color: #fff; border: none; border-radius: 4px; padding: 8px 18px; margin-bottom: 18px; cursor: pointer; font-size: 15px; transition: background 0.2s; }
+    .back-to-orders-btn:hover { background: #e05555; }
+    `;
+    document.head.appendChild(style);
+})();

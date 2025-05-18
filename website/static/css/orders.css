@@ -66,6 +66,12 @@
     margin-bottom: 20px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    cursor: pointer;
+}
+
+.order-card button,
+.order-card .action-btn {
+    cursor: pointer;
 }
 
 .order-item {
@@ -837,4 +843,13 @@
         padding: 18px 6px;
         max-width: 95vw;
     }
+}
+
+.pending-btn {
+    background: #eee !important;
+    color: #888 !important;
+    border: none !important;
+    cursor: default !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
 }
