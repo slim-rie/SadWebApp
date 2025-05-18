@@ -431,6 +431,83 @@ INSERT INTO `users` VALUES (1,'john jerriehlpontino','johnjerriehlp@gmail.com','
 UNLOCK TABLES;
 
 --
+-- Table structure for table `product_promotions`
+--
+
+DROP TABLE IF EXISTS `product_promotions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_promotions` (
+  `promotion_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `promotion_name` varchar(100) NOT NULL,
+  `discount_percentage` decimal(5,2) NOT NULL,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime NOT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`promotion_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `product_promotions_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `product_variants`
+--
+
+DROP TABLE IF EXISTS `product_variants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_variants` (
+  `variant_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `variant_name` varchar(100) NOT NULL,
+  `variant_value` varchar(100) NOT NULL,
+  `additional_price` decimal(10,2) DEFAULT '0.00',
+  `stock_quantity` int DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`variant_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `product_variants_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Adding useful indexes to existing tables
+--
+
+ALTER TABLE `products` ADD INDEX `idx_product_price` (`base_price`);
+ALTER TABLE `products` ADD INDEX `idx_product_stock` (`stock_quantity`);
+ALTER TABLE `orders` ADD INDEX `idx_order_status` (`status`);
+ALTER TABLE `orders` ADD INDEX `idx_order_date` (`created_at`);
+ALTER TABLE `users` ADD INDEX `idx_user_role` (`role`);
+
+--
+-- Inserting sample data for new tables
+--
+
+LOCK TABLES `product_promotions` WRITE;
+/*!40000 ALTER TABLE `product_promotions` DISABLE KEYS */;
+INSERT INTO `product_promotions` VALUES 
+(1, 41, 'Summer Sale', 15.00, '2025-06-01 00:00:00', '2025-06-30 23:59:59', 1, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
+(2, 55, 'Fabric Discount', 10.00, '2025-05-20 00:00:00', '2025-05-25 23:59:59', 1, '2025-05-18 14:00:00', '2025-05-18 14:00:00');
+/*!40000 ALTER TABLE `product_promotions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+LOCK TABLES `product_variants` WRITE;
+/*!40000 ALTER TABLE `product_variants` DISABLE KEYS */;
+INSERT INTO `product_variants` VALUES 
+(1, 55, 'Color', 'Red', 0.00, 50, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
+(2, 55, 'Color', 'Blue', 0.00, 50, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
+(3, 55, 'Size', '1.2m', 0.00, 25, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
+(4, 55, 'Size', '1.5m', 50.00, 25, '2025-05-18 14:00:00', '2025-05-18 14:00:00');
+/*!40000 ALTER TABLE `product_variants` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Dumping events for database 'sadprojectdb'
 --
 
