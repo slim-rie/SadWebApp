@@ -12,9 +12,8 @@ def create_admin_accounts():
             email='admin@example.com',
             first_name='Admin',
             last_name='User',
-            address='123 Admin St',
             role='admin',
-            _password=generate_password_hash('admin123', method='pbkdf2:sha256')
+            password_hash=generate_password_hash('admin123', method='pbkdf2:sha256')
         )
         
         # Create Staff Account
@@ -23,9 +22,8 @@ def create_admin_accounts():
             email='staff@example.com',
             first_name='Staff',
             last_name='User',
-            address='456 Staff St',
             role='staff',
-            _password=generate_password_hash('staff123', method='pbkdf2:sha256')
+            password_hash=generate_password_hash('staff123', method='pbkdf2:sha256')
         )
         
         # Create Supplier Account
@@ -34,9 +32,8 @@ def create_admin_accounts():
             email='supplier@example.com',
             first_name='Supplier',
             last_name='User',
-            address='789 Supplier St',
             role='supplier',
-            _password=generate_password_hash('supplier123', method='pbkdf2:sha256')
+            password_hash=generate_password_hash('supplier123', method='pbkdf2:sha256')
         )
         
         # Add all users to the session
