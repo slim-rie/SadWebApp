@@ -3,7 +3,7 @@ from flask import Blueprint
 auth = Blueprint('auth', __name__)
 
 from flask import render_template, request, flash, redirect, url_for, session, current_app, jsonify
-from .models import User, CartItem, Product, Address, Order, OrderItem
+from .models import User, CartItem, Product, Address, Order, OrderItem, Roles
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -13,7 +13,7 @@ from requests_oauthlib import OAuth2Session
 from werkzeug.utils import secure_filename
 import uuid
 import re
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 
 # Allow OAuth over HTTP for development
@@ -162,6 +162,7 @@ def staff():
         return redirect(url_for('views.home'))
     return render_template("staff.html", user=current_user)
 
+#ari
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -177,7 +178,7 @@ def login():
         
         user = User.query.filter((User.username == username) | (User.email == username)).first()
         
-        if user and user.verify_password(password):
+        if user and check_password_hash(user.password_hash, password):
             if not user.is_active:
                 if request.is_json:
                     return jsonify({'success': False, 'message': 'Account is deactivated'}), 403
@@ -185,15 +186,37 @@ def login():
             
             login_user(user, remember=remember)
             user.update_last_login()
-            
+
+            # Role-based redirect
+            from website.models import Roles
+            role_name = Roles.query.get(user.role_id).role_name
+
             if request.is_json:
+                # Optionally, return the correct redirect for the role
+                if role_name == 'admin':
+                    redirect_url = url_for('auth.admin')
+                elif role_name == 'staff':
+                    redirect_url = url_for('auth.staff')
+                elif role_name == 'supplier':
+                    redirect_url = url_for('views.request_management')
+                else:
+                    redirect_url = url_for('views.home')
                 return jsonify({
                     'success': True,
                     'message': 'Login successful',
-                    'redirect': url_for('views.home')
+                    'redirect': redirect_url
                 })
-            return redirect(url_for('views.home'))
-        
+            
+            # Standard (non-JSON) redirect
+            if role_name == 'admin':
+                return redirect(url_for('auth.admin'))
+            elif role_name == 'staff':
+                return redirect(url_for('auth.staff'))
+            elif role_name == 'supplier':
+                return redirect(url_for('views.request_management'))
+            else:
+                return redirect(url_for('views.home'))  # customer
+
         if request.is_json:
             return jsonify({'success': False, 'message': 'Invalid username or password'}), 401
         flash('Invalid username or password', 'error')
@@ -268,13 +291,17 @@ def sign_up():
             flash(message, 'error')
             return render_template('signup.html')
         
-        # Create new user
+        # Get customer role
+        customer_role = Roles.query.filter_by(role_name='customer').first()
+        from werkzeug.security import generate_password_hash
+        # Create new user with hashed password and customer role
         new_user = User(
-            username=username,  # Use generated username
+            username=username,
             email=email,
             first_name=first_name,
             last_name=last_name,
-            password=password
+            password_hash=generate_password_hash(password, method='pbkdf2:sha256'),
+            role_id=customer_role.role_id
         )
         
         try:
@@ -1116,4 +1143,72 @@ def order_item_details(order_id, order_item_id):
             image_path = url_for('static', filename=png_path)
         else:
             image_path = url_for('static', filename='pictures/default.png')
-    return render_template('order_item_details.html', order=order, item=item, product=product, image_path=image_path) 
+    return render_template('order_item_details.html', 
+                         order=order, 
+                         item=item, 
+                         product=product, 
+                         image_path=image_path,
+                         current_user=current_user)
+
+@auth.route('/return-refund-result')
+@login_required
+def return_refund_result():
+    from flask import request
+    refund_reason = request.args.get('refund_reason', '')
+    order_item_id = request.args.get('order_item_id')
+    
+    if not order_item_id:
+        flash('DEBUG: Invalid order item (order_item_id missing)', 'error')
+        return redirect(url_for('auth.orders'))
+    
+    # Get the order item and its associated product
+    order_item = OrderItem.query.get(order_item_id)
+    if not order_item:
+        flash(f'DEBUG: Order item not found for id {order_item_id}', 'error')
+        return redirect(url_for('auth.orders'))
+    if order_item.order.user_id != current_user.user_id:
+        flash(f'DEBUG: Order item does not belong to current user (user_id={current_user.user_id})', 'error')
+        return redirect(url_for('auth.orders'))
+    
+    product = order_item.product
+    if not product:
+        flash('DEBUG: Product not found for this order item', 'error')
+        return redirect(url_for('auth.orders'))
+    
+    # Get product image
+    image_url = None
+    if product.images and len(product.images) > 0:
+        image_url = product.images[0].image_url
+        if not image_url.startswith('/static/'):
+            image_url = '/static/' + image_url.lstrip('/')
+    else:
+        # Fallback to static folder
+        jpg_path = f"pictures/{product.product_name}.jpg"
+        png_path = f"pictures/{product.product_name}.png"
+        static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+        jpg_full = os.path.join(static_dir, jpg_path)
+        png_full = os.path.join(static_dir, png_path)
+        if os.path.exists(jpg_full):
+            image_url = url_for('static', filename=jpg_path)
+        elif os.path.exists(png_full):
+            image_url = url_for('static', filename=png_path)
+        else:
+            image_url = url_for('static', filename='pictures/default.png')
+    
+    # Format product data for template
+    product_data = {
+        'image_url': image_url,
+        'name': product.product_name,
+        'variation': '',  # Add variation if you have it
+        'quantity': order_item.quantity,
+        'original_price': float(product.base_price),
+        'price': float(order_item.price)
+    }
+    
+    # Calculate refund amount (for now, just return the item price)
+    refund_amount = f"₱{float(order_item.price):.2f}"
+    
+    return render_template('return_refund_result.html', 
+                         product=product_data, 
+                         refund_reason=refund_reason, 
+                         refund_amount=refund_amount) 

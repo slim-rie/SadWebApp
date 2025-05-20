@@ -1,11 +1,13 @@
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from . import db, login_manager
 from datetime import datetime
+from . import db
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+class Roles(db.Model):
+    __tablename__ = 'roles'
+    
+    role_id = db.Column(db.Integer, primary_key=True)
+    role_name = db.Column(db.String(50), unique=True, nullable=False)
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -14,7 +16,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.Text)
-    role = db.Column(db.String(20), default='user')  # admin, staff, user
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.role_id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
@@ -204,3 +206,32 @@ class Review(db.Model):
 
     user = db.relationship('User', backref='reviews', lazy=True)
     product = db.relationship('Product', backref='reviews', lazy=True)
+
+class Supplier(db.Model):
+    __tablename__ = 'supplier_db'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_category = db.Column(db.String(255), nullable=False)
+    product_name = db.Column(db.String(255), nullable=False)
+    supplier_name = db.Column(db.String(255), nullable=False)
+    contact_person = db.Column(db.String(100), nullable=True)
+    phone_number = db.Column(db.String(30), nullable=True)
+    address = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(50), nullable=True)  # e.g. Active/Inactive
+    registration_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+class Inventory(db.Model):
+    __tablename__ = 'inventory_db'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_name = db.Column(db.String(255), nullable=False)
+    product_code = db.Column(db.String(100), nullable=False, unique=True)
+    category_name = db.Column(db.String(100), nullable=False)
+    selling_price = db.Column(db.Float, nullable=False)
+    min_stock = db.Column(db.Integer, nullable=False)
+    max_stock = db.Column(db.Integer, nullable=False)
+    last_updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    supplier_name = db.Column(db.String(255), nullable=False)
+    supplier_price = db.Column(db.Float, nullable=False)
+    available_stock = db.Column(db.Integer, nullable=False)
+    stock_status = db.Column(db.String(100), nullable=False)
+    product_status = db.Column(db.String(100), nullable=False)
+    memo = db.Column(db.Text, nullable=True)

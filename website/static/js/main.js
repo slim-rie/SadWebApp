@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const usernameInput = document.getElementById('username').value;
             const passwordInput = document.getElementById('password').value;
 
-            fetch('/login', {
+            fetch('/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
-from flask_login import login_required, current_user
-from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage
+from flask_login import login_required, current_user, logout_user
+
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Roles, Address, Order, OrderItem, ProductImage, Inventory, Supplier
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -920,3 +920,310 @@ def buy_now():
         'model': model
     }
     return jsonify({'success': True})
+
+#ari
+# --- Personnel Management Endpoints ---
+
+@views.route('/admin/update_profile', methods=['PUT', 'POST'])
+@login_required
+def update_profile():
+    data = request.json or request.get_json()
+    user = User.query.get(current_user.user_id)
+    if not user:
+        return jsonify({"success": False, "error": "User not found"}), 404
+    try:
+        user.username = data.get('username', user.username)
+        user.email = data.get('email', user.email)
+        user.first_name = data.get('first_name', user.first_name)
+        user.middle_name = data.get('middle_name', user.middle_name)
+        user.last_name = data.get('last_name', user.last_name)
+        user.role = data.get('role', user.role)
+        if data.get('password'):
+            user.password = generate_password_hash(data['password'])
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@views.route('/admin/personnel_list', methods=['GET'])
+def personnel_list():
+    users = User.query.all()
+    user_list = [{
+        "user_id": u.user_id,
+        "username": u.username,
+        "email": u.email,
+        "first_name": u.first_name,
+        "middle_name": u.middle_name,
+        "last_name": u.last_name,
+        "role": u.role,
+        "last_login": u.last_login
+    } for u in users]
+    return jsonify(user_list), 200
+
+@views.route('/admin/add_personnel', methods=['POST'])
+def add_personnel():
+    data = request.json
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"success": False, "error": "Email already exists"}), 409
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({"success": False, "error": "Username already exists"}), 409
+
+    hashed_password = generate_password_hash(data['password'])
+    new_user = User(
+        username=data['username'],
+        email=data['email'],
+        password=hashed_password,
+        first_name=data.get('first_name'),
+        middle_name=data.get('middle_name'),
+        last_name=data.get('last_name'),
+        role=data['role'],
+    )
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({
+            "success": True,
+            "user": {
+                "user_id": new_user.user_id,
+                "username": new_user.username,
+                "email": new_user.email,
+                "first_name": new_user.first_name,
+                "middle_name": new_user.middle_name,
+                "last_name": new_user.last_name,
+                "role": new_user.role,
+                "last_login": new_user.last_login
+            }
+        }), 201
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"success": False, "error": "Database error"}), 500
+
+@views.route('/admin/update_personnel/<int:user_id>', methods=['PUT', 'POST'])
+def update_personnel(user_id):
+    data = request.json
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "error": "User not found"}), 404
+    try:
+        user.username = data.get('username', user.username)
+        user.email = data.get('email', user.email)
+        user.first_name = data.get('first_name', user.first_name)
+        user.middle_name = data.get('middle_name', user.middle_name)
+        user.last_name = data.get('last_name', user.last_name)
+        user.role = data.get('role', user.role)
+        # Only update password if provided
+        if data.get('password'):
+            user.password = generate_password_hash(data['password'])
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@views.route('/admin/delete_personnel/<int:user_id>', methods=['DELETE', 'POST'])
+def delete_personnel(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "error": "User not found"}), 404
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@views.route('/admin/add_supplier', methods=['POST'])
+def add_supplier():
+    data = request.get_json()
+    required_fields = [
+        'product_category', 'product_name', 'supplier_name',
+        'contact_person', 'address', 'status'
+    ]
+    if not data or not all(field in data and data[field] for field in required_fields):
+        return jsonify({'success': False, 'error': 'Missing required fields'})
+    try:
+        supplier = Supplier(
+            product_category=data['product_category'],
+            product_name=data['product_name'],
+            supplier_name=data['supplier_name'],
+            contact_person=data['contact_person'],
+            address=data['address'],
+            status=data['status']
+            # registration_date is set automatically
+        )
+        db.session.add(supplier)
+        db.session.commit()
+        return jsonify({'success': True, 'id': supplier.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/inventory_list')
+def inventory_list():
+    items = Inventory.query.order_by(Inventory.id.desc()).all()
+    result = []
+    for i in items:
+        result.append({
+            'id': i.id,
+            'product_name': i.product_name,
+            'product_code': i.product_code,
+            'category_name': i.category_name,
+            'selling_price': i.selling_price,
+            'min_stock': i.min_stock,
+            'max_stock': i.max_stock,
+            'last_updated': i.last_updated.strftime('%Y-%m-%d %H:%M:%S') if i.last_updated else '',
+            'supplier_name': i.supplier_name,
+            'supplier_price': i.supplier_price,
+            'available_stock': i.available_stock,
+            'stock_status': i.stock_status,
+            'product_status': i.product_status,
+            'memo': i.memo or ''
+        })
+    return jsonify(result)
+
+@views.route('/admin/add_inventory', methods=['POST'])
+def add_inventory():
+
+    data = request.get_json()
+    required_fields = [
+        'product_name', 'product_code', 'category_name', 'selling_price', 'min_stock',
+        'max_stock', 'supplier_name', 'supplier_price', 'available_stock',
+        'stock_status', 'product_status'
+    ]
+    missing = [f for f in required_fields if f not in data or data[f] in (None, '')]
+    if missing:
+        return jsonify({'success': False, 'error': f'Missing required fields: {", ".join(missing)}'})
+    try:
+        from datetime import datetime
+        last_updated = data.get('last_updated')
+        if last_updated:
+            try:
+                last_updated_dt = datetime.strptime(last_updated, '%Y-%m-%dT%H:%M')
+            except Exception:
+                last_updated_dt = datetime.utcnow()
+        else:
+            last_updated_dt = datetime.utcnow()
+        inventory = Inventory(
+            product_name=data.get('product_name'),
+            product_code=data.get('product_code'),
+            category_name=data.get('category_name'),
+            selling_price=data.get('selling_price'),
+            min_stock=data.get('min_stock'),
+            max_stock=data.get('max_stock'),
+            last_updated=last_updated_dt,
+            supplier_name=data.get('supplier_name'),
+            supplier_price=data.get('supplier_price'),
+            available_stock=data.get('available_stock'),
+            stock_status=data.get('stock_status'),
+            product_status=data.get('product_status'),
+            memo=data.get('memo')
+        )
+        db.session.add(inventory)
+        db.session.commit()
+        return jsonify({'success': True, 'id': inventory.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/update_inventory/<int:inventory_id>', methods=['PUT'])
+def update_inventory(inventory_id):
+    data = request.get_json()
+    inventory = Inventory.query.get_or_404(inventory_id)
+    try:
+        inventory.product_name = data.get('product_name', inventory.product_name)
+        inventory.category = data.get('category', inventory.category)
+        inventory.quantity = data.get('quantity', inventory.quantity)
+        # ...repeat for all fields...
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/t/delete_inventory/<int:inventory_id>', methods=['DELETE'])
+def delete_inventory(inventory_id):
+    inventory = Inventory.query.get_or_404(inventory_id)
+    db.session.delete(inventory)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@views.route('/admin/update_supplier/<int:supplier_id>', methods=['PUT'])
+def update_supplier(supplier_id):
+    data = request.get_json()
+    supplier = Supplier.query.get_or_404(supplier_id)
+    try:
+        supplier.product_category = data.get('product_category', supplier.product_category)
+        supplier.product_name = data.get('product_name', supplier.product_name)
+        supplier.supplier_name = data.get('supplier_name', supplier.supplier_name)
+        supplier.contact_person = data.get('contact_person', supplier.contact_person)
+        supplier.phone_number = data.get('phone_number', supplier.phone_number)
+        supplier.address = data.get('address', supplier.address)
+        supplier.status = data.get('status', supplier.status)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/delete_supplier/<int:supplier_id>', methods=['DELETE'])
+def delete_supplier(supplier_id):
+    try:
+        supplier = Supplier.query.get(supplier_id)
+        if not supplier:
+            return jsonify({'success': False, 'error': 'Supplier not found'})
+        db.session.delete(supplier)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/supplier_list')
+def supplier_list():
+    suppliers = Supplier.query.order_by(Supplier.id.desc()).all()
+    result = []
+    for s in suppliers:
+        result.append({
+            'id': s.id,
+            'product_category': s.product_category,
+            'product_name': s.product_name,
+            'supplier_name': s.supplier_name,
+            'contact_person': s.contact_person,
+            'phone_number': s.phone_number,
+            'address': s.address,
+            'status': s.status,
+            'registration_date': s.registration_date.strftime('%Y-%m-%d %H:%M:%S') if s.registration_date else ''
+        })
+    return jsonify(result)
+
+@views.route('/request-management')
+@login_required
+def request_management():
+    return render_template('request_management.html', user=current_user)
+
+@views.route('/delivery-status')
+@login_required
+def delivery_status():
+    return render_template('delivery_status.html', user=current_user)
+
+@views.route('/reports')
+@login_required
+def reports():
+    return render_template('reports.html', user=current_user)
+
+@views.route('/settings')
+@login_required
+def settings():
+    return render_template('settings.html', user=current_user)
+
+@views.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html', user=current_user)
+
+
+@views.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('views.home'))

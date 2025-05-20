@@ -45,14 +45,14 @@
                     </a>
                 
 
-                <div class="user-dropdown">
-                    <div class="user-info">
-                        <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
-                        <span class="username" id="usernameDisplay">{{ current_user.username }}</span>
+                    <div class="user-dropdown">
+                        <div class="user-info">
+                            <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
+                            <span class="username" id="usernameDisplay">{% if current_user.is_authenticated %}{{ current_user.username }}{% endif %}</span>
+                        </div>
+                        <div class="dropdown-container" id="dropdownMenu">
+                        </div>
                     </div>
-                    <div class="dropdown-container" id="dropdownMenu">
-                    </div>
-                </div>
             </div> 
         </nav>
     </header>

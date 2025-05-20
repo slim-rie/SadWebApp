@@ -56,7 +56,7 @@
             <p>Add a few details to create an account</p>
         </div>
         
-        <form class="signup-form" id="signupForm">
+        <form class="signup-form" id="signupForm" action="/auth/sign-up" method="post">
             <div class="form-row">
                 <div class="form-group">
                     <label for="firstname">First Name</label>
@@ -160,11 +160,11 @@
                 <h3>Quick Links</h3>
                 <ul>
                     <li><a href="{{ url_for('views.home') }}">Home</a></li>
-                    <li><a href="{{ url_for('views.sewing_machines') }}">Shop</a></li>
+                    <li><a href="{{ url_for('views.sewingmachines') }}">Shop</a></li>
                     <li><a href="{{ url_for('views.about') }}">About</a></li>
                     <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
                 </ul>
-            </div>
+            </div> 
 
             <div class="footer-section payment-section">
                 <h3>Payment Methods</h3>
