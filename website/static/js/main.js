@@ -162,8 +162,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         localStorage.setItem('username', 'customer');
                         updateUIForLoginStatus(true, 'customer');
                         closeLoginModal();
-                        
-                        if (redirectTarget) {
+                        // Use backend-provided redirect URL
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else if (redirectTarget) {
                             window.location.href = redirectTarget;
                         }
                     } else {

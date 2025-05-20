@@ -493,7 +493,7 @@ def search():
     return render_template('search_results.html', user=current_user, products=products, query=query, category=category)
 
 @views.route('/api/products')
-def get_products():
+def products():
     category = request.args.get('category')
     print(f"[DEBUG] Requested category: {category}")
     if not category:

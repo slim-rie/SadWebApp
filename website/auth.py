@@ -186,13 +186,22 @@ def login():
             login_user(user, remember=remember)
             user.update_last_login()
             
+            if user.role == 'admin':
+                redirect_url = url_for('auth.admin')
+            elif user.role == 'staff':
+                redirect_url = url_for('auth.staff')
+            elif user.role == 'supplier':
+                redirect_url = url_for('auth.dashboard')
+            else:
+                redirect_url = url_for('views.home')
+            
             if request.is_json:
                 return jsonify({
                     'success': True,
                     'message': 'Login successful',
-                    'redirect': url_for('views.home')
+                    'redirect': redirect_url
                 })
-            return redirect(url_for('views.home'))
+            return redirect(redirect_url)
         
         if request.is_json:
             return jsonify({'success': False, 'message': 'Invalid username or password'}), 401
@@ -1116,4 +1125,28 @@ def order_item_details(order_id, order_item_id):
             image_path = url_for('static', filename=png_path)
         else:
             image_path = url_for('static', filename='pictures/default.png')
-    return render_template('order_item_details.html', order=order, item=item, product=product, image_path=image_path) 
+    return render_template('order_item_details.html', order=order, item=item, product=product, image_path=image_path)
+
+@auth.route('/request-management')
+@login_required
+def request_management():
+    return render_template('request_management.html', user=current_user)
+
+@auth.route('/delivery-status')
+@login_required
+def delivery_status():
+    return render_template('delivery_status.html', user=current_user)
+
+@auth.route('/reports')
+@login_required
+def reports():
+    return render_template('reports.html', user=current_user)
+
+@auth.route('/settings')
+@login_required
+def settings():
+    return render_template('settings.html', user=current_user)
+
+@auth.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html', user=current_user) 
