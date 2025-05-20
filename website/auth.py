@@ -149,6 +149,7 @@ def cart():
 @auth.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
+    print(f"DEBUG: Current user: {current_user.username}, role property: {current_user.role}, role_id: {current_user.role_id}")
     if current_user.role != 'admin':
         flash('Access denied. Admin only.', category='error')
         return redirect(url_for('views.home'))
@@ -179,6 +180,7 @@ def login():
         user = User.query.filter((User.username == username) | (User.email == username)).first()
         
         if user and check_password_hash(user.password_hash, password):
+            print(f"DEBUG: Logging in user {user.username}, role property: {user.role}, role_id: {user.role_id}")
             if not user.is_active:
                 if request.is_json:
                     return jsonify({'success': False, 'message': 'Account is deactivated'}), 403

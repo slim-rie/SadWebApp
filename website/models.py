@@ -52,6 +52,11 @@ class User(UserMixin, db.Model):
         self.last_login = datetime.utcnow()
         db.session.commit()
 
+    @property
+    def role(self):
+        role = Roles.query.get(self.role_id)
+        return role.role_name if role else None
+
 class Brand(db.Model):
     __tablename__ = 'brands'
     brand_id = db.Column(db.Integer, primary_key=True)

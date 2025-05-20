@@ -159,12 +159,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     const data = await response.json();
                     if (data.success) {
                         localStorage.setItem('isLoggedIn', 'true');
-                        localStorage.setItem('username', 'customer');
-                        updateUIForLoginStatus(true, 'customer');
+                        // Optionally, set username from response if available
+                        if (data.username) {
+                            localStorage.setItem('username', data.username);
+                        }
+                        updateUIForLoginStatus(true, data.username || 'customer');
                         closeLoginModal();
-                        
-                        if (redirectTarget) {
+                        // Prefer backend-supplied redirect
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else if (redirectTarget) {
                             window.location.href = redirectTarget;
+                        } else {
+                            window.location.reload();
                         }
                     } else {
                         if (loginError) {
