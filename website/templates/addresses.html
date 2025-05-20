@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Addresses - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_account.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/addresses.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="{{ url_for('views.home') }}" class="nav-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
+                    <h2 class="logo-text">JBR Tanching C.O</h2>
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <select class="search-dropdown">
+                    <option>All</option>
+                    <option>Fabrics</option>
+                    <option>Sewing Machines</option>
+                    <option>Sewing Parts</option>
+                </select>
+                <input type="text" class="search-input" placeholder="What can we help you find?" autocomplete="off">
+                <button class="search-btn">
+                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
+                </button>
+            </div>
+
+            <div class="nav-icons">
+                <span class="phone-info">
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
+                <a href="#" class="chat-link" id="chatLink">
+                    <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
+                </a>
+                <a href="{{ url_for('views.cart') }}" class="cart-link">
+                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
+                </a>
+
+                <div class="user-dropdown">
+                    <div class="header-user-info">
+                        <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
+                        <span class="username" id="usernameDisplay">{{ user.username }}</span>
+                    </div>
+                    <div class="dropdown-container" id="dropdownMenu">
+                        <a href="{{ url_for('auth.my_account') }}" class="dropdown-item">My Account</a>
+                        <a href="{{ url_for('auth.orders') }}" class="dropdown-item">Orders</a>
+                        <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
+                    </div>
+                </div>
+            </div> 
+        </nav>
+    </header>
+
+    <main class="my-account-container">
+        <div class="container">
+            <div class="account-wrapper">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <img src="{% if user.profile_image and user.profile_image.startswith('http') %}{{ user.profile_image }}{% elif user.profile_image %}{{ url_for('static', filename='profile_images/' ~ user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}"
+                             alt="Profile" id="profileImage" class="profile-image" data-image="{{ user.profile_image if user.profile_image else '' }}">
+                        <div class="user-info">
+                            <h3 id="sidebarUsername">{{ user.username }}</h3>
+                            <button class="edit-profile-btn" id="editProfileBtn">✏️ Edit Profile</button>
+                        </div>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li class="parent-menu"><a href="{{ url_for('auth.my_account') }}"><i class="fas fa-user"></i> My Account</a></li>
+                        <li class="sub-menu active"><a href="{{ url_for('auth.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-lock"></i> Change Password</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.privacy_settings') }}"><i class="fas fa-shield-alt"></i> Privacy Settings</a></li>
+                        <li><a href="{{ url_for('auth.orders') }}"><i class="fas fa-shopping-bag"></i> Orders</a></li>
+                    </ul>
+                </div>
+                
+                <div class="account-content">
+                    <div class="addresses-header">
+                        <div class="header-left">
+                            <h2 class="page-title">My Addresses</h2>
+                            <button id="addNewAddressBtn" class="add-address-btn">+ Add New Address</button>
+                        </div>
+                    </div>
+                    <div class="addresses-list-container">
+                        <div class="addresses-list" id="addressesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('views.home') }}">Home</a></li>
+                    <li><a href="{{ url_for('views.sewingmachines') }}">Shop</a></li>
+                    <li><a href="{{ url_for('views.about') }}">About</a></li>
+                    <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section payment-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
+                </div>
+            </div>
+
+            <div class="footer-section contact-section">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                </div>
+                <div class="contact-info">
+                    <h3>JBR Tanching C.O</h3>
+                    <p class="contact-phone">(02) 8123-4567</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <div class="modal-overlay" id="addressModal">
+        <div class="modal-content address-modal">
+            <span class="modal-close" id="closeAddressModal">&times;</span>
+            <div class="modal-header">
+                <h3 id="addressModalTitle">Add New Address</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group half">
+                        <input type="text" id="firstName" placeholder="First Name">
+                    </div>
+                    <div class="form-group half">
+                        <input type="text" id="lastName" placeholder="Last Name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="phoneNumber" placeholder="Phone Number">
+                    <span id="phoneNumberError" style="display:none; color:#e74c3c; font-size:14px; margin-top:4px;">Invalid Input</span>
+                </div>
+                <div class="form-group address-dropdown-wrapper">
+                    <input type="text" id="completeAddress" placeholder="Region, Province, City, Barangay" readonly style="cursor:pointer; background:#fff;" onclick="showAddressDropdown()">
+                    <input type="hidden" id="fullAddress" name="fullAddress">
+                    <div class="address-dropdown-panel" id="addressDropdownPanel" style="display:none;">
+                        <div class="address-tabs">
+                            <span class="address-tab active" data-tab="region">Region</span>
+                            <span class="address-tab" data-tab="province">Province</span>
+                            <span class="address-tab" data-tab="city">City</span>
+                            <span class="address-tab" data-tab="barangay">Barangay</span>
+                        </div>
+                        <div class="address-tab-content" id="regionTabContent"></div>
+                        <div class="address-tab-content" id="provinceTabContent" style="display:none;"></div>
+                        <div class="address-tab-content" id="cityTabContent" style="display:none;"></div>
+                        <div class="address-tab-content" id="barangayTabContent" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="postalCode" placeholder="Postal Code">
+                </div>
+                <div class="form-group autocomplete-wrapper">
+                    <input type="text" id="streetAddress" placeholder="Street Name, Building, House No." autocomplete="off">
+                    <div class="autocomplete-results" id="addressSuggestions"></div>
+                </div>
+                <div class="form-group">
+                    <label>Label As:</label>
+                    <div class="label-options">
+                        <div class="label-option active" data-value="home" id="homeLabel">Home</div>
+                        <div class="label-option" data-value="work" id="workLabel">Work</div>
+                    </div>
+                    <input type="hidden" id="addressLabel" value="home">
+                </div>
+                <div class="form-group default-address-group">
+                    <label class="default-address-label">
+                        <input type="checkbox" id="defaultAddress" class="default-checkbox">
+                        <span class="custom-checkbox"></span>
+                        <span class="default-text">Set as Default Address</span>
+                    </label>
+                </div>
+            </div>
+            <div id="statusMessage" style="color: red; margin-bottom: 10px; display: none;"></div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-primary" id="saveAddressModal">Save</button>
+            </div>
+        </div>
+    </div>
+
+<<<<<<< HEAD
+    <script>
+      var current_user = {
+        username: "{{ user.username|escape }}",
+        profile_image: "{{ user.profile_image|escape }}"
+      };
+    </script>
+=======
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-header">
+            <h3>Customer Support</h3>
+            <button class="close-chat" id="closeChat">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! How can I help you with your shopping today?
+            </div>
+        </div>
+        <div class="quick-questions" id="quickQuestions">
+            <button class="quick-question-btn" data-question="Shipping policy">Shipping policy</button>
+            <button class="quick-question-btn" data-question="Return policy">Return policy</button>
+            <button class="quick-question-btn" data-question="Product inquiry">Product inquiry</button>
+            <button class="quick-question-btn" data-question="Payment methods">Payment methods</button>
+            <button class="quick-question-btn" data-question="Order tracking">Order tracking</button>
+            <button class="quick-question-btn" data-question="Chat with Seller">Chat with Seller</button>
+        </div>
+        <form class="chat-form" id="chatForm">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+            <label for="fileInput" class="file-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="clip-icon">
+                    <path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l8.49-8.49a3.5 3.5 0 014.95 4.95l-8.49 8.49a1.5 1.5 0 01-2.12-2.12l8.49-8.49.71.71-8.49 8.49a.5.5 0 00.71.71l8.49-8.49a2.5 2.5 0 10-3.54-3.54l-8.49 8.49a4.5 4.5 0 006.36 6.36l8.49-8.49.71.71z"/>
+                </svg>
+                <input type="file" id="fileInput" class="file-input" style="display: none;" accept="image/*,video/*">
+            </label>
+            <button type="submit" class="send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </form>
+        <div id="filePreview" class="file-preview"></div>
+    </div>
+
+>>>>>>> 6ecedf0fe20729ae36b64299f181ac41185d548c
+    <script src="{{ url_for('static', filename='js/addresses.js') }}" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // User dropdown functionality
+        const userIcon = document.getElementById('user-icon');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        userIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!userIcon.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.remove('active');
+            }
+        });
+
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = "{{ url_for('auth.logout') }}";
+        });
+
+        // Chat functionality
+        const chatLink = document.getElementById('chatLink');
+        const chatModal = document.getElementById('chatModal');
+        const closeChat = document.getElementById('closeChat');
+        const chatForm = document.getElementById('chatForm');
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const quickQuestions = document.getElementById('quickQuestions');
+        const fileInput = document.getElementById('fileInput');
+        const filePreview = document.getElementById('filePreview');
+
+        function openChatModal() {
+            chatModal.classList.add('show-modal');
+        }
+
+        function closeChatModal() {
+            chatModal.classList.remove('show-modal');
+        }
+
+        chatLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openChatModal();
+        });
+
+        closeChat.addEventListener('click', closeChatModal);
+
+        window.addEventListener('click', function(e) {
+            if (e.target === chatModal) {
+                closeChatModal();
+            }
+        });
+
+        // Quick questions functionality
+        quickQuestions.addEventListener('click', function(e) {
+            if (e.target.classList.contains('quick-question-btn')) {
+                const question = e.target.dataset.question;
+                addMessage(question, 'user-message');
+                // Simulate bot response
+                setTimeout(() => {
+                    addMessage(`Thank you for asking about our ${question}. How can I assist you further?`, 'bot-message');
+                }, 1000);
+            }
+        });
+
+        // Chat form submission
+        chatForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage(message, 'user-message');
+                chatInput.value = '';
+                // Simulate bot response
+                setTimeout(() => {
+                    addMessage('Thank you for your message. Our team will get back to you soon.', 'bot-message');
+                }, 1000);
+            }
+        });
+
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // File input preview
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    filePreview.innerHTML = `
+                        <div class="preview-item">
+                            <img src="${e.target.result}" alt="Preview">
+                            <button class="remove-preview">&times;</button>
+                        </div>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+    </script>
+</body>
+</html>

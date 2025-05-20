@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return/Refund Result - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_account.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .refund-summary-box { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 2em; margin-bottom: 2em; }
+        .refund-section-title { font-size: 2em; font-weight: bold; margin-bottom: 18px; }
+        .refund-row { display: flex; align-items: center; margin-bottom: 18px; }
+        .refund-label { font-weight: 600; color: #444; min-width: 120px; margin-right: 12px; }
+        .refund-value { color: #222; }
+        .refund-reason-select { width: 350px; padding: 8px; font-size: 1rem; border-radius: 4px; border: 1px solid #ccc; }
+        .refund-solution-row { margin-bottom: 18px; }
+        .refund-amount-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .refund-amount-label { font-size: 1.1em; color: #444; }
+        .refund-amount-value { font-size: 2em; color: #ff6666; font-weight: bold; }
+        .refund-message { color: #888; font-size: 1em; margin-top: 18px; }
+        .refund-submit-btn { background: #ff6666; color: #fff; border: none; border-radius: 4px; padding: 12px 32px; font-size: 1.1em; cursor: pointer; float: right; margin-top: 18px; }
+        .refund-product-img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); margin-right: 18px; }
+        .refund-product-info { display: flex; align-items: center; margin-bottom: 18px; }
+        .refund-product-title { font-weight: 600; font-size: 1.1em; }
+        .refund-product-qty { color: #888; margin-left: 8px; }
+        .refund-strike { text-decoration: line-through; color: #aaa; margin-right: 8px; }
+        .refund-price { color: #ff6666; font-weight: bold; }
+    </style>
+</head>
+<body>
+    {% include 'header.html' %}
+    <main class="my-account-container">
+        <div class="container">
+            <div class="account-wrapper">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <img src="{% if current_user and current_user.profile_image and current_user.profile_image.startswith('http') %}{{ current_user.profile_image }}{% elif current_user and current_user.profile_image %}{{ url_for('static', filename='profile_images/' ~ current_user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}"
+                             alt="Profile" id="profileImage" class="profile-image" data-image="{{ current_user.profile_image if current_user and current_user.profile_image else '' }}">
+                        <div class="user-info">
+                            <div class="user-name-section">
+                                <h3 id="sidebarUsername">{% if current_user %}{{ current_user.username }}{% endif %}</h3>
+                                <div class="green-line">
+                                    <button class="edit-profile-btn" id="editProfileBtn">✏️ Edit Profile</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li class="parent-menu"><a href="{{ url_for('auth.my_account') }}"><i class="fas fa-user"></i> My Account</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-lock"></i> Change Password</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.privacy_settings') }}"><i class="fas fa-shield-alt"></i> Privacy Settings</a></li>
+                        <li class="active"><a href="{{ url_for('auth.orders') }}"><i class="fas fa-shopping-bag"></i> Orders</a></li>
+                    </ul>
+                </div>
+                <div class="account-content">
+                    <div class="refund-summary-box">
+                        <div class="refund-product-info">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="refund-product-img">
+                            <div>
+                                <div class="refund-product-title">{{ product.name }}</div>
+                                <div class="refund-product-qty">{{ product.variation }} x{{ product.quantity }}</div>
+                                <div><span class="refund-strike">₱{{ product.original_price }}</span> <span class="refund-price">₱{{ product.price }}</span></div>
+                            </div>
+                        </div>
+                        <div class="refund-section-title">Why do you want to return/refund?</div>
+                        <div class="refund-row">
+                            <span class="refund-label">*Reason:</span>
+                            <span class="refund-value">{{ refund_reason }}</span>
+                        </div>
+                        <div class="refund-solution-row">
+                            <span class="refund-label">Solution:</span>
+                            <span class="refund-value">Refund Only</span>
+                        </div>
+                        <div class="refund-amount-row">
+                            <span class="refund-amount-label">Actual Refund Amount</span>
+                            <span class="refund-amount-value">{{ refund_amount if refund_amount else 'No Refund' }}</span>
+                        </div>
+                        <div class="refund-message">After you click submit, we will attempt to stop your parcel delivery</div>
+                        <button class="refund-submit-btn" disabled>Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    {% include 'footer.html' %}
+</body>
+</html> 

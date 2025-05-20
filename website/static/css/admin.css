@@ -1,0 +1,1474 @@
+/* Responsive Code auq na*/
+@media (max-width: 1200px) {
+    .dashboard-cards {
+        flex-direction: column;
+        gap: 14px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .card {
+        max-width: 100%;
+        min-width: 0;
+        padding: 10px 6px;
+    }
+}
+
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 180px;
+    min-width: 120px;
+    max-width: 200px;
+  }
+  .logo img {
+    height: 60px;
+  }
+  .nav-item {
+    font-size: 14px;
+    padding: 10px 10px;
+  }
+
+  .dashboard {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+  }
+  .nav-items {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 992px) {
+  .dashboard {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+  }
+  .main-content {
+    padding: 10px;
+  }
+  .card {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    flex-direction: column;
+  }
+  .sidebar {
+    display: none;
+    position: absolute;
+    left: -250px;
+    width: 0;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    z-index: 200;
+    transition: left 0.3s, width 0.3s;
+  }
+  .sidebar.active {
+    display: flex;
+    left: 0;
+    width: 180px;
+    min-width: 120px;
+    max-width: 200px;
+    position: fixed;
+    height: 100vh;
+    background: #fff;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+    z-index: 300;
+  }
+  .main-content {
+    padding: 4px;
+  }
+  .logo img {
+    height: 48px;
+  }
+  .nav-item {
+    font-size: 13px;
+    padding: 8px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    display: none;
+    width: 0;
+    min-width: 0;
+    max-width: none;
+  }
+  .main-content {
+    padding: 2px;
+  }
+  .logo img {
+    height: 32px;
+  }
+  .nav-item {
+    font-size: 12px;
+    padding: 6px 6px;
+  }
+}
+
+@media (max-width: 1500px) {
+  .main-content {
+    max-width: 98vw;
+  }
+}
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 200px;
+    padding: 18px 6px;
+    max-width: 100vw;
+  }
+  .sidebar {
+    width: 200px;
+  }
+}
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 8px 2vw;
+    max-width: 100vw;
+  }
+  .sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .main-content {
+    margin-left: 200px;
+  }
+  .sidebar {
+    width: 200px;
+  }
+}
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+  .sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .dashboard-cards {
+    flex-direction: column;
+    gap: 14px;
+  }
+}
+@media (max-width: 600px) {
+  .dashboard-cards {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 1200px) {
+    .main-content {
+        margin-left: 0;
+        width: 100vw;
+        padding: 10px;
+        min-height: 100vh;
+        height: 100vh;
+    }
+    .dashboard {
+        flex-direction: column;
+        min-height: 100vh;
+    }
+    .dashboard-cards {
+        flex-direction: column;
+        gap: 14px;
+        align-items: stretch;
+    }
+    .card {
+        max-width: 100%;
+        min-width: 0;
+        padding: 10px 6px;
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 1200px) {
+    .dashboard-cards {
+        flex-direction: column;
+        gap: 22px;
+        align-items: stretch;
+    }
+    .card {
+        max-width: 100%;
+        min-width: 0;
+        padding: 18px 6px 16px 6px;
+        flex: 1 1 100%;
+        margin-bottom: 28px;
+    }
+}
+
+
+/* ===== DASHBOARD CARDS ===== */
+body {
+    background: #eaeff7;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+.main-content {
+    margin-left: 240px;
+    padding: 24px;
+    background: transparent;
+    min-height: 100vh;
+    height: 100vh;
+    overflow-y: auto;
+    width: calc(100% - 240px);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    scroll-behavior: smooth;
+    background: #a9bedc;
+}
+
+.card .total-stocks,
+.card .total-orders {
+    font-size: 1.05rem;
+    color: #7c7f91;
+    text-align: right;
+    font-weight: 400;
+    margin-left: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.card th,
+.card td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid #7c7f91;
+
+    white-space: nowrap;        /* ✅ Keeps content in one line */
+    overflow: hidden;           /* ✅ Hides overflowed content */
+    text-overflow: ellipsis;    /* ✅ Adds "..." to truncated text */
+}
+
+.card th {
+    background: #dddbdb;
+    font-weight: 700;
+    color: #555;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+}
+
+.card tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.card h2 {
+    margin: 0 0 20px 0;
+    font-size: 25px;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard {
+    display: auto;
+    background: #e9ecf4;
+    min-height: 100vh;
+    width: 100vw;
+    padding: 0;
+    margin: 0;
+}
+
+.dashboard-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px 36px;
+    width: 100%;
+    margin: 0 0 36px 0;
+    padding: 0;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    display: block;
+}
+
+.card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 16px rgba(20, 30, 70, 0.09);
+    padding: 24px;
+    margin-bottom: 36px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    border: 1px solid rgba(0,0,0,.125);
+    background-clip: border-box;
+}
+/* ===== CONTENT SECTIONS ===== */
+
+.content-section {
+    display: none;
+}
+.content-section.active {
+    display: block;
+}
+
+/* ===== COMMON STYLES ===== */
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Montserrat', Arial, sans-serif; 
+}
+
+/* ===== SHARED COMPONENTS ===== */
+/* Common Button Styles */
+
+/* Common Filter Styles */
+.filter-section {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-weight: 500;
+    color: #333;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Common Action Button Styles */
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+} /* Kept only one definition for .action-btn */
+
+/* ===== LAYOUT COMPONENTS ===== */
+.sidebar.active {
+    display: flex;
+    left: 0;
+    width: 180px;
+    min-width: 120px;
+    max-width: 200px;
+    position: fixed;
+    height: 100vh;
+    background: #fff;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+    z-index: 300;
+}
+
+.settings-section, .settings-card {
+    max-width: 700px;
+    margin: 0 auto 32px auto;
+}
+
+/* ===== NAVIGATION ===== */
+/* Sidebar Navigation */
+.sidebar {
+    width: 240px;
+    background: #fff;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+    border-right: 1px solid #e0e0e0;
+}
+
+/* Logo Styling */
+.logo-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 0 12px 0;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+}
+.sidebar-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #1a237e;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.logo {
+    display: flex;
+    flex-direction: column;  /* Stack items vertically */
+    align-items: center;     /* Center items horizontally */
+    padding: 10px;
+}
+.logo img {
+    display: block;
+    margin-bottom: -50px;
+    margin-top: -30px;
+    max-width: 150%;
+    width: 180px; /* or whatever size fits your sidebar */
+    height: auto;
+}
+
+.logo-text {
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
+/* Navigation Menu */
+.nav-items {
+    padding: 0 10px;
+    margin-top: 10px;
+}
+
+.nav-item {
+    display: block;
+    padding: 12px 16px;
+    margin: 4px 0;
+    color: #555;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.nav-item:hover {
+    background-color: #f0f2f5;
+    color: #1a73e8;
+    transform: translateX(2px);
+}
+
+.nav-item.active {
+    background-color: #e8f0fe;
+    color: #1a73e8;
+    font-weight: 600;
+}
+
+/* ===== HEADER SECTION ===== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    margin: 0 0 20px 0;
+    font-size: 25px;
+   /* font-family: 'Montserrat', sans-serif;*/
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-profile {
+    position: fixed;
+    top: 10px;
+    right: 36px;
+    z-index: 1000;
+    padding: 10px 15px;
+    background: white;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.user-profile span {
+    color: #666;
+    font-size: 14px;
+}
+
+.total-stocks-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.total-stocks,
+.total-orders {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    /*font-family: Arial, sans-serif;*/
+    font-size: 14px;
+    color: #888;
+}
+
+.total-stocks-number,
+.total-orders-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: black;
+}
+
+/* ==========================================================
+   SUPPLIER MANAGEMENT STYLES
+   Styles for supplier actions, buttons, and tables
+   ========================================================== */
+/* ===== SUPPLIER MANAGEMENT ===== */
+.supplier-edit-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #fbbc05;
+    color: white;
+}
+
+.supplier-delete-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #ea4335;
+    color: white;
+}
+
+/* ==========================================================
+   INVENTORY MANAGEMENT STYLES
+   Styles for inventory actions, buttons, and tables
+   ========================================================== */
+/* ===== INVENTORY MANAGEMENT ===== */
+.inventory-actions {
+    margin-bottom: 200px;
+    display: flex;
+    gap: 20px;
+}
+
+.inventory-edit-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #fbbc05;
+    color: white;
+}
+
+.inventory-delete-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #ea4335;
+    color: white;
+}
+
+/* ==========================================================
+   SALES MANAGEMENT STYLES
+   Styles for sales filters, table, and status
+   ========================================================== */
+/* ===== SALES MANAGEMENT ===== */
+.sales-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.sales-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.sales-table td:nth-child(5),
+.sales-table td:nth-child(6) {
+   /* font-family: monospace;*/
+    font-weight: 500;
+}
+
+.sales-status-cell {
+    font-weight: 500;
+}
+
+.status-to-ship { color: #ff9800; }
+.status-completed { color: #28a745; }
+.status-cancelled { color: #dc3545; }
+.status-to-pay { color: #1a73e8; }
+.status-to-receive { color: #6c757d; }
+.status-pending { color: #ffaa00; }
+
+/* ==========================================================
+   PERSONNEL MANAGEMENT STYLES
+   Styles for personnel actions, filters, and table
+   ========================================================== */
+/* ===== PERSONNEL MANAGEMENT ===== */
+.personnel-actions {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+.personnel-add-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #34a853;
+    color: white;
+}
+
+.personnel-edit-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #fbbc05;
+    color: white;
+}
+
+.personnel-delete-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #ea4335;
+    color: white;
+}
+
+.personnel-reset-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #1a73e8;
+    color: white;
+}
+
+.personnel-filter-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #1a73e8;
+    color: white;
+}
+
+.personnel-status-active{
+    
+    font-weight: 500;
+    color: green;
+}
+
+.personnel-status-inactive {
+    color: #dc3545;
+    font-weight: 500;
+    text-decoration: line-through;
+}
+
+/* Button hover states */
+.personnel-add-btn:hover { background-color: #2d9247; }
+.personnel-edit-btn:hover { background-color: #e6c200; }
+.personnel-delete-btn:hover { background-color: #d32f2f; }
+.personnel-reset-btn:hover { background-color: #d32f2f; }
+.personnel-filter-btn:hover { background-color: #1557b0; }
+
+.page-btn {
+    padding: 6px 12px;
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.page-btn:hover {
+    background-color: #1557b0;
+}
+
+.personnel-table {
+    min-width: 1200px; /* Adjust as needed */
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.personnel-table th, .personnel-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 8px 12px;
+    text-align: left;
+    max-width: 180px; /* Adjust as needed */
+}
+
+.personnel-table th {
+    background: #e0e0e0;
+}
+
+
+/* Responsive table wrapper for horizontal scrolling */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Optional: Custom scrollbar for table-responsive */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+    background: #f1f1f1;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+.card:hover {
+    box-shadow: 0 4px 28px 0 rgba(20, 30, 70, 0.14);
+}
+
+/* ==========================================================
+   CUSTOMER ORDERS MANAGEMENT STYLES
+   Styles for customer order actions, filters, and table
+   ========================================================== */
+/* ===== CUSTOMER ORDERS MANAGEMENT ===== */
+.orders-actions {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+.orders-add-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #34a853;
+    color: white;
+}
+
+.orders-edit-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #fbbc05;
+    color: white;
+}
+
+.orders-delete-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    background-color: #ea4335;
+    color: white;
+}
+
+.order-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.order-pending { background-color: #fff3cd; color: #856404; }
+.order-processing { background-color: #cce5ff; color: #004085; }
+.order-completed { background-color: #d4edda; color: #155724; }
+.order-cancelled { background-color: #f8d7da; color: #721c24; }
+
+.sales-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.sales-filters .filter-group {
+    min-width: 200px;
+}
+
+.date-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.sales-table td:nth-child(5),
+.sales-table td:nth-child(6) {
+   /* font-family: monospace;*/
+    font-weight: 500;
+}
+
+.sales-table .status-cell {
+    font-weight: 500;
+}
+
+.status-to-ship { color: #ff9800; }
+.status-completed { color: #28a745; }
+.status-cancelled { color: #dc3545; }
+.status-to-pay { color: #1a73e8; }
+.status-to-receive { color: #6c757d; }
+
+.payment-method {
+    font-size: 13px;
+    color: #666;
+}
+
+/* ===== BUTTON STYLES ===== */
+
+.notify-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.contact-btn {
+    background-color: #1a73e8;
+    color: white;
+}
+
+/* Button hover states */
+.notify-btn:hover { background-color: #0056b3; }
+.edit-btn:hover { background-color: #e6c200; }
+.delete-btn:hover { background-color: #c82333; }
+.contact-btn:hover { background-color: #1557b0; } /* Kept only one set of hover states for button classes */
+.filter-btn:hover { background-color: #1557b0; }
+
+/* Logout Link */
+.logout-link {
+    font-size: 28px;
+    color: #ff4444;
+    font-weight: 500;
+    margin-left: 0;
+    margin-top: 2px;
+    text-decoration: none;
+    line-height: 1.1;
+    transition: color 0.2s;
+    text-transform: capitalize;
+}
+
+.logout-link:hover {
+    color: #d32f2f;
+    text-decoration: underline;
+}
+
+/* Top Bar Layout
+chat modal 
+admin header*/
+
+.admin-header {
+    width: 100%;
+    background-color: #fff;
+    position: sticky;
+    top: 0; 
+    z-index: 1000;
+}
+
+.top-bar {
+    position: fixed;
+    top: 20px;
+    right: 300px;
+    z-index: 10;
+    padding: 0;
+    background: white;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+  
+.chat-floating-wrapper {
+    position: auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+  
+.chat-icon-btn {
+    width: 72px;
+    height: 72px;
+    background: transparent;
+    border: none;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #222;
+    padding: 0;
+  }
+  
+  .chat-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #298afc;
+    color: #fff;
+    font-size: 22px;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #fff;
+    transform: translate(30%, -30%);
+  }
+  
+  .profile-icon {
+    width: 72px;
+    height: 72px;
+    background: #ededed;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #222;
+    margin: 0;
+  }
+  
+  .profile-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 0;
+  }
+  
+  .profile-name {
+    font-weight: 700;
+    font-size: 28px;
+    color: #444;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  
+  .profile-role {
+    font-size: 20px;
+    color: #888;
+    font-weight: 400;
+  }
+  
+  .dropdown-wrapper {
+    position: relative;
+    margin-left: 8px;
+  }
+  
+  .dropdown-btn {
+    background: none;
+    border: none;
+    font-size: 32px;
+    color: #888;
+    cursor: pointer;
+    padding: 0 8px;
+    margin-top: 4px;
+  }
+  
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+    padding: 18px 0;
+    min-width: 160px;
+    z-index: 9999;
+    text-align: center;
+    border: 1px solid #eee;
+    transition: box-shadow 0.2s;
+
+}
+
+.dropdown-menu.active {
+    display: block;
+}
+
+.dropdown-menu .logout-link {
+    display: block;
+    font-size: 18px;
+    color: #e53935;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 12px 0;
+    margin: 0 18px;
+    border-radius: 12px;
+    background: #f9f9f9;
+    letter-spacing: 1px;
+    box-shadow: 0 1px 4px rgba(229,57,53,0.07);
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+
+.dropdown-menu .logout-link:hover,
+.dropdown-menu .logout-link:focus {
+    background: #ffeaea;
+    color: #b71c1c;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(229,57,53,0.12);
+}
+
+/* Reports */
+
+#reportIcons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+    padding: 30px;
+    background: #fff;
+}
+
+.report-icon-block {
+    text-align: center;
+    width: 180px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.reports-table {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(20, 30, 70, 0.09);
+    margin: 40px auto;
+    max-width: 12000px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.reports-table h2 {
+    margin: 0;
+    padding: 20px 30px;
+    background-color: #0f2a4d; /* dark blue header */
+    color: #fff;
+    font-size: 20px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+  
+  .report-icon-block:hover {
+    transform: translateY(-4px);
+  }
+  
+  .report-icon-block i {
+    font-size: 64px;
+    color: #2563eb;
+  }
+  
+  .report-icon-block div {
+    font-size: 1.1rem;
+    color: #2563eb;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+
+/* ==========================================================
+   SETTINGS MANAGEMENT STYLES
+   Styles for settings/profile/security forms and actions
+   ========================================================== */
+/* ===== SETTINGS SECTION ===== */
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.filter-section {
+    padding: 15px;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.settings-form {
+    max-width: 400px;
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #333;
+}
+
+.input-with-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-input {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    width: 100%;
+}
+
+.filter-buttons {
+    margin-top: 20px;
+}
+
+.save-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* ===== FILTER SECTION ===== */
+.filter-section {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-weight: 500;
+    color: #333;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Table specific utilities */
+td:nth-child(5),
+td:nth-child(6) {
+    /*font-family: monospace;*/
+    text-align: right;
+    padding-right: 20px;
+}
+
+td:nth-child(7) {
+    text-align: center;
+    font-weight: 500;
+}
+
+td:nth-child(2) {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notify-btn {
+    /* dashboard */
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.notify-btn:hover {
+    /* dashboard */
+    background-color: #f9fafa;
+    transform: translateY(-2px);
+}
+
+.alert-level { 
+    /* dashboard */
+    color: #ff0000;
+    font-weight: 500;
+}
+
+/* ===== SUPPLIER MANAGEMENT & INVENTORY FILTERING ===== */
+/* Filter section styling - Used for both supplier and inventory filtering */
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.filter-group label {
+    font-weight: 500;
+    color: #333;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.filter-btn {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.filter-btn {
+    background-color: #3498db;
+    color: white;
+}
+
+.filter-btn:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+/* Add Button ni ari*/
+.add-btn {
+    background-color: #2ecc71;
+    color: white;
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.add-btn:hover {
+    background-color: #27ae60;
+    transform: translateY(-2px);
+}
+
+/* Action buttons styling eto na yun*/
+.edit-btn, .delete-btn, .contact-btn, .accept-btn {
+    /* padding: 6px 12px; */
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    /* margin: 0 2px; */
+    /* transition: all 0.2s; */
+    }
+
+.accept-btn {
+    background-color: #27ae60;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.contact-btn {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.edit-btn {
+    background-color: #ffd700;
+    color: #333;
+}
+
+.accept-btn:hover {
+    background-color: #27ae60;
+    transform: translateY(-2px);
+}
+
+.edit-btn:hover {
+    background-color: #e6c200;
+    transform: translateY(-2px);
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+.contact-btn:hover {
+    background-color: #1557b0;
+    transform: translateY(-2px);
+}
+
+/* Table cell styling for prices and stock levels */
+td:nth-child(5), 
+td:nth-child(6) {  /* Cost and Selling Price columns 
+    font-family: monospace;*/
+    text-align: right;
+    padding-right: 20px;
+}
+
+td:nth-child(7) {  /* Stock Level column */
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Stock level indicators */
+.stock-low {
+    color: #dc3545;
+}
+
+.stock-medium {
+    color: #ffc107;
+}
+
+.stock-high {
+    color: #28a745;
+}
+
+/* Filter group for stock quantity */
+.filter-group select[name="stock-quantity"] {
+    min-width: 150px;
+}
+
+/* Product name column */
+td:nth-child(2) {
+    max-width: 25000px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.product-image {
+    width: 150px;             /* Set a fixed width */
+    height: 150px;            /* Set a fixed height */
+    object-fit: cover;        /* Crop the image to fit the box */
+    border-radius: 12px;      /* Rounded corners */
+    border: 2px solid #e0e0e0;/* Subtle border */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08); /* Soft shadow */
+    display: block;
+    margin: 0 auto;           /* Center horizontally */
+}

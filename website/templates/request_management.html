@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Stock Requests - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/request_management.css') }}">
+    <script src="{{ url_for('static', filename='js/request_management.js') }}"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+        }
+        
+        /* Sidebar styling */
+        .sidebar {
+            width: 180px;
+            background-color: white;
+            height: 100vh;
+            padding: 20px 0;
+            border-right: 1px solid #e0e0e0;
+            position: fixed;
+        }
+        
+        .logo {
+            text-align: center;
+            padding: 0 10px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        .logo img {
+            width: 60px;
+            margin-bottom: 8px;
+        }
+        
+        .logo-text {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            padding: 0 5px;
+        }
+        
+        .nav-menu {
+            list-style: none;
+        }
+        
+        .nav-menu li {
+            padding: 12px 20px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        
+        .nav-menu li a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .nav-menu li.active a {
+            color: #1a73e8;
+        }
+        
+        /* Main content styling */
+        .main-content {
+            margin-left: 180px;
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-actions a {
+            text-decoration: none;
+        }
+        
+        /* Filter section */
+        .filter-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        
+        .filter-group {
+            flex: 1;
+        }
+        
+        .filter-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background-color: #1a73e8;
+            color: white;
+        }
+        
+        /* Table styling */
+        .data-table {
+            width: 100%;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 15px;
+            background-color: #f8f9fa;
+            color: #333;
+            font-weight: bold;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            background-color: #fff8e1;
+            color: #f57c00;
+        }
+        
+        .status-approved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .status-rejected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .status-to-ship {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-complete {
+            background-color: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        
+        .btn-approve {
+            background-color: #34a853;
+            color: white;
+        }
+        
+        .btn-reject {
+            background-color: #ea4335;
+            color: white;
+        }
+        
+        .btn-view {
+            background-color: #f1f3f4;
+            color: #333;
+        }
+
+        .status-select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 12px;
+            background-color: white;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 20px auto;
+            padding: 0;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 2;
+            padding: 20px 20px 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 0;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .detail-group {
+            margin-bottom: 10px;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .products-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .products-list li {
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .products-list li:last-child {
+            border-bottom: none;
+        }
+
+        .modal-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            text-align: right;
+        }
+
+        @media (max-width: 768px) {
+            .modal-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chat-topbar {
+            position: absolute;
+            top: 8px;
+            right: 32px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            z-index: 10;
+        }
+
+        .chat-float-img {
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            display: block;
+        }
+
+        .chat-profile {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(30,60,120,0.07);
+            display: flex;
+            align-items: center;
+            padding: 0 18px 0 6px;
+            gap: 10px;
+            height: 48px;
+            position: relative;
+        }
+
+        .chat-profile-img {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .chat-profile-info {
+            display: flex;
+            flex-direction: column;
+            margin-right: 8px;
+        }
+
+        .chat-profile-name {
+            font-size: 1.08rem;
+            font-weight: 500;
+            color: #222;
+        }
+
+        .chat-profile-role {
+            font-size: 0.92rem;
+            color: #888;
+        }
+
+        .chat-profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 54px;
+            right: 0;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(30,60,120,0.13);
+            min-width: 120px;
+            z-index: 100;
+        }
+
+        .chat-profile-dropdown.show {
+            display: block;
+        }
+
+        .chat-profile-dropdown-item {
+            padding: 12px 18px;
+            cursor: pointer;
+            color: #222;
+            font-size: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fff;
+            transition: background 0.15s;
+        }
+
+        .chat-profile-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .chat-profile-dropdown-item:hover {
+            background: #f5f7fa;
+        }
+
+        .chat-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.18);
+            z-index: 1200;
+            align-items: flex-start;
+            justify-content: flex-end;
+        }
+
+        .chat-modal.show {
+            display: flex;
+        }
+
+        .chat-modal-content {
+            background: #f5f7fa;
+            border-radius: 18px;
+            margin: 60px 32px 0 0;
+            width: 370px;
+            min-height: 420px;
+            max-height: 80vh;
+            box-shadow: 0 4px 24px rgba(30,60,120,0.13);
+            padding: 0 0 18px 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .chat-modal-header {
+            padding: 22px 24px 0 24px;
+            font-size: 1.18rem;
+            font-weight: 600;
+            color: #222;
+            background: #f5f7fa;
+            border-radius: 18px 18px 0 0;
+            position: relative;
+        }
+
+        .chat-modal-title {
+            font-size: 1.18rem;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .chat-modal-search {
+            color: #888;
+            font-size: 1.18rem;
+            cursor: pointer;
+        }
+
+        .chat-modal-tabs {
+            padding: 18px 24px 0 24px;
+        }
+
+        .chat-tab-active {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 5px 16px;
+            font-size: 0.98rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .chat-modal-list {
+            padding: 12px 12px 0 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-modal-item {
+            background: #eaf1ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .chat-modal-item:hover {
+            background: #dbeafe;
+        }
+
+        .chat-modal-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+            background: #fff;
+        }
+
+        .chat-modal-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .chat-modal-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #222;
+        }
+
+        .chat-modal-message {
+            font-size: 0.97rem;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+        }
+
+        .chat-modal-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            margin-left: 10px;
+        }
+
+        .chat-modal-time {
+            font-size: 0.93rem;
+            color: #888;
+        }
+
+        .chat-modal-unread {
+            background: #2563eb;
+            color: #fff;
+            font-size: 0.93rem;
+            font-weight: 600;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-modal-conversation {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-conv-header-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 0 0 0;
+            background: #f5f7fa;
+            border-radius: 18px 18px 0 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .chat-conv-back {
+            margin: 18px 0 18px 18px;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 18px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            align-self: flex-start;
+        }
+
+        .chat-conv-company-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 18px 12px 18px;
+            background: #fff;
+            flex: 1;
+            border-radius: 0 18px 0 0;
+        }
+
+        .chat-conv-company-info {
+            flex: 1;
+        }
+
+        .chat-conv-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .chat-conv-divider {
+            text-align: center;
+            color: #888;
+            font-size: 0.98rem;
+            margin: 12px 0;
+        }
+
+        .chat-conv-messages {
+            flex: 1;
+            padding: 0 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-message {
+            max-width: 70%;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: #f1f6ff;
+            color: #222;
+            position: relative;
+            word-break: break-word;
+            margin-bottom: 2px;
+        }
+        .chat-message-you {
+            background: #eaf1ff;
+            color: #222;
+            align-self: flex-end;
+            text-align: right;
+        }
+        .chat-message-them {
+            background: #f1f6ff;
+            color: #222;
+            align-self: flex-start;
+            text-align: left;
+        }
+        .chat-message-file {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chat-message-file-icon {
+            font-size: 1.5rem;
+            color: #2563eb;
+        }
+        .chat-sent-status {
+            text-align: right;
+            color: #2563eb;
+            font-size: 0.95rem;
+            margin: 0 12px 8px 0;
+            padding: 4px 0;
+            align-self: flex-end;
+        }
+
+        .chat-conv-input {
+            display: flex;
+            align-items: center;
+            padding: 18px;
+            border-top: 1px solid #e0e0e0;
+            background: #f5f7fa;
+            gap: 8px;
+        }
+
+        .chat-conv-input input[type="text"] {
+            flex: 1;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            outline: none;
+            background: #f1f6ff;
+        }
+
+        .chat-conv-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .chat-attach-btn,
+        .chat-send-btn {
+            background: none;
+            border: none;
+            padding: 0 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 16px;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #888;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.2s;
+            display: block;
+        }
+        .chat-modal-close:hover {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR Tanching C.O Logo">
+            <div class="logo-text">JBR Tanching C.O</div>
+        </div>
+        <ul class="nav-menu">
+            <li class="active"><a href="{{ url_for('views.dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('views.request_management') }}">Request Management</a></li>
+            <li><a href="{{ url_for('views.delivery_status') }}">Delivery Status Management</a></li>
+            <li><a href="{{ url_for('views.reports') }}">Reports</a></li>
+            <li><a href="{{ url_for('views.settings') }}">Settings</a></li>
+        </ul>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Request Management</h1>
+        </div>
+        
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="status">Filter by Status:</label>
+                    <select id="status">
+                        <option>All Status</option>
+                        <option>Pending</option>
+                        <option>Approved</option>
+                        <option>Rejected</option>
+                        <option>Awaiting Shipment</option>
+                        <option>Complete</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Start Date:</label>
+                    <input type="date" id="startDate">
+                </div>
+
+                <div class="filter-group">
+                    <label>End Date:</label>
+                    <input type="date" id="endDate">
+                </div>
+                
+                <div class="filter-buttons">
+                    <button class="btn btn-primary">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Products</th>
+                        <th>Total Amount</th>
+                        <th>Payment Method</th>
+                        <th>Requested by</th>
+                        <th>Request Status</th>
+                        <th>Request Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>REQ-001</td>
+                        <td>
+                            <ul>
+                                <li>Cotton Fabric (50m)</li>
+                                <li>Silk Fabric (20m)</li>
+                            </ul>
+                        </td>
+                        <td>₱15,750.00</td>
+                        <td>Cash on Delivery</td>
+                        <td>Juan Dela Cruz</td>
+                        <td>
+                            <select class="status-select status-pending">
+                                <option value="pending" selected>Pending</option>
+                                <option value="approved" class="status-approved">Approved</option>
+                                <option value="rejected" class="status-rejected">Rejected</option>
+                                <option value="awaiting-shipment" class="status-to-ship">Awaiting Shipment</option>
+                            </select>
+                        </td>
+                        <td>2025-04-22</td>
+                    </tr>
+                    <tr>
+                        <td>REQ-002</td>
+                        <td>
+                            <ul>
+                                <li>Sewing Needles (100 pcs)</li>
+                                <li>Machine Oil (5L)</li>
+                            </ul>
+                        </td>
+                        <td>₱8,900.00</td>
+                        <td>Bank Transfer</td>
+                        <td>Maria Santos</td>
+                        <td>
+                            <span class="status-badge status-complete">Complete</span>
+                        </td>
+                        <td>2025-04-21</td>
+                    </tr>
+                    <tr>
+                        <td>REQ-003</td>
+                        <td>
+                            <ul>
+                                <li>Polyester Thread (200 spools)</li>
+                                <li>Cotton Thread (150 spools)</li>
+                            </ul>
+                        </td>
+                        <td>₱12,450.00</td>
+                        <td>Credit Card</td>
+                        <td>Juan Dela Cruz</td>
+                        <td>
+                            <select class="status-select status-pending">
+                                <option value="pending" selected>Pending</option>
+                                <option value="approved" class="status-approved">Approved</option>
+                                <option value="rejected" class="status-rejected">Rejected</option>
+                                <option value="awaiting-shipment" class="status-to-ship">Awaiting Shipment</option>
+                            </select>
+                        </td>
+                        <td>2025-04-20</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="requestModal" class="modal">
+        <div class="modal-content" style="margin: 40px auto 0 auto; max-width: 500px; max-height: 70vh;">
+            <div class="modal-header">
+                <h2 class="modal-title">Request Details</h2>
+                <button class="close-modal" id="closeModalBtn" style="position:absolute;top:12px;right:18px;font-size:1.5rem;background:none;border:none;cursor:pointer;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-group">
+                    <div class="detail-label">Request ID</div>
+                    <div class="detail-value" id="modalRequestId"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">Request Date</div>
+                    <div class="detail-value" id="modalRequestDate"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value" id="modalStatus"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">Payment Method</div>
+                    <div class="detail-value" id="modalPaymentMethod"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">Total Amount</div>
+                    <div class="detail-value" id="modalTotalAmount"></div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">Products</div>
+                    <ul class="products-list" id="modalProducts"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatTopbarContainer" style="display:flex;">
+        <div class="chat-topbar">
+            <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="chat-float-img" id="openChatModal">
+            <div class="chat-profile">
+                <img src="{{ url_for('static', filename='pictures/Skylab.png') }}" alt="User" class="chat-profile-img">
+                <div class="chat-profile-info">
+                    <div class="chat-profile-name">Skylab Manufacturing</div>
+                    <div class="chat-profile-role">Supplier</div>
+                </div>
+                <i class="fas fa-chevron-down" id="profileDropdownToggle" style="cursor:pointer;"></i>
+                <div class="chat-profile-dropdown" id="profileDropdownMenu">
+                    <a href="{{ url_for('auth.logout') }}" class="chat-profile-dropdown-item logout-link" id="logoutBtn">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatModal" class="chat-modal">
+        <div class="chat-modal-content">
+            <div class="chat-modal-header" id="chatHeaderBar">
+                <span class="chat-modal-title">Recent Chats</span>
+                <button class="chat-modal-close" id="closeChatModal" aria-label="Close">&times;</button>
+            </div>
+            <div class="chat-modal-list" id="chatList" style="display: block;">
+                <div class="chat-modal-item" id="openConversation">
+                    <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
+                    <div class="chat-modal-details">
+                        <div class="chat-modal-name">JBR Tanching C.O</div>
+                        <div class="chat-modal-message">We do not have enough stock avai ...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-modal-conversation" id="chatConversation" style="display: none;">
+                <button class="chat-conv-back" id="backToList">&#8592; Back</button>
+                <div class="chat-conv-company-row">
+                    <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
+                    <div class="chat-conv-company-info">
+                        <div class="chat-modal-name">JBR Tanching C.O</div>
+                        <div class="chat-modal-role">Company</div>
+                    </div>
+                </div>
+                <div class="chat-conv-divider">Yesterday</div>
+                <div class="chat-conv-messages">
+                    <div class="chat-message chat-message-them">
+                        <span>When blue color will be available?</span>
+                    </div>
+                    <div class="chat-message chat-message-you">
+                        <span>We don't have enough stock for Lacoster Fabrics</span>
+
+                    </div>
+                </div>
+                <div class="chat-conv-input">
+                    <input type="text" id="chatInput" placeholder="Type here...." />
+                    <input type="file" id="chatFileInput" style="display:none;" />
+                    <div class="chat-conv-icons">
+                        <button class="chat-attach-btn" id="chatAttachBtn" type="button">
+                            <img src="{{ url_for('static', filename='pictures/attach.png') }}" alt="Attach" style="width:28px;height:28px;">
+                        </button>
+                        <button class="chat-send-btn" id="chatSendBtn" type="button">
+                            <img src="{{ url_for('static', filename='pictures/arrow.png') }}" alt="Send" style="width:28px;height:28px;">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/request_management.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/transaction.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="{{ url_for('views.home') }}" class="nav-logo" id="homeLink">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
+                    <h2 class="logo-text">JBR Tanching C.O</h2>
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <select class="search-dropdown">
+                    <option>All</option>
+                    <option>Fabrics</option>
+                    <option>Sewing Machines</option>
+                    <option>Sewing Parts</option>
+                </select>
+                <input type="text" class="search-input" placeholder="What can we help you find?">
+                <button class="search-btn">
+                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
+                </button>
+            </div>
+
+            <div class="nav-icons">
+                <span class="phone-info">
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
+                <a href="#" class="chat-link" id="chatLink">
+                    <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
+                </a>
+                <a href="{{ url_for('views.cart') }}" class="cart-link">
+                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
+                </a>
+
+                <div class="user-dropdown">
+                    <div class="user-info">
+                        <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
+                        <span class="username" id="usernameDisplay"></span>
+                    </div>
+                    <div class="dropdown-container" id="dropdownMenu">
+                    </div>
+                </div>
+            </div> 
+        </nav>
+    </header>
+
+    <main class="transaction-container">
+        <h1>Checkout</h1>
+        
+        <div class="order-details">
+            <div class="shipping-info">
+                <i class="fa-solid fa-location-dot shipping-icon"></i>
+                <div class="address-details">
+                    <h2>Shipping Address</h2>
+                    <div class="customer-name">{{ address.full_name }} ({{ address.phone }})</div>
+                    <div class="customer-address">
+                        {{ address.full_address }}
+                    </div>
+                    {% if address.is_default %}<span class="default-tag">Default</span>{% endif %}
+                    <a href="{{ url_for('auth.addresses') }}" class="change-btn">Change</a>
+                </div>
+            </div>
+            
+            <h2>Products Ordered</h2>
+            <div class="table-header">
+                <div>Product</div>
+                <div>Unit Price</div>
+                <div>Item Subtotal</div>
+            </div>
+            {% for item in cart_items %}
+            <div class="product-row">
+                <div class="product-cell">
+                    <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="product-image">
+                    <div class="product-details">
+                        <h3>{{ item.product_name }}</h3>
+                        {% if item.color %}<div class="product-color">Color: {{ item.color }}</div>{% endif %}
+                        {% if item.width %}<div class="product-width">Width: {{ item.width }}</div>{% endif %}
+                        {% if item.model %}<div class="product-model">Model: {{ item.model }}</div>{% endif %}
+                        <div class="product-price">Price: ₱ {{ '%.2f'|format(item.price) }}</div>
+                    </div>
+                </div>
+                <div>₱{{ '%.2f'|format(item.price) }}</div>
+                <div>₱{{ '%.2f'|format(item.subtotal) }}</div>
+            </div>
+            {% endfor %}
+            
+            <div class="shipping-option">
+                <h3>Shipping Option:</h3>
+                <div class="shipping-method">
+                    <strong>{{ shipping_option.method }}</strong>
+                </div>
+                <div class="delivery-info">
+                    <i class="fa-solid fa-box shipping-icon-small"></i>
+                    <span class="delivery-date">{{ shipping_option.delivery_date_range }}</span>
+                </div>
+            </div>
+            
+            <div class="order-summary">
+                <div class="summary-row">
+                    <div>Merchandise Subtotal:</div>
+                    <div>₱{{ '%.2f'|format(order_summary.subtotal) }}</div>
+                </div>
+                <div class="summary-row">
+                    <div>Shipping Subtotal:</div>
+                    <div>₱{{ '%.2f'|format(order_summary.shipping) }}</div>
+                </div>
+                <div class="summary-row total">
+                    <div>Order Total ({{ order_summary.total_items }} item{{ 's' if order_summary.total_items != 1 else '' }}):</div>
+                    <div>₱{{ '%.2f'|format(order_summary.total) }}</div>
+                </div>
+            </div>
+
+            <div class="order-summary-row">
+                <span>Payment Method:</span>
+                <span>
+                    {% if payment_method == 'Cash on Delivery' %}Cash on Delivery
+                    {% elif payment_method == 'Bank' %}Bank Account
+                    {% elif payment_method == 'GCash' %}GCash
+                    {% else %}{{ payment_method }}{% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="payment-methods">
+            <h2>Payment Method</h2>
+            <div class="payment-options">
+                <div class="payment-option" id="codOption">
+                    Cash on Delivery
+                </div>
+                <div class="payment-option" id="bankOption" data-qr="{{ qr_codes.bank.qr_url }}">
+                    Bank Account
+                </div>
+                <div class="payment-option" id="gcashOption" data-qr="{{ qr_codes.gcash.qr_url }}">
+                    GCash
+                </div>
+                <div class="payment-option" id="mayaOption" data-qr="{{ qr_codes.maya.qr_url }}">
+                    Maya
+                </div>
+            </div>
+            
+            <button class="continue-btn" id="continueBtn">Continue to shipping</button>
+        </div>
+    </main>
+    
+    <div class="qr-modal" id="qrModal">
+        <div class="qr-modal-content">
+            <h2>Payment Details</h2>
+            <div id="paymentDetails">
+                <p class="payment-detail"><strong>Account Name:</strong> <span id="accountName"></span></p>
+                <p class="payment-detail" id="accountNumberRow"><strong>Account Number:</strong> <span id="accountNumber"></span></p>
+                <p class="payment-detail" id="bankNameRow"><strong>Bank:</strong> <span id="bankName"></span></p>
+                <p class="payment-detail" id="phoneNumberRow"><strong>Phone Number:</strong> <span id="phoneNumber"></span></p>
+            </div>
+            <img src="" alt="QR Code" class="qr-code-img" id="qrCodeImage">
+            <p class="reference-text">Type here the Reference Number after the payment.</p>
+            <input type="text" class="reference-input" id="referenceInput" placeholder="Reference Number">
+            <div class="modal-buttons">
+                <button class="cancel-btn" id="cancelBtn">CANCEL</button>
+                <button class="proceed-btn" id="proceedBtn">PROCEED</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('views.home') }}">Home</a></li>
+                    <li><a href="#" id="footerShopLink">Shop</a></li>
+                    <li><a href="{{ url_for('views.about') }}">About</a></li>
+                    <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section payment-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
+                </div>
+            </div>
+
+            <div class="footer-section contact-section">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                </div>
+                <div class="contact-info">
+                    <h3>JBR Tanching C.O</h3>
+                    <p class="contact-phone">(02) 8123-4567</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/transaction.js') }}" defer></script>
+
+</body>
+</html>

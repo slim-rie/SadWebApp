@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBR Tanching C.O</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='js/index.js') }}" defer></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="#" class="nav-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
+                    <h2 class="logo-text">JBR Tanching C.O</h2>
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <select class="search-dropdown">
+                    <option>All</option>
+                    <option>Fabrics</option>
+                    <option>Sewing Machines</option>
+                    <option>Sewing Parts</option>
+                </select>
+                <input type="text" class="search-input" placeholder="What can we help you find?">
+                <button class="search-btn">
+                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
+                </button>
+            </div>
+
+            <div class="nav-icons">
+                <span class="phone-info">
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
+
+                    <a href="#" class="chat-link" id="chatLink">
+                        <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
+                    </a>
+                    <a href="{% if user.is_authenticated %}{{ url_for('views.cart') }}{% else %}{{ url_for('auth.login') }}{% endif %}" class="cart-link">
+                        <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
+                    </a>
+                
+
+                    <div class="user-dropdown">
+                        <div class="user-info">
+                            <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
+                            <span class="username" id="usernameDisplay">{% if current_user.is_authenticated %}{{ current_user.username }}{% endif %}</span>
+                        </div>
+                        <div class="dropdown-container" id="dropdownMenu">
+                        </div>
+                    </div>
+            </div> 
+        </nav>
+    </header>
+
+    <div class="modal" id="loginModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Login to Your Account</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form class="login-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username/Email</label>
+                        <input type="text" id="username" placeholder="Enter your username or email">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter your password">
+                    </div>
+                    <div class="error-message" id="loginError"></div>
+                    <button type="submit" class="submit-btn">LOGIN</button>
+                </form>
+                <div class="or-divider">
+                    <span>OR</span>
+                </div>
+                <button id="googleLoginBtn" class="google-btn">
+                    <i class="fab fa-google"></i> Continue with Google
+                </button>
+                <p class="signup-link">Don't have an account? <a href="{{ url_for('auth.sign_up') }}" class="signup-link-text">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero">
+        <div class="hero-content">
+            <h1>JBR Tanching C.O</h1>
+            <p>Quality Sewing Supplies Since 2014</p>
+            <button class="shop-now-btn" id="heroShopNowBtn">Shop Now</button>
+        </div>
+    </div>
+
+    <section class="categories container">
+        <h2>Categories</h2>
+        <div class="category-grid">
+            <div class="category-card" id="sewingMachinesCard" data-category="Sewing Machines">
+                <img src="https://th.bing.com/th/id/OIP.I6id9lwCR-8KziI8fqXzXgHaE7?rs=1&pid=ImgDetMain" alt="Sewing Machines">
+                <div class="category-overlay">
+                    <div class="category-content">
+                        <span class="category-icon">✂️</span>
+                        <h3>Sewing Machines</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category-card" id="sewingPartsCard" data-category="Sewing Parts">
+                <img src="https://th.bing.com/th/id/R.af428faf9690299299f11425c3614434?rik=qYS3skZ56hJo%2bg&riu=http%3a%2f%2fwww.amtmim.com%2fwp-content%2fuploads%2f2018%2f12%2fMIM-Parts.jpg&ehk=B4K7LDUV8VE%2bbSb4NhUxuVjp1kCRlBU3semyuQPzYME%3d&risl=&pid=ImgRaw&r=0" alt="Sewing Parts">
+                <div class="category-overlay">
+                    <div class="category-content">
+                        <span class="category-icon">⚙️</span>
+                        <h3>Sewing Parts</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="category-card" id="fabricsCard" data-category="Fabrics">
+                <img src="https://th.bing.com/th/id/OIP.AyLuhVUfiMkRt-d0safm8AHaE8?rs=1&pid=ImgDetMain" alt="Fabrics">
+                <div class="category-overlay">
+                    <div class="category-content">
+                        <span class="category-icon">🧵</span>
+                        <h3>Fabrics</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="fabrics-section container">
+        <h2 class="section-title">Fabrics of the Season</h2>
+        <div class="product-grid">
+            <div class="product-card">
+                <img src="https://weaversfruit.com/wp-content/uploads/2023/10/txt2img_3364993467-1024x538.webp" alt="Polyester-Blend Fabric">
+                <div class="product-info">
+                    <h3>Polyester-Blend Fabrics</h3>
+                    <p>Durable and lightweight, ideal for uniforms, casual wear, and everyday clothing.</p>
+                    <div class="product-footer">
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link" data-fabric="Polyester-Blend Fabrics">Shop Now</a>
+                    </div> 
+                </div>
+            </div>
+
+            <div class="product-card">
+                <img src="https://tse4.mm.bing.net/th/id/OIP.gim17axiTfaQHXBg0B5_twHaE6?rs=1&pid=ImgDetMain" alt="Cotton Fabric">
+                <div class="product-info">
+                    <h3>Cotton Fabric</h3>
+                    <p>Soft and breathable cotton fabric for all your sewing needs.</p>
+                    <div class="product-footer">
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link" data-fabric="Cotton Fabric">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <img src="https://th.bing.com/th/id/OIP.Un056zUDkSxc1HhEGGJ9mwHaFI?rs=1&pid=ImgDetMain" alt="Lacoste Fabric">
+                <div class="product-info">
+                    <h3>Lacoste Fabric</h3>
+                    <p>Breathable, textured knit fabric perfect for polo shirts and activewear.</p>
+                    <div class="product-footer">
+                        <a href="{{ url_for('views.fabrics') }}" class="shop-now-link product-link" data-fabric="Lacoste Fabric">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="save-on-dream-machine container">
+        <h2 class="section-title">Save on Your Dream Machine</h2>
+        <div class="slider-container">
+            <button class="slider-arrow slider-prev">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="product-slider">
+                <div class="product-card">
+                    <img src="https://ua.all.biz/img/ua/catalog/16050678.jpeg" alt="SHUNFA SF-5550 - Single Needle High-Speed Machine">
+                    <div class="product-info">
+                        <h3>SHUNFA SF-5550 - Single Needle High-Speed Machine</h3>
+                        <p>Advanced computerized sewing machine with 100+ built-in stitches.</p>
+                        <div class="product-footer">
+                            <span class="price">₱14,599</span>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewingmachines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="SHUNFA SF-5550 - Single Needle High-Speed Machine"><i class="fas fa-shopping-cart"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://th.bing.com/th/id/R.9fb5034048b652e29c5bc9a6298f70a1?rik=tPfACM41%2fnr8IA&riu=http%3a%2f%2fgold-needle.com.ua%2fproduct%2f126.jpg&ehk=IDS6lfHaMNIdDy96gHYPCgTojwtgtSCYVa36piMOH5M%3d&risl=&pid=ImgRaw&r=0" alt="SHUNFA SF-781 - Buttonholer Machine">
+                    <div class="product-info">
+                        <h3>SHUNFA SF-781 - Buttonholer Machine</h3>
+                        <p>Professional-grade sewing machine perfect for quilting and heavy fabrics.</p>
+                        <div class="product-footer">
+                            <span class="price">₱10,999</span>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewingmachines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="SHUNFA SF-781 - Buttonholer Machine"><i class="fas fa-shopping-cart"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://th.bing.com/th/id/OIP.2tMM-of2rfFQJYk-P-LrfQHaHa?rs=1&pid=ImgDetMain" alt="JUKI MO-6700 Series - Edger Machine">
+                    <div class="product-info">
+                        <h3>JUKI MO-6700 Series - Edger Machine</h3>
+                        <p>Reliable mechanical sewing machine ideal for beginners and everyday use.</p>
+                        <div class="product-footer">
+                            <span class="price">₱15,799</span>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewingmachines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="JUKI MO-6700 Series - Edger Machine"><i class="fas fa-shopping-cart"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://th.bing.com/th/id/OIP.9fSaqHxWmQe-8PBayzKIDQAAAA?rs=1&pid=ImgDetMain" alt="JUKI DDL-8100 - High-speed machine">
+                    <div class="product-info">
+                        <h3>JUKI DDL-8100 - High-speed machine</h3>
+                        <p>Industrial-strength sewing machine for heavy-duty projects and constant use.</p>
+                        <div class="product-footer">
+                            <span class="price">₱19,999</span>
+                            <a href="{{ url_for('views.sewingmachines') }}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="JUKI DDL-8100 - High-speed machine"><i class="fas fa-shopping-cart"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <img src="https://lzd-img-global.slatic.net/g/ff/kf/S396aa68bfeb44d5598f5a94ec0704000r.jpg_720x720q80.jpg" alt="Shunfa JH563 - Portable sewing machine">
+                    <div class="product-info">
+                        <h3>Shunfa JH563 - Portable sewing machine</h3>
+                        <p>Swiss precision engineering with innovative features for perfect stitching.</p>
+                        <div class="product-footer">
+                            <span class="price">₱23,899</span>
+                            <a href="{% if not user.is_authenticated %}{{ url_for('auth.login') }}{% else %}{{ url_for('views.sewingmachines') }}{% endif %}" class="cart-icon product-link" data-authenticated="{{ '1' if user.is_authenticated else '0' }}" data-product-name="Shunfa JH563 - Portable sewing machine"><i class="fas fa-shopping-cart"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="slider-arrow slider-next">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </section>
+
+    <section class="perfect-parts container">
+        <h2 class="section-title">Perfect Parts for Precision</h2>
+        <div class="product-grid">
+            <div class="product-card">
+                <img src="https://th.bing.com/th/id/OIP.cfVbbj4_rhNz-iuqyxkZ0gHaE8?rs=1&pid=ImgDetMain" alt="Sewing Machine Needles">
+                <div class="product-info">
+                    <h3>Positioning Finger</h3>
+                    <p>High-quality needles for all types of fabrics.</p>
+                    <div class="product-footer">
+                        <a href="{{ url_for('views.sewing_parts') }}" class="shop-now-link product-link">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <img src="https://d2culxnxbccemt.cloudfront.net/sew/content/uploads/2017/12/29094928/sewing-machine-feet.png" alt="Sewing Machine Feet">
+                <div class="product-info">
+                    <h3>Sewing Machine Feet</h3>
+                    <p>Versatile feet for various sewing techniques.</p>
+                    <div class="product-footer">
+                        <a href="{{ url_for('views.sewing_parts') }}" class="shop-now-link product-link">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <img src="https://thumbs.dreamstime.com/b/sewing-machine-steel-yarn-bobbin-thread-white-background-sewing-machine-steel-yarn-bobbin-thread-other-tools-230444307.jpg" alt="Sewing Machine Bobbin">
+                <div class="product-info">
+                    <h3>Sewing Machine Bobbin</h3>
+                    <p>Keep your stitches smooth and your machine humming with our premium sewing machine bobbins.</p>
+                    <div class="product-footer">
+                        <a href="{{ url_for('views.sewing_parts') }}" class="shop-now-link product-link">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-header">
+            <h3>Customer Support</h3>
+            <button class="close-chat" id="closeChat">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! How can I help you with your shopping today?
+            </div>
+        </div>
+        <div class="quick-questions" id="quickQuestions">
+            <button class="quick-question-btn" data-question="Shipping policy">Shipping policy</button>
+            <button class="quick-question-btn" data-question="Return policy">Return policy</button>
+            <button class="quick-question-btn" data-question="Product inquiry">Product inquiry</button>
+            <button class="quick-question-btn" data-question="Payment methods">Payment methods</button>
+            <button class="quick-question-btn" data-question="Order tracking">Order tracking</button>
+            <button class="quick-question-btn" data-question="Chat with Seller">Chat with Seller</button>
+        </div>
+        <form class="chat-form" id="chatForm">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+            <label for="fileInput" class="file-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="clip-icon">
+                    <path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l8.49-8.49a3.5 3.5 0 014.95 4.95l-8.49 8.49a1.5 1.5 0 01-2.12-2.12l8.49-8.49.71.71-8.49 8.49a.5.5 0 00.71.71l8.49-8.49a2.5 2.5 0 10-3.54-3.54l-8.49 8.49a4.5 4.5 0 006.36 6.36l8.49-8.49.71.71z"/>
+                </svg>
+                <input type="file" id="fileInput" class="file-input" style="display: none;" accept="image/*,video/*">
+            </label>
+            <button type="submit" class="send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </form>
+        <div id="filePreview" class="file-preview"></div>
+    </div>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('views.home') }}">Home</a></li>
+                    <li><a href="#" id="footerShopLink">Shop</a></li>
+                    <li><a href="{{ url_for('views.about') }}">About</a></li>
+                    <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section payment-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
+                </div>
+            </div>
+
+            <div class="footer-section contact-section">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                </div>
+                <div class="contact-info">
+                    <h3>JBR Tanching C.O</h3>
+                    <p class="contact-phone">(02) 8123-4567</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+        </div>
+    </footer>
+    <script>
+        const SIGNUP_URL = "{{ url_for('auth.sign_up') }}";
+    </script>
+    <script>
+      window.AUTH_STATE = {
+        isAuthenticated: "{{ 'true' if user.is_authenticated else 'false' }}",
+        username: "{{ user.username if user.is_authenticated else '' }}"
+      };
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<footer>
+    <div class="container footer-grid">
+        <div class="footer-section">
+            <h3>About Us</h3>
+            <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+        </div>
+        <div class="footer-section">
+            <h3>Quick Links</h3>
+            <ul>
+                <li><a href="{{ url_for('views.home') }}">Home</a></li>
+                <li><a href="{{ url_for('views.about') }}">About</a></li>
+                <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
+            </ul>
+        </div>
+        <div class="footer-section payment-section">
+            <h3>Payment Methods</h3>
+            <div class="payment-icons">
+                <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
+            </div>
+        </div>
+        <div class="footer-section contact-section">
+            <div class="footer-logo">
+                <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+            </div>
+            <div class="contact-info">
+                <h3>JBR Tanching C.O</h3>
+                <p class="contact-phone">(02) 8123-4567</p>
+            </div>
+        </div>
+    </div>
+    <div class="copyright">
+        <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+    </div>
+</footer> 

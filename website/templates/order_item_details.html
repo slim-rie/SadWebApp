@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Item Details - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/orders.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_account.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .order-details-section { margin-bottom: 24px; }
+        .order-details-row { font-size: 1.1em; margin-bottom: 8px; }
+        .order-details-label { font-weight: 600; color: #444; min-width: 0; margin-right: 4px; }
+        .order-details-value { color: #222; }
+        .order-products-table { width: 100%; border-collapse: collapse; background: #fafbfc; border-radius: 8px; overflow: hidden; margin-top: 1.5em; }
+        .order-products-table th, .order-products-table td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #eee; }
+        .order-products-table th { background: #f5f5f5; font-weight: 600; font-size: 1.1em; }
+        .order-products-table tr:last-child td { border-bottom: none; }
+        .order-product-img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+        .back-to-orders-btn { background: #ff6666; color: #fff; border: none; border-radius: 4px; padding: 10px 22px; margin-bottom: 18px; cursor: pointer; font-size: 16px; transition: background 0.2s; text-decoration: none; display: inline-block; }
+        .back-to-orders-btn:hover { background: #e05555; }
+        .order-details-title { font-size: 2em; font-weight: bold; margin-bottom: 18px; }
+        .order-section-header { font-size: 1.2em; font-weight: bold; margin: 1.5em 0 0.7em 0; }
+        .order-card-single { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); padding: 2em; margin-bottom: 2em; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="{{ url_for('views.home') }}" class="nav-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
+                    <h2 class="logo-text">JBR Tanching C.O</h2>
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <select class="search-dropdown">
+                    <option>All</option>
+                    <option>Fabrics</option>
+                    <option>Sewing Machines</option>
+                    <option>Sewing Parts</option>
+                </select>
+                <input type="text" class="search-input" placeholder="What can we help you find?">
+                <button class="search-btn">
+                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
+                </button>
+            </div>
+
+            <div class="nav-icons">
+                <span class="phone-info">
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
+                <a href="#" class="chat-link" id="chatLink">
+                    <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
+                </a>
+                <a href="{{ url_for('auth.cart') }}" class="cart-link">
+                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
+                </a>
+
+                <div class="user-dropdown">
+                    <div class="user-info" id="userInfo">
+                        <img src="{% if current_user and current_user.profile_image and current_user.profile_image.startswith('http') %}{{ current_user.profile_image }}{% elif current_user and current_user.profile_image %}{{ url_for('static', filename='profile_images/' ~ current_user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}"
+                             alt="Profile" id="profileImage" class="profile-image" data-image="{{ current_user.profile_image if current_user and current_user.profile_image else '' }}">
+                        <span class="username" id="usernameDisplay">{% if current_user %}{{ current_user.username }}{% endif %}</span>
+                    </div>
+                    <div class="dropdown-container" id="dropdownMenu">
+                    </div>
+                </div> 
+            </div> 
+        </nav>
+    </header>
+
+    <main class="my-account-container">
+        <div class="container">
+            <div class="account-wrapper">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <img src="{% if current_user and current_user.profile_image and current_user.profile_image.startswith('http') %}{{ current_user.profile_image }}{% elif current_user and current_user.profile_image %}{{ url_for('static', filename='profile_images/' ~ current_user.profile_image) }}{% else %}{{ url_for('static', filename='pictures/user-circle.png') }}{% endif %}"
+                             alt="Profile" id="profileImage" class="profile-image" data-image="{{ current_user.profile_image if current_user and current_user.profile_image else '' }}">
+                        <div class="user-info">
+                            <div class="user-name-section">
+                                <h3 id="sidebarUsername">{% if current_user %}{{ current_user.username }}{% endif %}</h3>
+                                <div class="green-line">
+                                    <button class="edit-profile-btn" id="editProfileBtn">✏️ Edit Profile</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li class="parent-menu"><a href="{{ url_for('auth.my_account') }}"><i class="fas fa-user"></i> My Account</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-lock"></i> Change Password</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.privacy_settings') }}"><i class="fas fa-shield-alt"></i> Privacy Settings</a></li>
+                        <li class="active"><a href="{{ url_for('auth.orders') }}"><i class="fas fa-shopping-bag"></i> Orders</a></li>
+                    </ul>
+                </div>
+                
+                <div class="account-content">
+                    <a href="{{ url_for('auth.orders') }}" class="back-to-orders-btn">&larr; Back to Orders</a>
+                    <div class="order-card-single">
+                        <div class="order-details-title">Order Details</div>
+                        <div class="order-details-section">
+                            <div class="order-details-row"><span class="order-details-label">Order ID:</span> <span class="order-details-value">{{ order.order_id }}</span></div>
+                            <div class="order-details-row"><span class="order-details-label">Status:</span> <span class="order-details-value">{{ order.status|capitalize }}</span></div>
+                            <div class="order-details-row"><span class="order-details-label">Amount Payable:</span> <span class="order-details-value">₱{{ '%.2f'|format(order.total_amount) }}</span></div>
+                            <div class="order-details-row"><span class="order-details-label">Payment Method:</span> <span class="order-details-value">{{ order.payment_method }}</span></div>
+                        </div>
+                        <div class="order-section-header">Product</div>
+                        <table class="order-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Name</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><img src="{{ image_path }}" alt="{{ product.product_name }}" class="order-product-img"></td>
+                                    <td style="font-weight:600;">{{ product.product_name }}</td>
+                                    <td>x{{ item.quantity }}</td>
+                                    <td>₱{{ '%.2f'|format(item.price) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        {% if order.status|lower == 'cancelled' %}
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
+                            <a href="{{ url_for('auth.cancel_order_details') }}?order_id={{ order.order_id }}" class="modal-btn">View Cancellation Details</a>
+                            <a href="{{ url_for('auth.contact_seller', product_id=product.product_id) }}" class="modal-btn">Contact Seller</a>
+                            <a href="{{ url_for('views.product', product_id=product.product_id) }}" class="modal-btn">Buy Again</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-header">
+            <h3>Customer Support</h3>
+            <button class="close-chat" id="closeChat">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! How can I help you with your shopping today?
+            </div>
+        </div>
+        <div class="quick-questions" id="quickQuestions">
+            <button class="quick-question-btn" data-question="Shipping policy">Shipping policy</button>
+            <button class="quick-question-btn" data-question="Return policy">Return policy</button>
+            <button class="quick-question-btn" data-question="Product inquiry">Product inquiry</button>
+            <button class="quick-question-btn" data-question="Payment methods">Payment methods</button>
+            <button class="quick-question-btn" data-question="Order tracking">Order tracking</button>
+            <button class="quick-question-btn" data-question="Chat with Seller">Chat with Seller</button>
+        </div>
+        <form class="chat-form" id="chatForm">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+            <label for="fileInput" class="file-label">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="clip-icon">
+                    <path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l8.49-8.49a3.5 3.5 0 014.95 4.95l-8.49 8.49a1.5 1.5 0 01-2.12-2.12l8.49-8.49.71.71-8.49 8.49a.5.5 0 00.71.71l8.49-8.49a2.5 2.5 0 10-3.54-3.54l-8.49 8.49a4.5 4.5 0 006.36 6.36l8.49-8.49.71.71z"/>
+                </svg>
+                <input type="file" id="fileInput" class="file-input" style="display: none;" accept="image/*,video/*">
+            </label>
+            <button type="submit" class="send-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </form>
+        <div id="filePreview" class="file-preview"></div>
+    </div>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('views.home') }}">Home</a></li>
+                    <li><a href="{{ url_for('views.about') }}">About</a></li>
+                    <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section payment-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
+                </div>
+            </div>
+
+            <div class="footer-section contact-section">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                </div>
+                <div class="contact-info">
+                    <h3>JBR Tanching C.O</h3>
+                    <p class="contact-phone">(02) 8123-4567</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set username in the sidebar
+        const sidebarUsername = document.getElementById('sidebarUsername');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        if (sidebarUsername && usernameDisplay) {
+            const username = "{{ current_user.username if current_user else '' }}";
+            sidebarUsername.textContent = username;
+            usernameDisplay.textContent = username;
+        }
+
+        // Set profile image
+        const profileImage = document.getElementById('profileImage');
+        if (profileImage) {
+            const imagePath = "{{ current_user.profile_image if current_user and current_user.profile_image else '' }}";
+            if (imagePath) {
+                if (imagePath.startsWith('http')) {
+                    profileImage.src = imagePath;
+                } else {
+                    profileImage.src = "{{ url_for('static', filename='profile_images/') }}" + imagePath;
+                }
+            }
+        }
+    });
+    </script>
+</body>
+</html> 

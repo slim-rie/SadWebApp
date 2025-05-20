@@ -1,0 +1,1 @@
+# PayMongo integration removed. No payment gateway is used in this project. 

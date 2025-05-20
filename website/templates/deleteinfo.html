@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Information - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/privacysettings.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_account.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/deleteinfo.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <a href="{{ url_for('views.home') }}" class="nav-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
+                    <h2 class="logo-text">JBR Tanching C.O</h2>
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <select class="search-dropdown">
+                    <option>All</option>
+                    <option>Fabrics</option>
+                    <option>Sewing Machines</option>
+                    <option>Sewing Parts</option>
+                </select>
+                <input type="text" class="search-input" placeholder="What can we help you find?">
+                <button class="search-btn">
+                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
+                </button>
+            </div>
+
+            <div class="nav-icons">
+                <span class="phone-info">
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
+                    <span class="phone-text">+63 912-3456-789</span>
+                </span>
+                <a href="{{ url_for('auth.cart') }}" class="cart-link">
+                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
+                </a>
+
+                <div class="user-dropdown">
+                    <div class="user-info">
+                        <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
+                        <span class="username" id="usernameDisplay"></span>
+                    </div>
+                    <div class="dropdown-container" id="dropdownMenu">
+                    </div>
+                </div>
+            </div> 
+        </nav>
+    </header>
+
+    <main class="my-account-container">
+        <div class="container">
+            <div class="account-wrapper">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <img src="{{ url_for('static', filename='pictures/user-circle.png') }}" alt="Profile" id="profileImage" class="profile-image">
+                        <div class="user-info">
+                            <div class="user-name-section">
+                                <h3 id="sidebarUsername"></h3>
+                                <div class="green-line">
+                                    <button class="edit-profile-btn" id="editProfileBtn">✏️ Edit Profile</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li class="parent-menu"><a href="{{ url_for('auth.my_account') }}"><i class="fas fa-user"></i> My Account</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+                        <li class="sub-menu"><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-lock"></i> Change Password</a></li>
+                        <li class="active sub-menu"><a href="{{ url_for('auth.privacy_settings') }}"><i class="fas fa-shield-alt"></i> Privacy Settings</a></li>
+                        <li><a href="{{ url_for('auth.orders') }}"><i class="fas fa-shopping-bag"></i> Orders</a></li>
+                    </ul>
+                </div>
+                
+                
+                <div class="account-content">
+                    <h2 class="page-title">Account Deletion Information</h2>
+                    <p class="page-subtitle">Important information about deleting your account</p>
+                    
+                    <div class="deletion-info-container">
+                        <h3 class="section-title">Important</h3>
+                        
+                        <div class="deletion-info">
+                            <p>By clicking on "Proceed", you agree to the following:</p>
+                            <ul class="bullet-list">
+                                <li>Account deletion is irreversible. Upon successful deletion of your account, you will not be able to log in to the deleted account and view account history.</li>
+                                <li>Your account cannot be deleted if you have any pending purchases, sales and/or outstanding matters including legal matters.</li>
+                                <li>After successful deletion of your account, JBC Tanching C.O may retain certain data in accordance with JBC Tanching C.O's Privacy Policy and applicable law.</li>
+                                <li>JBC Tanching C.O reserves the right to reject future account creation requests by you.</li>
+                                <li>The deletion of your account does not discharge you from any outstanding liabilities and/or obligations.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="button-container">
+                            <button id="cancelBtn" class="cancel-btn">Cancel</button>
+                            <button id="proceedBtn" class="proceed-btn">Proceed</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="sadMessageModal" class="sad-modal">
+        <div class="sad-modal-content">
+            <h3 class="sad-modal-title">We're Sad to See You Go</h3>
+            <p class="sad-modal-text">We are sad that you want to leave us, but please note that account deletion is irreversible.</p>
+            <div class="sad-modal-buttons">
+                <button class="sad-modal-btn sad-cancel-btn" id="sadCancelBtn">Go Back</button>
+                <button class="sad-modal-btn sad-continue-btn" id="sadContinueBtn">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="passwordModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 class="modal-title">Delete Your Account?</h3>
+            <p class="modal-text">This will permanently delete your account and all associated data. This action cannot be undone.</p>
+            <p class="modal-text">Please enter your password to confirm deletion:</p>
+            <input type="password" id="confirmPassword" placeholder="Enter your password" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px;">
+            <span id="passwordError" style="color: #ff4d4d; font-size: 13px; display: none;"></span>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel-delete" id="cancelDeleteBtn">CANCEL</button>
+                <button class="modal-btn confirm-delete" id="confirmDeleteBtn">DELETE</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container footer-grid">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="{{ url_for('views.home') }}">Home</a></li>
+                    <li><a href="{{ url_for('views.about') }}">About</a></li>
+                    <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section payment-section">
+                <h3>Payment Methods</h3>
+                <div class="payment-icons">
+                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
+                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
+                </div>
+            </div>
+
+            <div class="footer-section contact-section">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
+                </div>
+                <div class="contact-info">
+                    <h3>JBR Tanching C.O</h3>
+                    <p class="contact-phone">(02) 8123-4567</p>
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/deleteinfo.js') }}" defer></script>
+
+</body>
+</html>
