@@ -1,0 +1,176 @@
+<!-- SUPPLIER TO -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - JBR Tanching C.O</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR Tanching C.O Logo">
+            <div class="logo-text">JBR Tanching C.O</div>
+        </div>
+        <ul class="nav-menu">
+            <li class="active"><a href="{{ url_for('views.dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('views.request_management') }}">Request Management</a></li>
+            <li><a href="{{ url_for('views.delivery_status') }}">Delivery Status Management</a></li>
+            <li><a href="{{ url_for('views.reports') }}">Reports</a></li>
+            <li><a href="{{ url_for('views.settings') }}">Settings</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Dashboard</h1>
+        </div>
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="summary-title">Total Requests</div>
+                <div class="summary-value">4</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-title">Pending</div>
+                <div class="summary-value">1</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-title">Approved</div>
+                <div class="summary-value">1</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-title">To Ship</div>
+                <div class="summary-value">1</div>
+            </div>
+        </div>
+        <div class="data-table">
+            <div style="padding: 24px 24px 0 24px;">
+                <h2 class="totals-title">Recent Requests</h2>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Date</th>
+                        <th>Products</th>
+                        <th>Quantity</th>
+                        <th>Total Amount</th>
+                        <th>Requested by</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>REQ-001</td>
+                        <td>2024-03-20</td>
+                        <td>Cotton Fabric, Silk Fabric</td>
+                        <td>50m, 20m</td>
+                        <td>₱15,750.00</td>
+                        <td>Juan Dela Cruz</td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                    </tr>
+                    <tr>
+                        <td>REQ-002</td>
+                        <td>2024-03-19</td>
+                        <td>Sewing Needles, Machine Oil</td>
+                        <td>100 pcs, 5L</td>
+                        <td>₱8,900.00</td>
+                        <td>Maria Santos</td>
+                        <td><span class="status-badge status-approved">Approved</span></td>
+                    </tr>
+                    <tr>
+                        <td>REQ-003</td>
+                        <td>2024-03-18</td>
+                        <td>Polyester Thread, Cotton Thread</td>
+                        <td>200 spools, 150 spools</td>
+                        <td>₱12,450.00</td>
+                        <td>Juan Dela Cruz</td>
+                        <td><span class="status-badge status-rejected">Rejected</span></td>
+                    </tr>
+                    <tr>
+                        <td>REQ-004</td>
+                        <td>2024-03-17</td>
+                        <td>Denim Fabric, Linen Fabric</td>
+                        <td>100m, 50m</td>
+                        <td>₱25,800.00</td>
+                        <td>Maria Santos</td>
+                        <td><span class="status-badge status-approved">Approved</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="chatTopbarContainer" style="display:flex;">
+        <div class="chat-topbar">
+            <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="chat-float-img" id="openChatModal">
+            <div class="chat-profile">
+                <img src="{{ url_for('static', filename='pictures/Skylab.png') }}" alt="User" class="chat-profile-img">
+                <div class="chat-profile-info">
+                    <div class="chat-profile-name">Skylab Manufacturing</div>
+                    <div class="chat-profile-role">Supplier</div>
+                </div>
+                <i class="fas fa-chevron-down" id="profileDropdownToggle" style="cursor:pointer;"></i>
+                <div class="chat-profile-dropdown" id="profileDropdownMenu">
+                    <a href="{{ url_for('auth.logout') }}" class="chat-profile-dropdown-item logout-link" id="logoutBtn">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatModal" class="chat-modal">
+        <div class="chat-modal-content">
+            <div class="chat-modal-header" id="chatHeaderBar">
+                <span class="chat-modal-title">Recent Chats</span>
+                <button class="chat-modal-close" id="closeChatModal" aria-label="Close">&times;</button>
+            </div>
+            <div class="chat-modal-list" id="chatList" style="display: block;">
+                <div class="chat-modal-item" id="openConversation">
+                    <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
+                    <div class="chat-modal-details">
+                        <div class="chat-modal-name">JBR Tanching C.O</div>
+                        <div class="chat-modal-message">We do not have enough stock avai ...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-modal-conversation" id="chatConversation" style="display: none;">
+                <button class="chat-conv-back" id="backToList">&#8592; Back</button>
+                <div class="chat-conv-company-row">
+                    <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
+                    <div class="chat-conv-company-info">
+                        <div class="chat-modal-name">JBR Tanching C.O</div>
+                        <div class="chat-modal-role">Company</div>
+                    </div>
+                </div>
+                <div class="chat-conv-divider">Yesterday</div>
+                <div class="chat-conv-messages">
+                    <div class="chat-message chat-message-them">
+                        <span>When blue color will be available?</span>
+                    </div>
+                    <div class="chat-message chat-message-you">
+                        <span>We don't have enough stock for Lacoster Fabrics</span>
+
+                    </div>
+                </div>
+                <div class="chat-conv-input">
+                    <input type="text" id="chatInput" placeholder="Type here...." />
+                    <input type="file" id="chatFileInput" style="display:none;" />
+                    <div class="chat-conv-icons">
+                        <button class="chat-attach-btn" id="chatAttachBtn" type="button">
+                            <img src="{{ url_for('static', filename='pictures/attach.png') }}" alt="Attach" style="width:28px;height:28px;">
+                        </button>
+                        <button class="chat-send-btn" id="chatSendBtn" type="button">
+                            <img src="{{ url_for('static', filename='pictures/arrow.png') }}" alt="Send" style="width:28px;height:28px;">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='/dashboard.js') }}"></script>
+</body>
+</html> 

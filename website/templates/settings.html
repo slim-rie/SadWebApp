@@ -1,0 +1,132 @@
+<!-- SUPPLIER TO -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Profile Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/settings.css') }}">
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR Tanching C.O Logo">
+            <div class="logo-text">JBR Tanching C.O</div>
+        </div>
+        <ul class="nav-menu">
+            <li class="active"><a href="{{ url_for('views.dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('views.request_management') }}">Request Management</a></li>
+            <li><a href="{{ url_for('views.delivery_status') }}">Delivery Status Management</a></li>
+            <li><a href="{{ url_for('views.reports') }}">Reports</a></li>
+            <li><a href="{{ url_for('views.settings') }}">Settings</a></li>
+        </ul>
+    </div>
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Profile Management</h1>
+        </div>
+        <div class="profile-section">
+            <div class="success-message" id="successMessage">Profile updated successfully!</div>
+            <form id="profileForm" autocomplete="off">
+                <div style="text-align:center; margin-bottom:18px;">
+                    <img src="{{ url_for('static', filename='pictures/Skylab.png') }}" alt="Profile Picture" id="profilePicPreview" class="profile-pic-preview">
+                </div>
+                <div class="profile-form-group">
+                    <label class="profile-form-label" for="profilePic">Profile Picture</label>
+                    <input class="profile-form-input" type="file" id="profilePic" accept="image/*">
+                </div>
+                <div class="profile-form-group">
+                    <label class="profile-form-label" for="profileName">Name</label>
+                    <input class="profile-form-input" type="text" id="profileName" value="Skylab Manufacturing" required>
+                </div>
+                <div class="profile-form-group">
+                    <label class="profile-form-label" for="profileEmail">Email</label>
+                    <input class="profile-form-input" type="email" id="profileEmail" value="skylab@example.com" required>
+                </div>
+                <div class="profile-form-group">
+                    <label class="profile-form-label" for="profileCompany">Company</label>
+                    <input class="profile-form-input" type="text" id="profileCompany" value="JBR Tanching C.O" required>
+                </div>
+                <div class="profile-form-group">
+                    <label class="profile-form-label" for="profilePassword">Password</label>
+                    <input class="profile-form-input" type="password" id="profilePassword" value="" placeholder="Enter new password">
+                </div>
+                <div style="text-align:center;">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="chatTopbarContainer" style="display:flex;">
+        <div class="chat-topbar">
+            <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="chat-float-img" id="openChatModal">
+            <div class="chat-profile">
+                <img src="{{ url_for('static', filename='pictures/Skylab.png') }}" alt="User" class="chat-profile-img">
+                <div class="chat-profile-info">
+                    <div class="chat-profile-name">Skylab Manufacturing</div>
+                    <div class="chat-profile-role">Supplier</div>
+                </div>
+                <i class="fas fa-chevron-down" id="profileDropdownToggle" style="cursor:pointer;"></i>
+                <div class="chat-profile-dropdown" id="profileDropdownMenu">
+                    <a href="{{ url_for('auth.logout') }}" class="chat-profile-dropdown-item logout-link" id="logoutBtn">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chatModal" class="chat-modal">
+        <div class="chat-modal-content">
+            <div class="chat-modal-header" id="chatHeaderBar">
+                <span class="chat-modal-title">Recent Chats</span>
+                <button class="chat-modal-close" id="closeChatModal" aria-label="Close">&times;</button>
+            </div>
+            <div class="chat-modal-list" id="chatList" style="display: block;">
+                <div class="chat-modal-item" id="openConversation">
+                    <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
+                    <div class="chat-modal-details">
+                        <div class="chat-modal-name">JBR Tanching C.O</div>
+                        <div class="chat-modal-message">We do not have enough stock avai ...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-modal-conversation" id="chatConversation" style="display: none;">
+                <button class="chat-conv-back" id="backToList">&#8592; Back</button>
+                <div class="chat-conv-company-row">
+                    <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
+                    <div class="chat-conv-company-info">
+                        <div class="chat-modal-name">JBR Tanching C.O</div>
+                        <div class="chat-modal-role">Company</div>
+                    </div>
+                </div>
+                <div class="chat-conv-divider">Yesterday</div>
+                <div class="chat-conv-messages">
+                    <div class="chat-message chat-message-them">
+                        <span>When blue color will be available?</span>
+                    </div>
+                    <div class="chat-message chat-message-you">
+                        <span>We don't have enough stock for Lacoster Fabrics</span>
+
+                    </div>
+                </div>
+                <div class="chat-conv-input">
+                    <input type="text" id="chatInput" placeholder="Type here...." />
+                    <input type="file" id="chatFileInput" style="display:none;" />
+                    <div class="chat-conv-icons">
+                        <button class="chat-attach-btn" id="chatAttachBtn" type="button">   
+                            <img src="{{ url_for('static', filename='pictures/attach.png') }}" alt="Attach" style="width:28px;height:28px;">
+                        </button>
+                        <button class="chat-send-btn" id="chatSendBtn" type="button">
+                            <img src="{{ url_for('static', filename='pictures/arrow.png') }}" alt="Send" style="width:28px;height:28px;">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html> 
