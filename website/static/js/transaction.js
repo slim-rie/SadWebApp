@@ -12,13 +12,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const bankOption = document.getElementById('bankOption');
     const gcashOption = document.getElementById('gcashOption');
     const codOption = document.getElementById('codOption');
-    const mayaOption = document.getElementById('mayaOption');
     const qrCodeImage = document.getElementById('qrCodeImage');
     
     // Get QR code URLs from data attributes
     const bankQr = bankOption.getAttribute('data-qr');
     const gcashQr = gcashOption.getAttribute('data-qr');
-    const mayaQr = mayaOption ? mayaOption.getAttribute('data-qr') : null;
     const defaultQr = qrCodeImage.getAttribute('src');
     
     // Payment details from backend (injected as a JS object)
@@ -33,14 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
         gcash: {
             name: 'GCash',
             qr_url: gcashQr,
-            account_name: 'JBR Tanching',
-            phone_number: '0912-345-6789'
-        },
-        maya: {
-            name: 'Maya',
-            qr_url: mayaQr,
-            account_name: 'JBR Tanching',
-            phone_number: '0912-345-6789'
+            account_name: 'JBR Tanching C.O',
+            phone_number: '092• ••••459'
         }
     };
 
@@ -53,7 +45,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('bankName').textContent = details.bank_name || '';
         document.getElementById('phoneNumberRow').style.display = details.phone_number ? '' : 'none';
         document.getElementById('phoneNumber').textContent = details.phone_number || '';
-        qrCodeImage.src = details.qr_url || defaultQr;
+        // Hide QR code for bank, show for gcash
+        if (method === 'bank') {
+            qrCodeImage.style.display = 'none';
+        } else {
+            qrCodeImage.style.display = '';
+            qrCodeImage.src = details.qr_url || defaultQr;
+        }
     }
 
     paymentOptions.forEach(option => {
@@ -71,12 +69,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePaymentDetails('gcash');
     });
     
-    if (mayaOption) {
-        mayaOption.addEventListener('click', function() {
-            updatePaymentDetails('maya');
-        });
-    }
-    
     codOption.addEventListener('click', function() {
         // Hide all payment details for COD
         document.getElementById('accountName').textContent = '';
@@ -92,12 +84,11 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Please select a payment method');
             return;
         }
-        if (selectedOption.id === 'bankOption' || selectedOption.id === 'gcashOption' || selectedOption.id === 'mayaOption') {
+        if (selectedOption.id === 'bankOption' || selectedOption.id === 'gcashOption') {
             // Show modal and update details
             qrModal.classList.add('show');
             if (selectedOption.id === 'bankOption') updatePaymentDetails('bank');
             if (selectedOption.id === 'gcashOption') updatePaymentDetails('gcash');
-            if (selectedOption.id === 'mayaOption') updatePaymentDetails('maya');
         } else if (selectedOption.id === 'codOption') {
             // Create order for COD
             fetch('/api/create-order', {
@@ -123,27 +114,57 @@ document.addEventListener('DOMContentLoaded', function() {
     
     proceedBtn.addEventListener('click', function() {
         const referenceInput = document.getElementById('referenceInput');
+        const modalTransactionFile = document.getElementById('modalTransactionFile');
         const selectedOption = document.querySelector('.payment-option.selected');
+        
         if (!referenceInput.value) {
             alert('Please enter your reference number');
             return;
         }
-        // Create order for bank/gcash
+
+        if (!modalTransactionFile.files[0]) {
+            alert('Please upload proof of payment');
+            return;
+        }
+
+        // First create the order
         let payment_method = selectedOption.id === 'bankOption' ? 'Bank' : 'GCash';
+        
         fetch('/api/create-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payment_method, reference_number: referenceInput.value })
+            body: JSON.stringify({ payment_method })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Then submit payment details
+                const formData = new FormData();
+                formData.append('order_id', data.order_id);
+                formData.append('user_id', data.user_id);
+                formData.append('payment_method_id', payment_method);
+                formData.append('reference_number', referenceInput.value);
+                formData.append('proof_of_payment', modalTransactionFile.files[0]);
+
+                return fetch('/api/payments', {
+                    method: 'POST',
+                    body: formData
+                });
+            } else {
+                throw new Error(data.message || 'Failed to create order');
+            }
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
                 window.location.href = '/orders';
             } else {
-                alert(data.message || 'Failed to create order.');
+                throw new Error(data.message || 'Failed to submit payment');
             }
         })
-        .catch(() => alert('Failed to create order.'));
+        .catch(error => {
+            alert(error.message || 'An error occurred');
+        });
     });
     
     const userIcon = document.getElementById('user-icon');
@@ -210,5 +231,54 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('username');
         updateUIForLoginStatus(false, null);
+    }
+
+    if (modalFileInput) {
+        modalFileInput.addEventListener('change', function() {
+            modalFilePreview.innerHTML = '';
+            const file = modalFileInput.files[0];
+            if (file) {
+                qrModalContent.classList.add('has-file');
+                // Only show image if it's an image, no file name or caption, centered
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.style.maxWidth = '120px';
+                    img.style.maxHeight = '120px';
+                    img.style.display = 'block';
+                    img.style.margin = '12px auto 0 auto';
+                    img.src = URL.createObjectURL(file);
+                    modalFilePreview.appendChild(img);
+                    // OCR: Use Tesseract to extract reference number
+                    Tesseract.recognize(
+                        file,
+                        'eng',
+                        { logger: m => console.log(m) }
+                    ).then(({ data: { text } }) => {
+                        // Try to find a reference number (sequence of 8+ digits)
+                        const match = text.match(/\b\d{8,}\b/);
+                        if (match) {
+                            referenceInput.value = match[0];
+                            referenceInput.dataset.ocr = match[0]; // Store OCR result in data attribute
+                        } else {
+                            referenceInput.dataset.ocr = '';
+                        }
+                        referenceSection.style.display = '';
+                        checkProceed();
+                    }).catch(() => {
+                        referenceInput.dataset.ocr = '';
+                        referenceSection.style.display = '';
+                        checkProceed();
+                    });
+                } else {
+                    // For non-image files, show nothing
+                    // Optionally, you could show an icon or leave blank
+                    referenceSection.style.display = '';
+                    checkProceed();
+                }
+            } else {
+                referenceSection.style.display = 'none';
+                proceedBtn.disabled = true;
+            }
+        });
     }
 });

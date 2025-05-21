@@ -145,9 +145,6 @@
                 <div class="payment-option" id="gcashOption" data-qr="{{ qr_codes.gcash.qr_url }}">
                     GCash
                 </div>
-                <div class="payment-option" id="mayaOption" data-qr="{{ qr_codes.maya.qr_url }}">
-                    Maya
-                </div>
             </div>
             
             <button class="continue-btn" id="continueBtn">Continue to shipping</button>
@@ -165,12 +162,16 @@
             </div>
             <img src="" alt="QR Code" class="qr-code-img" id="qrCodeImage">
             
-            <label for="modalTransactionFile" style="margin-top:10px; display:inline-block;">Upload Payment Proof:</label>
-            <input type="file" id="modalTransactionFile" name="modalTransactionFile" accept="image/*,.pdf,.doc,.docx" style="display:inline-block; width:auto; margin-left:10px;">
-            <span id="modalFilePreview" style="display:inline-block; margin-left:10px; vertical-align:middle;"></span>
+            <div id="fileInputSection" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 18px;">
+                <label for="modalTransactionFile" style="margin-bottom: 8px;">Upload Payment Proof:</label>
+                <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                    <input type="file" id="modalTransactionFile" name="modalTransactionFile" accept="image/*,.pdf,.doc,.docx" style="width: auto; margin-bottom: 8px;">
+                    <span id="modalFilePreview" style="vertical-align:middle; display: block; text-align: center; width: 100%;"></span>
+                </div>
+            </div>
 
             <div id="referenceSection" style="display:none;">
-                <p class="reference-text">Type here the Reference Number after the payment.</p>
+                <p class="reference-text">This is the Reference Number from the payment.</p>
                 <input type="text" class="reference-input" id="referenceInput" placeholder="Reference Number">
             </div>
 

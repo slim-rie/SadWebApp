@@ -333,19 +333,12 @@ def transaction():
                 'qr_url': url_for('static', filename='pictures/bank_qr.png'),
                 'account_name': 'JBR Tanching C.O',
                 'account_number': '1234-5678-9012',
-                'bank_name': 'BDO'
             },
             'gcash': {
                 'name': 'GCash',
                 'qr_url': url_for('static', filename='pictures/gcash_qr.png'),
-                'account_name': 'JBR Tanching',
-                'phone_number': '0912-345-6789'
-            },
-            'maya': {
-                'name': 'Maya',
-                'qr_url': url_for('static', filename='pictures/maya_qr.png'),
-                'account_name': 'JBR Tanching',
-                'phone_number': '0912-345-6789'
+                'account_name': 'JBR Tanching C.O',
+                'phone_number': '092• ••••459'
             }
         }
         return render_template('transaction.html',
@@ -447,19 +440,12 @@ def transaction():
                 'qr_url': url_for('static', filename='pictures/bank_qr.png'),
                 'account_name': 'JBR Tanching C.O',
                 'account_number': '1234-5678-9012',
-                'bank_name': 'BDO'
             },
             'gcash': {
                 'name': 'GCash',
                 'qr_url': url_for('static', filename='pictures/gcash_qr.png'),
-                'account_name': 'JBR Tanching',
-                'phone_number': '0912-345-6789'
-            },
-            'maya': {
-                'name': 'Maya',
-                'qr_url': url_for('static', filename='pictures/maya_qr.png'),
-                'account_name': 'JBR Tanching',
-                'phone_number': '0912-345-6789'
+                'account_name': 'JBR Tanching C.O',
+                'phone_number': '092• ••••459'
             }
         }
 
@@ -665,20 +651,24 @@ def api_payments():
     # Save file to static/proof_of_payment
     proof_of_payment_url = None
     if file:
-        upload_folder = os.path.join('SadWebApp', 'website', 'static', 'proof_of_payment')
+        from flask import current_app
+        import uuid
+        upload_folder = os.path.join(current_app.root_path, 'static', 'proof_of_payment')
         os.makedirs(upload_folder, exist_ok=True)
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(upload_folder, filename)
+        ext = file.filename.rsplit('.', 1)[-1].lower()
+        unique_filename = f'{uuid.uuid4().hex}.{ext}'
+        file_path = os.path.join(upload_folder, unique_filename)
+        print(f"Saving file to: {file_path}")  # Debug
         file.save(file_path)
-        proof_of_payment_url = f'static/proof_of_payment/{filename}'
+        proof_of_payment_url = f'/static/proof_of_payment/{unique_filename}'
         order.proof_of_payment_url = proof_of_payment_url
     else:
         order.proof_of_payment_url = None
 
     # Store the OCR result as reference_number
     order.reference_number = reference_number
-    order.payment_method_id = payment_method_id
-    order.vision_api_result = vision_api_result
+    order.payment_method = payment_method_id  # Changed from payment_method_id to payment_method
+    order.payment_status = 'pending'  # Add payment status
     db.session.commit()
     return jsonify({'success': True})
 
@@ -749,6 +739,7 @@ def create_order():
     data = request.get_json()
     payment_method = data.get('payment_method')
     reference_number = data.get('reference_number')
+    proof_of_payment_url = data.get('proof_of_payment_url')
 
     # Validate payment method
     allowed_methods = ['Cash on Delivery', 'Bank', 'GCash', 'Maya']
@@ -796,6 +787,8 @@ def create_order():
             total_amount=total,
             status='pending',
             payment_method=payment_method,
+            reference_number=reference_number,
+            proof_of_payment_url=proof_of_payment_url,
             payment_status='pending',
             shipping_address=address.complete_address
         )
@@ -816,7 +809,7 @@ def create_order():
         session.pop('buy_now_item', None)
         db.session.commit()
         
-        return {'success': True, 'order_id': order.order_id}
+        return {'success': True, 'order_id': order.order_id, 'user_id': current_user.user_id}
 
     # Regular cart flow
     # Check stock availability for all items
@@ -848,6 +841,8 @@ def create_order():
         total_amount=total,
         status='pending',
         payment_method=payment_method,
+        reference_number=reference_number,
+        proof_of_payment_url=proof_of_payment_url,
         payment_status='pending',
         shipping_address=address.complete_address
     )
@@ -866,10 +861,12 @@ def create_order():
         ))
 
     # Clear cart
-    CartItem.query.filter_by(user_id=current_user.user_id).delete()
+    for item in cart_items:
+        db.session.delete(item)
+    
     db.session.commit()
-
-    return {'success': True, 'order_id': order.order_id}
+    
+    return {'success': True, 'order_id': order.order_id, 'user_id': current_user.user_id}
 
 @views.route('/api/related-products')
 def get_related_products():
