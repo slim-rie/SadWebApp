@@ -6,10 +6,12 @@ from functools import wraps
 from flask_migrate import Migrate
 from flask_cors import CORS
 from .config import Config
+from flask_mail import Mail
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
+mail = Mail()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -20,6 +22,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     migrate.init_app(app, db)
     CORS(app)
+    mail.init_app(app)
     
     # Configure login manager
     login_manager.login_view = 'auth.login'

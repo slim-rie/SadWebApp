@@ -1,4 +1,5 @@
 from flask import Blueprint
+from flask_mail import Message
 
 auth = Blueprint('auth', __name__)
 
@@ -15,6 +16,7 @@ import uuid
 import re
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
+from . import mail  # Import mail from your app
 
 # Allow OAuth over HTTP for development
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -391,6 +393,7 @@ def google_oauth_callback():
         db.session.commit()
 
     login_user(user)
+    send_login_notification(user.email)  # Send email notification after login
     flash("Successfully signed in with Google!", "success")
     return redirect(url_for('views.home'))
 
@@ -1150,4 +1153,12 @@ def settings():
 
 @auth.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html', user=current_user) 
+    return render_template('dashboard.html', user=current_user)
+
+def send_login_notification(user_email):
+    msg = Message(
+        "Login Notification",
+        recipients=[user_email]
+    )
+    msg.body = "You just logged in to JBR Web App."
+    mail.send(msg) 
