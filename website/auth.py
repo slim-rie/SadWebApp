@@ -341,6 +341,7 @@ def google_oauth_login():
         return redirect(url_for('auth.login'))
 
 @auth.route('/google-oauth-callback')
+@auth.route('/auth/google/callback')
 def google_oauth_callback():
     code = request.args.get('code')
     if not code:
