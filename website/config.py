@@ -9,9 +9,9 @@
 
 GOOGLE_CLIENT_ID = "240771338078-q8muqloo8866iugeatrd8cojmvu9set1.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "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"
-GOOGLE_CALLBACK_URL = "http://localhost:5000/google-oauth-callback"
-
 import os
+GOOGLE_CALLBACK_URL = os.environ.get("GOOGLE_CALLBACK_URL", "http://localhost:5000/google-oauth-callback")
+
 from datetime import timedelta
 
 class Config:
