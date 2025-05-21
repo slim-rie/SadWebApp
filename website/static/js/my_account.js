@@ -619,4 +619,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return '*'.repeat(phone.length - 2) + phone.slice(-2);
     }
+
+    // Restrict modalPhone input to only numbers and max 11 digits
+    if (modalPhone) {
+        modalPhone.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+            if (this.value.length > 11) {
+                this.value = this.value.slice(0, 11);
+            }
+        });
+    }
 });

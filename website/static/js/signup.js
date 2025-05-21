@@ -220,4 +220,17 @@ document.addEventListener('DOMContentLoaded', function() {
             loginError.textContent = 'Login failed: ' + error;
         });
     });
+    
+    // Restrict phone number input to only numbers
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Remove all non-digit characters
+            this.value = this.value.replace(/\D/g, '');
+            // Limit to 11 digits
+            if (this.value.length > 11) {
+                this.value = this.value.slice(0, 11);
+            }
+        });
+    }
 });
