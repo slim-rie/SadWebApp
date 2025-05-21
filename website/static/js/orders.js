@@ -98,7 +98,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn cancel-order-btn">Cancel Order</button>
                     `;
-                } else if (mappedStatus === 'to-ship' || mappedStatus === 'shipped' || mappedStatus === 'to-receive' || mappedStatus === 'delivered' || mappedStatus === 'cancelled' || mappedStatus === 'refunded') {
+                } else if (mappedStatus === 'cancelled') {
+                    orderHtml += `
+                        <button class="action-btn view-details-btn">View Cancellation Order</button>
+                        <button class="action-btn contact-seller-btn">Contact Seller</button>
+                        <button class="action-btn buy-again-btn">Buy Again</button>
+                    `;
+                } else if (mappedStatus === 'to-ship' || mappedStatus === 'shipped' || mappedStatus === 'to-receive' || mappedStatus === 'delivered' || mappedStatus === 'refunded') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn track-order-btn">Track Order</button>
@@ -132,7 +138,49 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.querySelectorAll('.buy-again-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                window.location.href = '/cart';
+                const orderCard = btn.closest('.order-card');
+                const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
+                if (!orderId) {
+                    alert('Order ID not found.');
+                    return;
+                }
+                // Find the order from the orders array
+                const order = (window.orders || []).find(o => o.id == orderId);
+                if (!order || !order.products || order.products.length === 0) {
+                    alert('Order details not found.');
+                    return;
+                }
+
+                // Add each product (with selected variants) to cart via API or localStorage
+                // Example: POST to /api/cart/add for each product
+                let addPromises = order.products.map(product => {
+                    return fetch('/api/cart/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            product_id: product.id,
+                            quantity: product.quantity,
+                            variation: product.variation || null
+                        })
+                    });
+                });
+
+                Promise.all(addPromises)
+                    .then(responses => Promise.all(responses.map(res => res.json())))
+                    .then(results => {
+                        if (results.every(r => r.success)) {
+                            window.location.href = '/cart';
+                        } else {
+                            alert('Some items could not be added to cart.');
+                        }
+                    })
+                    .catch(() => {
+                        alert('Failed to add items to cart.');
+                    });
             });
         });
         
@@ -320,7 +368,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn cancel-order-btn">Cancel Order</button>
                     `;
-                } else if (mappedStatus === 'to-ship' || mappedStatus === 'shipped' || mappedStatus === 'to-receive' || mappedStatus === 'delivered' || mappedStatus === 'cancelled' || mappedStatus === 'refunded') {
+                } else if (mappedStatus === 'cancelled') {
+                    orderHtml += `
+                        <button class="action-btn view-details-btn">View Cancellation Order</button>
+                        <button class="action-btn contact-seller-btn">Contact Seller</button>
+                        <button class="action-btn buy-again-btn">Buy Again</button>
+                    `;
+                } else if (mappedStatus === 'to-ship' || mappedStatus === 'shipped' || mappedStatus === 'to-receive' || mappedStatus === 'delivered' || mappedStatus === 'refunded') {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn track-order-btn">Track Order</button>

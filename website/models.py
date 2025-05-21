@@ -84,12 +84,14 @@ class Order(db.Model):
     __tablename__ = 'orders'
     
     order_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
-    total_amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(20), default='pending')  # pending, paid, shipped, delivered, cancelled
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     payment_method = db.Column(db.String(50))
-    payment_status = db.Column(db.String(20), default='pending')
-    shipping_address = db.Column(db.Text)
+    reference_number = db.Column(db.String(100))  # <-- must exist
+    total_amount = db.Column(db.Float)
+    status = db.Column(db.String(50))
+    payment_status = db.Column(db.String(50))
+    shipping_address = db.Column(db.String(255))
+    proof_of_payment_url = db.Column(db.String(255))  # <-- must exist
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     cancellation_reason = db.Column(db.String(255))

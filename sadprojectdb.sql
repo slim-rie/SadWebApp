@@ -113,6 +113,9 @@ CREATE TABLE `cart_items` (
   `user_id` int NOT NULL,
   `product_id` int NOT NULL,
   `quantity` int DEFAULT NULL,
+  `color` VARCHAR(50),
+  `width` VARCHAR(50),
+  `model` VARCHAR(50),
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -161,9 +164,10 @@ INSERT INTO `categories` VALUES
 (3,'Fabrics',NULL),
 (4,'Shunfa Industrial Sewing Machines',1),
 (5,'Juki Sewing Machines',1),
-(29,'Silk Fabric',3),
 (30,'Cotton Fabric',3),
-(31,'Polyester-Blend Fabrics',3);
+(31,'Polyester-Blend Fabrics',3),
+(32, 'Lacoste Fabrics', 3),
+(33, 'Silk Fabrics', 3);
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -213,6 +217,8 @@ CREATE TABLE `orders` (
   `status` varchar(20) DEFAULT NULL,
   `payment_method` varchar(50) DEFAULT NULL,
   `payment_status` varchar(20) DEFAULT NULL,
+  `reference_number varchar`(100),
+  `proof_of_payment_url` varchar(255),
   `shipping_address` text,
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
@@ -260,7 +266,8 @@ CREATE TABLE `product_images` (
 
 LOCK TABLES `product_images` WRITE;
 /*!40000 ALTER TABLE `product_images` DISABLE KEYS */;
-INSERT INTO `product_images` VALUES (8,43,'/static/pictures/SHUNFA SF-372 Buttonsew machine.jpg','main',0,'SHUNFA SF-372 – Button Sew Machine'),(9,44,'/static/pictures/SHUNFA SF-781 Buttonholer machine.jpg','main',0,'SHUNFA SF-781 – Buttonholer Machine'),(10,45,'/static/pictures/SHUNFA SF-737 – 3-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-737 – 3-Thread Overlock Machine'),(12,47,'/static/pictures/SHUNFA SF-757 – 5-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-757 – 5-Thread Overlock Machine'),(13,48,'/static/pictures/SHUNFA JA2-2 – Household Sewing Machine.jpg','main',0,'SHUNFA JA2-2 – Household Sewing Machine'),(14,49,'/static/pictures/SHUNFA SF-747 – 4-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-747 – 4-Thread Overlock Machine'),(15,50,'/static/pictures/Juki DDL-8100E – Single Needle High-Speed Lockstitch Machine.jpg','main',0,'Juki DDL-8100E – Single Needle High-Speed Lockstitch Machine'),(16,51,'/static/pictures/Juki MO-6700DA Series – Semi-Dry Head Overlock Machine.jpg','main',0,'Juki MO-6700DA Series – Semi-Dry Head Overlock Machine'),(17,52,'/static/pictures/Juki W562-02BB – Piping Machine.jpg','main',0,'Juki W562-02BB – Piping Machine'),(18,53,'/static/pictures/Juki LU-1508N – Walking Foot Lockstitch Machine.jpg','main',0,'Juki LU-1508N – Walking Foot Lockstitch Machine'),(19,54,'/static/pictures/Juki LK-1900S – Computer-Controlled Bartacking Machine.jpg','main',0,'Juki LK-1900S – Computer-Controlled Bartacking Machine'),(20,55,'/static/pictures/Skylab – Lacoste Fabric.jpg','main',0,'Skylab – Lacoste Fabric'),(22,57,'/static/pictures/Quitalig – China Cotton 135 GSM.jpg','main',0,'Quitalig – China Cotton 135 GSM'),(23,58,'/static/pictures/Quitalig – China Cotton 165 GSM.png','main',0,'Quitalig – China Cotton 165 GSM'),(24,59,'/static/pictures/Quitalig – China Cotton 185 GSM.png','main',0,'Quitalig – China Cotton 185 GSM'),(25,60,'/static/pictures/Quitalig – China Cotton 200 GSM.png','main',0,'Quitalig – China Cotton 200 GSM'),(27,62,'/static/pictures/Skylab – CVC Cotton Fabric.jpg','main',0,'Skylab – CVC Cotton Fabric'),(130,83,'/static/pictures/B9117-012-000.jpg','main',0,'Bobbin Case'),(131,84,'/static/pictures/B1837-012-000.jpg','main',0,'Bobbin'),(132,85,'/static/pictures/B1835-012-000.jpg','main',0,'Positioning Finger'),(133,86,'/static/pictures/B1830-127-000.jpg','main',0,'Rotating Hook'),(134,87,'/static/pictures/B3421-552-000.png','main',0,'Presser Foot'),(139,41,'pictures/SHUNFA SF-5550 Single Needle High-Speed Machine (1).jpg','main',1,'SHUNFA SF-5550 Single Needle High-Speed Machine'),(140,41,'pictures/SHUNFA SF-5550 Single Needle High-Speed Machine (2).jpg','main',2,'SHUNFA SF-5550 Single Needle High-Speed Machine');
+INSERT INTO `product_images` VALUES (8,43,'/static/pictures/SHUNFA SF-372 Buttonsew machine.jpg','main',0,'SHUNFA SF-372 - Button Sew Machine'),(9,44,'/static/pictures/SHUNFA SF-781 Buttonholer machine.jpg','main',0,'SHUNFA SF-781 - Buttonholer Machine'),(10,45,'/static/pictures/SHUNFA SF-737 - 3-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-737 - 3-Thread Overlock Machine'),(12,47,'/static/pictures/SHUNFA SF-757 – 5-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-757 – 5-Thread Overlock Machine'),(13,48,'/static/pictures/SHUNFA JA2-2 – Household Sewing Machine.jpg','main',0,'SHUNFA JA2-2 – Household Sewing Machine'),(14,49,'/static/pictures/SHUNFA SF-747 – 4-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-747 – 4-Thread Overlock Machine'),(15,50,'/static/pictures/Juki DDL-8100E – Single Needle High-Speed Lockstitch Machine.jpg','main',0,'Juki DDL-8100E – Single Needle High-Speed Lockstitch Machine'),(16,51,'/static/pictures/Juki MO-6700DA Series – Semi-Dry Head Overlock Machine.jpg','main',0,'Juki MO-6700DA Series – Semi-Dry Head Overlock Machine'),(17,52,'/static/pictures/Juki W562-02BB – Piping Machine.jpg','main',0,'Juki W562-02BB – Piping Machine'),(18,53,'/static/pictures/Juki LU-1508N – Walking Foot Lockstitch Machine.jpg','main',0,'Juki LU-1508N – Walking Foot Lockstitch Machine'),(19,54,'/static/pictures/Juki LK-1900S – Computer-Controlled Bartacking Machine.jpg','main',0,'Juki LK-1900S – Computer-Controlled Bartacking Machine'),(20,55,'/static/pictures/Skylab – Lacoste Fabric.jpg','main',0,'Skylab – Lacoste Fabric'),(22,57,'/static/pictures/Quitalig – China Cotton 135 GSM.jpg','main',0,'Quitalig – China Cotton 135 GSM'),(23,58,'/static/pictures/Quitalig – China Cotton 165 GSM.png','main',0,'Quitalig – China Cotton 165 GSM'),(24,59,'/static/pictures/Quitalig – China Cotton 185 GSM.png','main',0,'Quitalig – China Cotton 185 GSM'),(25,60,'/static/pictures/Quitalig – China Cotton 200 GSM.png','main',0,'Quitalig – China Cotton 200 GSM'),(27,62,'/static/pictures/Skylab – CVC Cotton Fabric.jpg','main',0,'Skylab – CVC Cotton Fabric'),(130,83,'/static/pictures/B9117-012-000.jpg','main',0,'Bobbin Case'),(131,84,'/static/pictures/B1837-012-000.jpg','main',0,'Bobbin'),(132,85,'/static/pictures/B1835-012-000.jpg','main',0,'Positioning Finger'),(133,86,'/static/pictures/B1830-127-000.jpg','main',0,'Rotating Hook'),(134,87,'/static/pictures/B3421-552-000.png','main',0,'Presser Foot'),(139,41,'pictures/SHUNFA SF-5550 Single Needle High-Speed Machine (1).jpg','main',1,'SHUNFA SF-5550 Single Needle High-Speed Machine'),(140,41,'pictures/SHUNFA SF-5550 Single Needle High-Speed Machine (2).jpg','main',2,'SHUNFA SF-5550 Single Needle High-Speed Machine'), (141, 65, '/static/pictures/chiffon-fabric.jpeg', 'main', 0, null);
+
 /*!40000 ALTER TABLE `product_images` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -351,9 +358,9 @@ INSERT INTO `products` VALUES
 (61,'Skylab – TC Fabric','TC (Tetron Cotton)','TC (Tetron Cotton) fabric combines polyester with cotton for strength, easy care, and wrinkle resistance. Common in uniforms and casual apparel. For bulk orders, kindly send us a private message for further assistance.',31,599.00,0.00,100,'2025-05-16 10:37:59','2025-05-16 10:37:59',3,NULL),
 (62,'Skylab – CVC Cotton Fabric','CVC','CVC (Chief Value Cotton) fabric has higher cotton content for comfort with added durability and lower shrinkage, perfect for everyday garments. For bulk orders, kindly send us a private message for further assistance.',31,599.00,0.00,100,'2025-05-16 10:37:59','2025-05-16 10:37:59',3,NULL),
 (63,'Skylab – Ribbings for Neckline','Ribbing','Stretchable ribbing fabric used in collars, cuffs, and hems to enhance flexibility and fit. For bulk orders, kindly send us a private message for further assistance.',32,599.00,0.00,100,'2025-05-16 10:37:59','2025-05-16 10:37:59',3,NULL),
-(64,'Charmeuse Silk','Charmeuse Silk','Charmeuse is a luxurious silk fabric known for its high-gloss finish and smooth texture. It is lightweight and drapes beautifully, making it ideal for elegant evening wear, lingerie, and scarves. For bulk orders, kindly send us a private message for further assistance.',29,1499.00,0.00,100,'2025-05-16 10:37:59','2025-05-16 10:37:59',NULL,NULL),
-(65,'Chiffon Silk','Chiffon Silk','Chiffon silk is a lightweight, sheer fabric with a soft, flowing drape. It is often used in layering garments such as dresses, blouses, and scarves, providing an airy and romantic aesthetic. For bulk orders, kindly send us a private message for further assistance.',29,1499.00,0.00,100,'2025-05-16 10:38:00','2025-05-16 10:38:00',NULL,NULL),
-(66,'Crepe de Chine Silk','Crepe de Chine Silk','Crepe de Chine is a lightweight silk fabric with a soft, crinkled texture. It offers a subtle sheen and is commonly used for blouses, dresses, and scarves, providing an elegant and refined appearance. For bulk orders, kindly send us a private message for further assistance.',29,1499.00,0.00,100,'2025-05-16 10:38:00','2025-05-16 10:38:00',NULL,NULL),
+(64,'Charmeuse Silk','Charmeuse Silk','Charmeuse is a luxurious silk fabric known for its high-gloss finish and smooth texture. It is lightweight and drapes beautifully, making it ideal for elegant evening wear, lingerie, and scarves. For bulk orders, kindly send us a private message for further assistance.',33,1499.00,0.00,100,'2025-05-16 10:37:59','2025-05-16 10:37:59',NULL,NULL),
+(65,'Chiffon Silk','Chiffon Silk','Chiffon silk is a lightweight, sheer fabric with a soft, flowing drape. It is often used in layering garments such as dresses, blouses, and scarves, providing an airy and romantic aesthetic. For bulk orders, kindly send us a private message for further assistance.',33,1499.00,0.00,100,'2025-05-16 10:38:00','2025-05-16 10:38:00',NULL,NULL),
+(66,'Crepe de Chine Silk','Crepe de Chine Silk','Crepe de Chine is a lightweight silk fabric with a soft, crinkled texture. It offers a subtle sheen and is commonly used for blouses, dresses, and scarves, providing an elegant and refined appearance. For bulk orders, kindly send us a private message for further assistance.',33,1499.00,0.00,100,'2025-05-16 10:38:00','2025-05-16 10:38:00',NULL,NULL),
 (83,'Bobbin Case','B9117-012-000','The bobbin case holds the bobbin in place and ensures smooth thread flow to form stitches. For bulk orders, kindly send us a private message for further assistance.',2,120.00,NULL,50,NULL,NULL,NULL,'SewingMachineComponents'),
 (84,'Bobbin','B1837-012-000','The bobbin stores the bottom thread, which works in tandem with the needle thread to form stitches. For bulk orders, kindly send us a private message for further assistance.',2,15.00,NULL,100,NULL,NULL,NULL,'SewingMachineComponents'),
 (85,'Positioning Finger','B1835-012-000','The positioning finger guides the fabric through the machine to ensure alignment and prevent slippage during high-speed sewing. For bulk orders, kindly send us a private message for further assistance.',2,60.00,NULL,100,NULL,NULL,NULL,'SewingMachineComponents'),

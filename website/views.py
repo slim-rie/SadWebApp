@@ -633,6 +633,55 @@ def register_backup_restore(app):
 def allowed_review_media(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_REVIEW_MEDIA
 
+@views.route('/api/payments', methods=['POST'])
+def api_payments():
+    order_id = request.form.get('order_id')
+    user_id = request.form.get('user_id')
+    payment_method_id = request.form.get('payment_method_id')
+    reference_number = request.form.get('reference_number')  # This should be the OCR result
+    vision_api_result = request.form.get('vision_api_result')
+    file = request.files.get('proof_of_payment')  # Field name updated
+
+    print(f"[api_payments] order_id={order_id}, user_id={user_id}, payment_method_id={payment_method_id}, reference_number={reference_number}")
+
+    # Validate required fields
+    missing_fields = []
+    for field_name, value in [
+        ('order_id', order_id),
+        ('user_id', user_id),
+        ('payment_method_id', payment_method_id),
+        ('reference_number', reference_number)
+    ]:
+        if not value:
+            missing_fields.append(field_name)
+    if missing_fields:
+        return jsonify({'success': False, 'message': f"Missing required fields: {', '.join(missing_fields)}"}), 400
+
+    # Find the order
+    order = Order.query.filter_by(order_id=order_id, user_id=user_id).first()
+    if not order:
+        return jsonify({'success': False, 'message': 'Order not found'}), 404
+
+    # Save file to static/proof_of_payment
+    proof_of_payment_url = None
+    if file:
+        upload_folder = os.path.join('SadWebApp', 'website', 'static', 'proof_of_payment')
+        os.makedirs(upload_folder, exist_ok=True)
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(upload_folder, filename)
+        file.save(file_path)
+        proof_of_payment_url = f'static/proof_of_payment/{filename}'
+        order.proof_of_payment_url = proof_of_payment_url
+    else:
+        order.proof_of_payment_url = None
+
+    # Store the OCR result as reference_number
+    order.reference_number = reference_number
+    order.payment_method_id = payment_method_id
+    order.vision_api_result = vision_api_result
+    db.session.commit()
+    return jsonify({'success': True})
+
 @views.route('/api/reviews', methods=['POST'])
 @login_required
 def submit_review():

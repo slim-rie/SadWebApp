@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/transaction.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
     <header>
@@ -164,11 +164,19 @@
                 <p class="payment-detail" id="phoneNumberRow"><strong>Phone Number:</strong> <span id="phoneNumber"></span></p>
             </div>
             <img src="" alt="QR Code" class="qr-code-img" id="qrCodeImage">
-            <p class="reference-text">Type here the Reference Number after the payment.</p>
-            <input type="text" class="reference-input" id="referenceInput" placeholder="Reference Number">
+            
+            <label for="modalTransactionFile" style="margin-top:10px; display:inline-block;">Upload Payment Proof:</label>
+            <input type="file" id="modalTransactionFile" name="modalTransactionFile" accept="image/*,.pdf,.doc,.docx" style="display:inline-block; width:auto; margin-left:10px;">
+            <span id="modalFilePreview" style="display:inline-block; margin-left:10px; vertical-align:middle;"></span>
+
+            <div id="referenceSection" style="display:none;">
+                <p class="reference-text">Type here the Reference Number after the payment.</p>
+                <input type="text" class="reference-input" id="referenceInput" placeholder="Reference Number">
+            </div>
+
             <div class="modal-buttons">
                 <button class="cancel-btn" id="cancelBtn">CANCEL</button>
-                <button class="proceed-btn" id="proceedBtn">PROCEED</button>
+                <button class="proceed-btn" id="proceedBtn" disabled>PROCEED</button>
             </div>
         </div>
     </div>
@@ -215,6 +223,77 @@
     </footer>
 
     <script src="{{ url_for('static', filename='js/transaction.js') }}" defer></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalFileInput = document.getElementById('modalTransactionFile');
+        const modalFilePreview = document.getElementById('modalFilePreview');
+        const referenceSection = document.getElementById('referenceSection');
+        const proceedBtn = document.getElementById('proceedBtn');
+        const referenceInput = document.getElementById('referenceInput');
+
+        referenceSection.style.display = 'none';
+        proceedBtn.disabled = true;
+
+        if (modalFileInput) {
+            modalFileInput.addEventListener('change', function() {
+                modalFilePreview.innerHTML = '';
+                const file = modalFileInput.files[0];
+                if (file) {
+                    let previewText = `Selected file: ${file.name}`;
+                    if (file.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.style.maxWidth = '40px';
+                        img.style.maxHeight = '40px';
+                        img.style.marginLeft = '8px';
+                        img.src = URL.createObjectURL(file);
+                        modalFilePreview.appendChild(document.createTextNode(previewText));
+                        modalFilePreview.appendChild(img);
+
+                        // OCR: Use Tesseract to extract reference number
+                        Tesseract.recognize(
+                            file,
+                            'eng',
+                            { logger: m => console.log(m) }
+                        ).then(({ data: { text } }) => {
+                            // Try to find a reference number (sequence of 8+ digits)
+                            const match = text.match(/\b\d{8,}\b/);
+                            if (match) {
+                                referenceInput.value = match[0];
+                                referenceInput.dataset.ocr = match[0]; // Store OCR result in data attribute
+                            } else {
+                                referenceInput.dataset.ocr = '';
+                            }
+                            referenceSection.style.display = '';
+                            checkProceed();
+                        }).catch(() => {
+                            referenceInput.dataset.ocr = '';
+                            referenceSection.style.display = '';
+                            checkProceed();
+                        });
+                    } else {
+                        modalFilePreview.textContent = previewText;
+                        referenceSection.style.display = '';
+                        checkProceed();
+                    }
+                } else {
+                    referenceSection.style.display = 'none';
+                    proceedBtn.disabled = true;
+                }
+            });
+        }
+
+        if (referenceInput) {
+            referenceInput.addEventListener('input', checkProceed);
+        }
+
+        function checkProceed() {
+            const file = modalFileInput.files[0];
+            const ref = referenceInput.value.trim();
+            proceedBtn.disabled = !(file && ref.length > 0);
+        }
+    });
+    </script>
 
 </body>
 </html>
+``` 

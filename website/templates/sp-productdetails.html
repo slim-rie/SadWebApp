@@ -94,20 +94,31 @@
                 </div>
 
                 <div class="product-options">
-                    <div class="option-row">
+                    <!-- Product Variants List -->
+                    {% if variants %}
+                        <div class="option-row">
+                            <span class="option-label">Variants</span>
+                            <div class="option-value">
+                                <ul class="variant-list">
+                                {% for variant in variants %}
+                                    <li><strong>{{ variant.variant_name }}:</strong> {{ variant.variant_value }}</li>
+                                {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="product-options">
+                    <div class="option-row" id="materialOptionRow" style="margin-top: 1em;">
                         <span class="option-label">Material</span>
-                        <div class="option-value">
-                            <select id="materialSelect" class="custom-select">
-                                <option value="Metal">Metal</option>
-                                <option value="Plastic">Plastic</option>
-                                <option value="Rubber">Rubber</option>
-                                <option value="Other">Other</option>
-                            </select>
+                        <div class="option-value material-options" id="materialOptions">
+                            <!-- Color buttons will be rendered by JS -->
                         </div>
                     </div>
-                    <div class="option-row">
-                        <span class="option-label">Model</span>
-                        <div class="option-value">
+                    <!-- Width selection row (dynamic) -->
+                    <div class="option-row" id="sizeOptionRow" style="margin-top: 1em;">
+                        <span class="option-label">Size</span>
+                        <div class="option-value size-options" id="sizeOptions">
+                            <!-- Width buttons will be rendered by JS -->
                         </div>
                     </div>
                     <div class="option-row">
