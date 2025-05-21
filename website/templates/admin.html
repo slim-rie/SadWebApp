@@ -1,9 +1,4 @@
-{% extends "base.html" %}
-{% block title %}Admin Dashboard{% endblock %}
-<!-- ADMIN TO -->
-{% block content %}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/admin.css') }}">
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat_modal.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/BACKUP_RESTORE.CSS') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600&display=swap" rel="stylesheet">
@@ -13,7 +8,7 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
   <div class="row no-gutters dashboard">
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar fixed-sidebar" style="height: 100vh; overflow-y: hidden; width: 200px;">
         <div class="logo">
             <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR Logo">
             <div class="logo-text">JBR TANCHING C.O</div>
@@ -33,31 +28,31 @@
     </div>
       
       <!-- User Profile Section -->
-      <div class="user-profile">
-        <div class="chat-floating-wrapper">
-          <button id="chat-modal-btn" class="chat-icon-btn">
-            <i class="glyphicon glyphicon-envelope"></i>
-          </button>
-          <!-- <span class="chat-badge"></span> -->
-        </div>
-        <div class="profile-icon">
-          <i class="glyphicon glyphicon-user"></i>
-        </div>
-        <div class="profile-details">
-          <span class="profile-name">{{ user.username }}</span>
-          <span class="profile-role">{{ user.role|upper }}</span>
-        </div>
-        <div class="dropdown-wrapper" style="position: relative;">
-          <button class="dropdown-btn" id="profile-dropdown-btn">
-            <span class="glyphicon glyphicon-chevron-down"></span>
-          </button>
-          <div class="dropdown-menu" id="profile-dropdown-menu">
-            <a href="{{ url_for('auth.logout') }}" class="logout-link">
-              <span class="glyphicon glyphicon-log-out" style="margin-right: 8px;"></span>
-              LOGOUT
-            </a>
+      <div class="main-content">
+        <div class="user-profile compact-profile" style="position: absolute; top: 10px; right: 10px;">
+          <div class="chat-floating-wrapper compact-chat">
+            <button id="chat-modal-btn" class="chat-icon-btn compact-chat-btn">
+              <i class="glyphicon glyphicon-envelope"></i>
+            </button>
           </div>
-          <script>
+          <div class="profile-icon compact-profile-icon">
+            <i class="glyphicon glyphicon-user"></i>
+          </div>
+          <div class="profile-details">
+            <span class="profile-name">{{ user.username }}</span>
+            <span class="profile-role">{{ user.role|upper }}</span>
+          </div>
+          <div class="dropdown-wrapper" style="position: relative;">
+            <button class="dropdown-btn" id="profile-dropdown-btn">
+              <span class="glyphicon glyphicon-chevron-down"></span>
+            </button>
+            <div class="dropdown-menu" id="profile-dropdown-menu">
+              <a href="{{ url_for('auth.logout') }}" class="logout-link">
+                <span class="glyphicon glyphicon-log-out" style="margin-right: 8px;"></span>
+                LOGOUT
+              </a>
+            </div>
+            <script>
             document.getElementById('profile-dropdown-btn').onclick = function(e) {
               e.stopPropagation();
               document.getElementById('profile-dropdown-menu').classList.toggle('active');
@@ -1072,21 +1067,7 @@
             </div>
           </div>
 
-          <div id="backup-section" class="backup-section">
-            <div class="header">
-              <h1>BACKUP & RESTORE</h1>
-            </div>
-          
-            <div class="backup-box">
-              <button type="button" class="btn btn-primary btn-lg" onclick="alert('Backup started!')">⬆️ Backup</button>
-              <button type="button" class="btn btn-primary btn-lg" onclick="alert('Restore started!')">⬇️ Restore</button>
-          
-              <div class="backup-image">
-                <img src="https://cdn-icons-png.flaticon.com/512/854/854894.png" alt="Database Icon" width="80" />
-              </div>
-            </div>
-          </div>
-          
+
           
         </div> <!-- end of main-content -->
     </div> <!-- end of row/dashboard -->
@@ -1196,4 +1177,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 </script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-{% endblock %}

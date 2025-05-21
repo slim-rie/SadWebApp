@@ -18,11 +18,13 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(20), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     password_hash = db.Column(db.String(60), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)  # Add this column to match main User model
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.first_name}', '{self.last_name}', '{self.role}')"
 
 def create_admin_accounts():
+    # Passwords will be hashed using generate_password_hash before saving to the database
     accounts = [
         {
             'username': 'admin',
@@ -66,6 +68,7 @@ def create_admin_accounts():
             user.last_name = acc['last_name']
             user.role = acc['role']
             user.password_hash = generate_password_hash(acc['password'])
+            setattr(user, 'is_active', True)  # Ensure account is active
             print(f"Updated {acc['role']} - Username: {acc['username']}, Password: {acc['password']}")
         else:
             user = User(
@@ -74,8 +77,9 @@ def create_admin_accounts():
                 first_name=acc['first_name'],
                 last_name=acc['last_name'],
                 role=acc['role'],
-                password_hash=generate_password_hash(acc['password'])
+                password_hash=generate_password_hash(acc['password']),
             )
+            setattr(user, 'is_active', True)  # Ensure account is active after creation
             db.session.add(user)
             print(f"Created {acc['role']} - Username: {acc['username']}, Password: {acc['password']}")
     db.session.commit()
