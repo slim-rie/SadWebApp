@@ -624,6 +624,12 @@ ALLOWED_REVIEW_MEDIA = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
 REVIEW_MEDIA_FOLDER = os.path.join('SadWebApp', 'website', 'static', 'review_media')
 os.makedirs(REVIEW_MEDIA_FOLDER, exist_ok=True)
 
+# Register backup/restore endpoints
+from .backup_restore import backup_restore_bp
+
+def register_backup_restore(app):
+    app.register_blueprint(backup_restore_bp)
+
 def allowed_review_media(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_REVIEW_MEDIA
 
