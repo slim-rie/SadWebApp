@@ -27,11 +27,17 @@ def create_app(config_class=Config):
     login_manager.login_message_category = 'info'
     
     # Register blueprints
-    from .views import views
+    from .views import views, register_backup_restore
     from .auth import auth
+    from .backup_restore import backup_restore_bp
     
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth)
+    app.register_blueprint(backup_restore_bp)
+    # Or: register_backup_restore(app)
+
+    # Enforce max upload size (5MB)
+    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
     
     # Create database tables
     with app.app_context():
