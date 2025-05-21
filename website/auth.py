@@ -1157,8 +1157,8 @@ def dashboard():
 
 def send_login_notification(user_email):
     msg = Message(
-        "Login Notification",
+        "Thank you for logging in to JBR Web App!",
         recipients=[user_email]
     )
-    msg.body = "You just logged in to JBR Web App."
+    msg.body = "You just logged in to JBR Web App. We hope you have a great experience using our platform."
     mail.send(msg) 
