@@ -618,25 +618,17 @@ def orders():
         order_items = []
         for item in order.items:
             product = Product.query.get(item.product_id)
-            # Dynamic image path logic
-            if getattr(product, 'image_url', None):
-                image_url = product.image_url
-                if image_url.startswith('/static/'):
-                    # Remove the leading '/static/' if present
-                    image_url = image_url[len('/static/'):]
-                image_path = url_for('static', filename=image_url)
-            else:
-                jpg_path = f"pictures/{product.product_name}.jpg"
-                png_path = f"pictures/{product.product_name}.png"
-                static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
-                jpg_full = os.path.join(static_dir, jpg_path)
-                png_full = os.path.join(static_dir, png_path)
-                if os.path.exists(jpg_full):
-                    image_path = url_for('static', filename=jpg_path)
-                elif os.path.exists(png_full):
-                    image_path = url_for('static', filename=png_path)
-                else:
-                    image_path = url_for('static', filename='pictures/default.png')
+            # Robust image path logic
+            img = None
+            if hasattr(product, 'images') and product.images and len(product.images) > 0:
+                img = product.images[0].image_url
+            if not img:
+                from .views import get_product_image_url
+                img = get_product_image_url(product.product_name)
+            # Ensure image URL starts with /static/
+            if img and not img.startswith('/static/'):
+                img = '/static/' + img.lstrip('/')
+            image_path = img
             order_items.append({
                 'id': item.id,  # order item ID for linking
                 'product_id': product.product_id,  # product ID for reference
@@ -1034,25 +1026,17 @@ def trackorder(order_id):
     order_items = []
     for item in order.items:
         product = Product.query.get(item.product_id)
-        # Dynamic image path logic
-        if getattr(product, 'image_url', None):
-            image_url = product.image_url
-            if image_url.startswith('/static/'):
-                # Remove the leading '/static/' if present
-                image_url = image_url[len('/static/'):]
-            image_path = url_for('static', filename=image_url)
-        else:
-            jpg_path = f"pictures/{product.product_name}.jpg"
-            png_path = f"pictures/{product.product_name}.png"
-            static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
-            jpg_full = os.path.join(static_dir, jpg_path)
-            png_full = os.path.join(static_dir, png_path)
-            if os.path.exists(jpg_full):
-                image_path = url_for('static', filename=jpg_path)
-            elif os.path.exists(png_full):
-                image_path = url_for('static', filename=png_path)
-            else:
-                image_path = url_for('static', filename='pictures/default.png')
+        # Robust image path logic
+        img = None
+        if hasattr(product, 'images') and product.images and len(product.images) > 0:
+            img = product.images[0].image_url
+        if not img:
+            from .views import get_product_image_url
+            img = get_product_image_url(product.product_name)
+        # Ensure image URL starts with /static/
+        if img and not img.startswith('/static/'):
+            img = '/static/' + img.lstrip('/')
+        image_path = img
         order_items.append({
             'id': item.id,  # order item ID for linking
             'product_id': product.product_id,  # product ID for reference
@@ -1124,26 +1108,17 @@ def order_item_details(order_id, order_item_id):
     order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first_or_404()
     item = OrderItem.query.filter_by(id=order_item_id, order_id=order_id).first_or_404()
     product = Product.query.get(item.product_id)
-    # Dynamic image path logic
-    import os
-    if getattr(product, 'image_url', None):
-        image_url = product.image_url
-        if image_url.startswith('/static/'):
-            # Remove the leading '/static/' if present
-            image_url = image_url[len('/static/'):]
-        image_path = url_for('static', filename=image_url)
-    else:
-        jpg_path = f"pictures/{product.product_name}.jpg"
-        png_path = f"pictures/{product.product_name}.png"
-        static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
-        jpg_full = os.path.join(static_dir, jpg_path)
-        png_full = os.path.join(static_dir, png_path)
-        if os.path.exists(jpg_full):
-            image_path = url_for('static', filename=jpg_path)
-        elif os.path.exists(png_full):
-            image_path = url_for('static', filename=png_path)
-        else:
-            image_path = url_for('static', filename='pictures/default.png')
+    # Robust image path logic
+    img = None
+    if hasattr(product, 'images') and product.images and len(product.images) > 0:
+        img = product.images[0].image_url
+    if not img:
+        from .views import get_product_image_url
+        img = get_product_image_url(product.product_name)
+    # Ensure image URL starts with /static/
+    if img and not img.startswith('/static/'):
+        img = '/static/' + img.lstrip('/')
+    image_path = img
     return render_template('order_item_details.html', order=order, item=item, product=product, image_path=image_path)
 
 @auth.route('/request-management')
