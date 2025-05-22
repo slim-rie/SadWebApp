@@ -20,21 +20,28 @@ MYSQLDUMP_PATH = os.path.join(MYSQL_BIN, 'mysqldump.exe')
 MYSQL_PATH = os.path.join(MYSQL_BIN, 'mysql.exe')
 
 @backup_restore_bp.route('/admin/backup', methods=['GET'])
-@login_required
 def backup_database():
-    backup_file = f"{DATABASE}_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
-    backup_path = os.path.join(BACKUP_DIR, backup_file)
     try:
-        with open(backup_path, 'w', encoding='utf-8') as f:
-            result = subprocess.run([
-                MYSQLDUMP_PATH,
-                '-u', USERNAME,
-                f'-p{PASSWORD}',
-                DATABASE
-            ], stdout=f, stderr=subprocess.PIPE, shell=False)
-        if result.returncode != 0:
-            return jsonify({'error': result.stderr.decode()}), 500
-        return send_file(backup_path, as_attachment=True)
+        from io import BytesIO
+        from sqlalchemy import create_engine, MetaData
+        import os
+        # Use your cloud DB URI
+        db_uri = os.environ.get('DATABASE_URL')
+        engine = create_engine(db_uri)
+        meta = MetaData()
+        meta.reflect(bind=engine)
+        output = BytesIO()
+        for table in meta.sorted_tables:
+            rows = engine.execute(table.select()).fetchall()
+            if not rows:
+                continue
+            # Write CREATE TABLE and INSERT statements
+            output.write(f'-- Table: {table.name}\n'.encode())
+            for row in rows:
+                values = ', '.join([repr(str(v)) if v is not None else 'NULL' for v in row])
+                output.write(f'INSERT INTO {table.name} VALUES ({values});\n'.encode())
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name='backup.sql', mimetype='text/sql')
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
