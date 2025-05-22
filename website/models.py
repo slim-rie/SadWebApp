@@ -44,6 +44,9 @@ class User(UserMixin, db.Model):
         self.password_hash = generate_password_hash(password)
     
     def verify_password(self, password):
+        if not self.password_hash:
+            # No password hash means this is a Google user (or similar)
+            return False
         return check_password_hash(self.password_hash, password)
     
     def update_last_login(self):

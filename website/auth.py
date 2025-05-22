@@ -179,32 +179,35 @@ def login():
         
         user = User.query.filter((User.username == username) | (User.email == username)).first()
         
-        if user and user.verify_password(password):
-            if not user.is_active:
+        if user:
+            if not user.password_hash:
+                message = "This account was created with Google. Please log in using Google."
                 if request.is_json:
-                    return jsonify({'success': False, 'message': 'Account is deactivated'}), 403
-                return redirect(url_for('views.home'))
-            
-            login_user(user, remember=remember)
-            user.update_last_login()
-            
-            if user.role == 'admin':
-                redirect_url = url_for('auth.admin')
-            elif user.role == 'staff':
-                redirect_url = url_for('auth.staff')
-            elif user.role == 'supplier':
-                redirect_url = url_for('auth.dashboard')
-            else:
-                redirect_url = url_for('views.home')
-            
-            if request.is_json:
-                return jsonify({
-                    'success': True,
-                    'message': 'Login successful',
-                    'redirect': redirect_url
-                })
-            return redirect(redirect_url)
-        
+                    return jsonify({'success': False, 'message': message}), 401
+                flash(message, 'error')
+                return render_template('login.html')
+            if user.verify_password(password):
+                if not user.is_active:
+                    if request.is_json:
+                        return jsonify({'success': False, 'message': 'Account is deactivated'}), 403
+                    return redirect(url_for('views.home'))
+                login_user(user, remember=remember)
+                user.update_last_login()
+                if user.role == 'admin':
+                    redirect_url = url_for('auth.admin')
+                elif user.role == 'staff':
+                    redirect_url = url_for('auth.staff')
+                elif user.role == 'supplier':
+                    redirect_url = url_for('auth.dashboard')
+                else:
+                    redirect_url = url_for('views.home')
+                if request.is_json:
+                    return jsonify({
+                        'success': True,
+                        'message': 'Login successful',
+                        'redirect': redirect_url
+                    })
+                return redirect(redirect_url)
         if request.is_json:
             return jsonify({'success': False, 'message': 'Invalid username or password'}), 401
         flash('Invalid username or password', 'error')
