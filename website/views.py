@@ -1405,9 +1405,15 @@ def delete_product(product_id):
         product = Product.query.get(product_id)
         if not product:
             return jsonify({'success': False, 'error': 'Product not found'})
-        # Delete related product variants first
-        from .models import ProductVariant
+        # Delete all related data
+        from .models import ProductVariant, ProductImage, ProductSpecification, CartItem, OrderItem, Review, SupplyRequest
         ProductVariant.query.filter_by(product_id=product_id).delete()
+        ProductImage.query.filter_by(product_id=product_id).delete()
+        ProductSpecification.query.filter_by(product_id=product_id).delete()
+        CartItem.query.filter_by(product_id=product_id).delete()
+        OrderItem.query.filter_by(product_id=product_id).delete()
+        Review.query.filter_by(product_id=product_id).delete()
+        SupplyRequest.query.filter_by(product_id=product_id).delete()
         db.session.delete(product)
         db.session.commit()
         return jsonify({'success': True})
