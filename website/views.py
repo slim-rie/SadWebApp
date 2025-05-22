@@ -293,6 +293,11 @@ def create_supply_request():
 def transaction():
     buy_now_mode = request.args.get('buy_now')
     buy_now_item = session.get('buy_now_item') if buy_now_mode else None
+    # --- Robust buy-now for guests: try to get from request if missing ---
+    if buy_now_mode and not buy_now_item and request.is_json:
+        buy_now_item = request.get_json().get('buy_now_item')
+        if buy_now_item:
+            session['buy_now_item'] = buy_now_item
     if buy_now_mode and buy_now_item:
         # Use only the buy now item for checkout
         product = Product.query.get(buy_now_item['product_id'])
@@ -768,6 +773,10 @@ def create_order():
     # If cart is empty, check for buy-now item in session
     if not cart_items:
         buy_now_item = session.get('buy_now_item')
+        # --- Robust buy-now for guests: try to get from request if missing ---
+        if not buy_now_item and data.get('buy_now_item'):
+            buy_now_item = data['buy_now_item']
+            session['buy_now_item'] = buy_now_item
         if not buy_now_item:
             return {'success': False, 'message': 'Cart is empty and no buy-now item found.'}, 400
         

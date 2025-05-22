@@ -547,6 +547,27 @@ document.addEventListener('DOMContentLoaded', async function () {
             widthOptionsDiv.appendChild(btn);
         });
     }
+
+    // --- Guest Buy-Now Session Sync ---
+    if (window.location.pathname === '/transaction' && window.location.search.includes('buy_now=1')) {
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        if (!isLoggedIn && sessionStorage.getItem('buyNowItem')) {
+            fetch('/buy-now', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: sessionStorage.getItem('buyNowItem')
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    sessionStorage.removeItem('buyNowItem');
+                    window.location.reload();
+                } else {
+                    alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
+                }
+            });
+        }
+    }
 });
 
 function initializeQuantitySelector(maxStock) {
