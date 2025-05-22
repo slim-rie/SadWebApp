@@ -1,17 +1,666 @@
 // admin_reports.js
+
+function showPersonnelListReportModal() {
+    // Inject custom CSS for modal and table if not already present
+    if (!document.getElementById('personnel-list-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'personnel-list-report-modal-style';
+        style.innerHTML = `
+        #personnel-list-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        #personnel-list-report-modal .modal-content {
+            max-width: 1400px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            max-width: 1000px;
+            width: 95vw;
+            position: relative;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .modal-content h2 i {
+            margin-right: 10px;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.personnel-list-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.personnel-list-report-table th, table.personnel-list-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.personnel-list-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.personnel-list-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    // Modal HTML
+    let modal = document.getElementById('personnel-list-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'personnel-list-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closePersonnelListReportModal">&times;</span>
+            <h2><i class="fa fa-users"></i> Personnel List</h2>
+            <div id="personnel-list-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closePersonnelListReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderPersonnelListReport();
+}
+
+function fetchAndRenderPersonnelListReport() {
+    const container = document.getElementById('personnel-list-report-table-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; color:#2563eb; padding:20px;">Loading personnel...</div>';
+    }
+    fetch('/admin/personnel_list')
+        .then(response => response.json())
+        .then(data => {
+            // Map data to rows for rendering
+            const personnel = data.map(u => [
+                u.user_id,
+                u.username,
+                u.email,
+                u.role,
+                u.first_name,
+                u.last_name,
+                u.phone_number,
+                u.gender,
+                u.date_of_birth || '',
+                u.is_active ? 'Active' : 'Inactive',
+                u.created_at ? formatDate(u.created_at) : '',
+                u.last_login ? formatDate(u.last_login) : ''
+            ]);
+            renderPersonnelListReportTable(personnel);
+        })
+        .catch(error => {
+            if (container) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Failed to load personnel.</div>';
+            }
+        });
+}
+
+function renderPersonnelListReportTable(personnel, headers) {
+    const container = document.getElementById('personnel-list-report-table-container');
+    if (!container) return;
+    // If no headers found, use fallback headers
+    if (!headers || headers.length === 0) {
+        headers = [
+            'User ID',
+            'Username',
+            'Email',
+            'Role',
+            'First Name',
+            'Last Name',
+            'Phone Number',
+            'Gender',
+            'Date of Birth',
+            'Status',
+            'Created At',
+            'Last Login'
+        ];
+    }
+    let html = '<table class="personnel-list-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (personnel.length === 0) {
+        html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;">No personnel found.</td></tr>`;
+    } else {
+        personnel.forEach(u => {
+            html += '<tr>' + u.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+
+function showInventoryListReportModal() {
+    // Inject custom CSS for modal and table if not already present
+    if (!document.getElementById('inventory-list-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'inventory-list-report-modal-style';
+        style.innerHTML = `
+        #inventory-list-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        #inventory-list-report-modal .modal-content {
+            max-width: 1400px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            max-width: 1000px;
+            width: 95vw;
+            position: relative;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .modal-content h2 i {
+            margin-right: 10px;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.inventory-list-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.inventory-list-report-table th, table.inventory-list-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.inventory-list-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.inventory-list-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    // Modal HTML
+    let modal = document.getElementById('inventory-list-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'inventory-list-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closeInventoryListReportModal">&times;</span>
+            <h2><i class="fa fa-list"></i> Inventory List</h2>
+            <div id="inventory-list-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closeInventoryListReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderInventoryListReport();
+}
+
+function fetchAndRenderInventoryListReport() {
+    const container = document.getElementById('inventory-list-report-table-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; color:#2563eb; padding:20px;">Loading inventory...</div>';
+    }
+    fetch('/admin/inventory_list')
+        .then(response => response.json())
+        .then(data => {
+            // Map data to rows for rendering
+            const inventories = data.map(inv => [
+                inv.id,
+                inv.product_name,
+                inv.product_code,
+                inv.category_name,
+                inv.selling_price !== undefined ? `₱${parseFloat(inv.selling_price).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2})}` : '',
+                inv.min_stock,
+                inv.max_stock,
+                inv.available_stock,
+                inv.stock_status,
+                inv.product_status,
+                inv.supplier_name,
+                inv.supplier_price !== undefined ? `₱${parseFloat(inv.supplier_price).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2})}` : '',
+                inv.memo || '',
+                inv.last_updated ? formatDate(inv.last_updated) : ''
+            ]);
+            renderInventoryListReportTable(inventories);
+        })
+        .catch(error => {
+            if (container) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Failed to load inventory.</div>';
+            }
+        });
+}
+
+function renderInventoryListReportTable(inventories, headers) {
+    const container = document.getElementById('inventory-list-report-table-container');
+    if (!container) return;
+    // If no headers found, use fallback headers
+    if (!headers || headers.length === 0) {
+        headers = [
+            'ID',
+            'Product Name',
+            'Product Code',
+            'Category',
+            'Selling Price',
+            'Min Stock',
+            'Max Stock',
+            'Available Stock',
+            'Stock Status',
+            'Product Status',
+            'Supplier Name',
+            'Supplier Price',
+            'Memo',
+            'Last Updated'
+        ];
+    }
+    let html = '<table class="inventory-list-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (inventories.length === 0) {
+        html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;">No inventory found.</td></tr>`;
+    } else {
+        inventories.forEach(inv => {
+            html += '<tr>' + inv.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
 // Show all products in a modal table when the report icon is clicked
 
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.report-icon-block[data-report="stock"]').forEach(reportBlock => {
         const label = reportBlock.querySelector('div');
+        if (label && label.textContent.trim() === "Personnel List") {
+            reportBlock.addEventListener('click', showPersonnelListReportModal);
+        }
         if (label && label.textContent.trim() === "Product List") {
             reportBlock.addEventListener('click', showProductReportModal);
         }
         if (label && label.textContent.trim() === "Customer Order Report") {
             reportBlock.addEventListener('click', showCustomerOrderReportModal);
         }
+        if (label && label.textContent.trim() === "Customer List") {
+            reportBlock.addEventListener('click', showOrderOnlyReportModal);
+        }
+        if (label && label.textContent.trim() === "Supplier List") {
+            reportBlock.addEventListener('click', showSupplierListReportModal);
+        }
+        if (label && label.textContent.trim() === "Inventory List") {
+            reportBlock.addEventListener('click', showInventoryListReportModal);
+        }
+    });
+    // Stock In Report (delivery) - show INVENTORY list
+    document.querySelectorAll('.report-icon-block[data-report="delivery"]').forEach(reportBlock => {
+        const label = reportBlock.querySelector('div');
+        if (label && label.textContent.trim() === "Stock In Report") {
+            reportBlock.addEventListener('click', showInventoryListReportModal);
+        }
+    });
+    // Stock Out List (fulfillment) - show INVENTORY list
+    document.querySelectorAll('.report-icon-block[data-report="fulfillment"]').forEach(reportBlock => {
+        const label = reportBlock.querySelector('div');
+        if (label && label.textContent.trim() === "Stock Out List") {
+            reportBlock.addEventListener('click', showInventoryListReportModal);
+        }
     });
 });
+
+function showSupplierListReportModal() {
+    // Inject custom CSS for modal and table if not already present
+    if (!document.getElementById('supplier-list-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'supplier-list-report-modal-style';
+        style.innerHTML = `
+        #supplier-list-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        #supplier-list-report-modal .modal-content {
+            max-width: 1200px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            max-width: 1000px;
+            width: 95vw;
+            position: relative;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .modal-content h2 i {
+            margin-right: 10px;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.supplier-list-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.supplier-list-report-table th, table.supplier-list-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.supplier-list-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.supplier-list-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    // Modal HTML
+    let modal = document.getElementById('supplier-list-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'supplier-list-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closeSupplierListReportModal">&times;</span>
+            <h2><i class="fa fa-list"></i> Supplier List</h2>
+            <div id="supplier-list-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closeSupplierListReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderSupplierListReport();
+}
+
+function fetchAndRenderSupplierListReport() {
+    const container = document.getElementById('supplier-list-report-table-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; color:#2563eb; padding:20px;">Loading suppliers...</div>';
+    }
+    fetch('/admin/supplier_list')
+        .then(response => response.json())
+        .then(data => {
+            // Map data to rows for rendering
+            const suppliers = data.map(s => [
+                s.id,
+                s.product_category,
+                s.product_name,
+                s.supplier_name,
+                s.contact_person,
+                s.phone_number,
+                s.address,
+                s.status,
+                s.registration_date
+            ]);
+            renderSupplierListReportTable(suppliers);
+        })
+        .catch(error => {
+            if (container) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Failed to load suppliers.</div>';
+            }
+        });
+}
+
+function renderSupplierListReportTable(suppliers, headers) {
+    const container = document.getElementById('supplier-list-report-table-container');
+    if (!container) return;
+    // If no headers found, use fallback headers
+    if (!headers || headers.length === 0) {
+        headers = [
+            'Supplier ID',
+            'Product Category',
+            'Product Name',
+            'Supplier Name',
+            'Contact Person',
+            'Phone Number',
+            'Address',
+            'Status',
+            'Registration Date'
+        ];
+    }
+    let html = '<table class="supplier-list-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (suppliers.length === 0) {
+        html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;">No suppliers found.</td></tr>`;
+    } else {
+        suppliers.forEach(supplier => {
+            html += '<tr>' + supplier.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function showOrderOnlyReportModal() {
+    // Inject custom CSS for modal and table if not already present
+    if (!document.getElementById('order-only-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'order-only-report-modal-style';
+        style.innerHTML = `
+        #order-only-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        #order-only-report-modal .modal-content {
+            max-width: 1400px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            max-width: 1000px;
+            width: 95vw;
+            position: relative;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .modal-content h2 i {
+            margin-right: 10px;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.order-only-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.order-only-report-table th, table.order-only-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.order-only-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.order-only-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    // Modal HTML
+    let modal = document.getElementById('order-only-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'order-only-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closeOrderOnlyReportModal">&times;</span>
+            <h2><i class="fa fa-list"></i> Customer List</h2>
+            <div id="order-only-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closeOrderOnlyReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderOrderOnlyReport();
+}
+
+function fetchAndRenderOrderOnlyReport() {
+    // Fetch order data from a global JS variable, API, or table on the page
+    // For demo, try to find a table with id 'customer-orders-table' and use its rows
+    const ordersTable = document.getElementById('customer-orders-table');
+    let orders = [];
+    if (ordersTable) {
+        const rows = ordersTable.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length > 0) {
+                let order = [];
+                cells.forEach(cell => order.push(cell.textContent));
+                orders.push(order);
+            }
+        });
+    }
+    renderOrderOnlyReportTable(orders);
+}
+
+function renderOrderOnlyReportTable(orders) {
+    const container = document.getElementById('order-only-report-table-container');
+    if (!container) return;
+    // Table headers (match admin's order table)
+    const headers = [
+        'Order ID', 'Product ID(s)', 'User ID', 'Total Amount', 'Status', 'Payment Method', 'Payment Status', 'Shipping Address', 'Order Status', 'Order Date', 'Customer Issue', 'Feedback', 'Rate', 'Cancellation Reason', 'Actions'
+    ];
+    let html = '<table class="order-only-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (orders.length === 0) {
+        html += '<tr><td colspan="15" style="text-align:center;color:#888;">No orders found.</td></tr>';
+    } else {
+        orders.forEach(order => {
+            html += '<tr>' + order.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
 
 function showCustomerOrderReportModal() {
     // Inject custom CSS for modal and table if not already present
