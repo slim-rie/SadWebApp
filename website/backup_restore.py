@@ -64,7 +64,10 @@ def restore_database():
         if size > 5 * 1024 * 1024:
             return jsonify({'error': 'File too large. Max 5MB.'}), 400
         file.seek(0)
-        restore_path = os.path.join(BACKUP_DIR, filename)
+        # Use a cloud-friendly directory for uploads
+        upload_dir = '/tmp'  # or './uploads' if you want it in your project
+        os.makedirs(upload_dir, exist_ok=True)
+        restore_path = os.path.join(upload_dir, filename)
         file.save(restore_path)
         try:
             # Disable foreign key checks
