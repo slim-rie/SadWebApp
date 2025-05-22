@@ -617,7 +617,11 @@ def orders():
             product = Product.query.get(item.product_id)
             # Dynamic image path logic
             if getattr(product, 'image_url', None):
-                image_path = url_for('static', filename=product.image_url)
+                image_url = product.image_url
+                if image_url.startswith('/static/'):
+                    # Remove the leading '/static/' if present
+                    image_url = image_url[len('/static/'):]
+                image_path = url_for('static', filename=image_url)
             else:
                 jpg_path = f"pictures/{product.product_name}.jpg"
                 png_path = f"pictures/{product.product_name}.png"
@@ -1029,7 +1033,11 @@ def trackorder(order_id):
         product = Product.query.get(item.product_id)
         # Dynamic image path logic
         if getattr(product, 'image_url', None):
-            image_path = url_for('static', filename=product.image_url)
+            image_url = product.image_url
+            if image_url.startswith('/static/'):
+                # Remove the leading '/static/' if present
+                image_url = image_url[len('/static/'):]
+            image_path = url_for('static', filename=image_url)
         else:
             jpg_path = f"pictures/{product.product_name}.jpg"
             png_path = f"pictures/{product.product_name}.png"
@@ -1116,7 +1124,11 @@ def order_item_details(order_id, order_item_id):
     # Dynamic image path logic
     import os
     if getattr(product, 'image_url', None):
-        image_path = url_for('static', filename=product.image_url)
+        image_url = product.image_url
+        if image_url.startswith('/static/'):
+            # Remove the leading '/static/' if present
+            image_url = image_url[len('/static/'):]
+        image_path = url_for('static', filename=image_url)
     else:
         jpg_path = f"pictures/{product.product_name}.jpg"
         png_path = f"pictures/{product.product_name}.png"
@@ -1157,7 +1169,7 @@ def dashboard():
 
 def send_login_notification(user_email):
     msg = Message(
-        "Thank you for logging in to JBR Web App!",
+        "Thank you for log ging in to JBR Web App!",
         recipients=[user_email]
     )
     msg.body = "You just logged in to JBR Web App. We hope you have a great experience using our platform."
