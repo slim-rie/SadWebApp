@@ -31,15 +31,16 @@ def backup_database():
         meta = MetaData()
         meta.reflect(bind=engine)
         output = BytesIO()
-        for table in meta.sorted_tables:
-            rows = engine.execute(table.select()).fetchall()
-            if not rows:
-                continue
-            # Write CREATE TABLE and INSERT statements
-            output.write(f'-- Table: {table.name}\n'.encode())
-            for row in rows:
-                values = ', '.join([repr(str(v)) if v is not None else 'NULL' for v in row])
-                output.write(f'INSERT INTO {table.name} VALUES ({values});\n'.encode())
+        with engine.connect() as conn:
+            for table in meta.sorted_tables:
+                rows = conn.execute(table.select()).fetchall()
+                if not rows:
+                    continue
+                # Write CREATE TABLE and INSERT statements
+                output.write(f'-- Table: {table.name}\n'.encode())
+                for row in rows:
+                    values = ', '.join([repr(str(v)) if v is not None else 'NULL' for v in row])
+                    output.write(f'INSERT INTO {table.name} VALUES ({values});\n'.encode())
         output.seek(0)
         return send_file(output, as_attachment=True, download_name='backup.sql', mimetype='text/sql')
     except Exception as e:
