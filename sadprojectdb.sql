@@ -97,7 +97,10 @@ CREATE TABLE `brands` (
 
 LOCK TABLES `brands` WRITE;
 /*!40000 ALTER TABLE `brands` DISABLE KEYS */;
-INSERT INTO `brands` VALUES (1,'SHUNFA','SHUNFA is a leading manufacturer of industrial sewing machines and equipment, known for quality and innovation.'),(2,'Juki','Juki industrial sewing machines'),(3,'Skylab','Local fabric manufacturer'),(4,'Quitalig','Quitalig');
+INSERT INTO `brands` VALUES (1,'SHUNFA','SHUNFA is a leading manufacturer of industrial sewing machines and equipment, known for quality and innovation.'),
+(2,'Juki','Juki industrial sewing machines'),
+(3,'Skylab','Local fabric manufacturer'),
+(4,'Quitalig','Quitalig');
 /*!40000 ALTER TABLE `brands` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -199,7 +202,13 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (69,42,49,1,10999,'2025-05-16 16:06:35'),(70,43,59,1,499,'2025-05-16 16:06:35'),(71,44,61,2,599,'2025-05-16 16:06:35'),(72,45,47,2,10999,'2025-05-16 16:06:35'),(73,46,41,1,8450.75,'2025-05-16 16:06:35'),(74,47,45,1,10999,'2025-05-17 07:34:41');
+INSERT INTO `order_items` VALUES 
+(69,42,49,1,10999,'2025-05-16 16:06:35'),
+(70,43,59,1,499,'2025-05-16 16:06:35'),
+(71,44,61,2,599,'2025-05-16 16:06:35'),
+(72,45,47,2,10999,'2025-05-16 16:06:35'),
+(73,46,41,1,8450.75,'2025-05-16 16:06:35'),
+(74,47,45,1,10999,'2025-05-17 07:34:41');
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -213,17 +222,21 @@ DROP TABLE IF EXISTS `orders`;
 CREATE TABLE `orders` (
   `order_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
-  `total_amount` float NOT NULL,
-  `status` varchar(20) DEFAULT NULL,
-  `payment_method` varchar(50) DEFAULT NULL,
-  `payment_status` varchar(20) DEFAULT NULL,
-  `reference_number varchar`(100),
-  `proof_of_payment_url` varchar(255),
+  `total_amount` float,
+  `status` varchar(20),
+  `payment_method` varchar(50),
+  `payment_status` varchar(20),
   `shipping_address` text,
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `cancellation_reason` varchar(255) DEFAULT NULL,
-  `cancellation_requested_by` varchar(50) DEFAULT NULL,
+  `created_at` datetime ,
+  `updated_at` datetime ,
+  `cancellation_reason` varchar(255),
+  `cancellation_requested_by` varchar(50),
+  `order_status` VARCHAR(50),
+  `order_date` DATETIME ,
+  `customer_issue` TEXT,
+  `message` TEXT,
+  `feedback` TEXT,
+  `rate` INT,
   PRIMARY KEY (`order_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
@@ -236,7 +249,13 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (41,1,10999,'pending','Cash on Delivery','pending','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL),(42,1,10999,'paid','Cash on Delivery','paid','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL),(43,1,499,'shipped','Cash on Delivery','paid','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL),(44,1,1198,'delivered','Cash on Delivery','paid','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL),(45,1,21998,'cancelled','Cash on Delivery','paid','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL),(46,1,8450.75,'refunded','Cash on Delivery','paid','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL),(47,1,11149,'pending','Cash on Delivery','pending','National Capital Region (NCR)','2025-05-17 07:34:41','2025-05-17 07:34:41',NULL,NULL);
+(41,1,10999,'pending','Cash on Delivery','To Pay','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'To Pay','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
+(42,1,10999,'paid','Cash on Delivery','Completed','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Completed','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
+(43,1,499,'shipped','Cash on Delivery','To Ship','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'To Ship','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
+(44,1,1198,'delivered','Cash on Delivery','Completed','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Completed','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
+(45,1,21998,'cancelled','Cash on Delivery','To Pay','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Cancelled','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
+(46,1,8450.75,'refunded','Cash on Delivery','Completed','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Refunded','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
+(47,1,11149,'pending','Cash on Delivery','To Pay','National Capital Region (NCR)','2025-05-17 07:34:41','2025-05-17 07:34:41',NULL,NULL,'To Pay','2025-05-17 07:34:41',NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 

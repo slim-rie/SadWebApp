@@ -44,6 +44,7 @@ def create_app(config_class=Config):
     
     # Create database tables
     with app.app_context():
+        print('SQLALCHEMY_DATABASE_URI:', app.config['SQLALCHEMY_DATABASE_URI'])  # DEBUG
         db.create_all()
     
     return app

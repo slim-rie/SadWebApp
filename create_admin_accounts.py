@@ -1,5 +1,6 @@
 from flask import Flask
-from SadWebApp.website.config import Config
+# tanggalin nyo nalang yung comment then comment nyo yung line 3 import, from SadWebApp.website.config import Config
+from website.config import Config
 from werkzeug.security import generate_password_hash
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy

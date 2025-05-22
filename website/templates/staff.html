@@ -1,7 +1,3 @@
-{% extends "base.html" %}
-{% block title %}Staff Dashboard{% endblock %}
- <!-- Staff to -->
-{% block content %}
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/staff.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat_modal.css') }}">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -10,70 +6,84 @@
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
   <div class="row no-gutters dashboard">
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar fixed-sidebar" style="height: 100vh; overflow-y: hidden; width: 300px;">
         <div class="logo">
             <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR Logo">
             <div class="logo-text">JBR TANCHING C.O</div>
         </div>
         <div class="nav-items">
-            <a href="#" class="nav-item active" id="dashboard-tab-btn">Dashboard</a>
-            <a href="#" class="nav-item" id="supplier-tab-btn">Supplier</a>
-            <a href="#" class="nav-item" id="inventory-tab-btn">Inventory</a>
-            <a href="#" class="nav-item" id="product-tab-btn">Product</a>
-            <a href="#" class="nav-item" id="sales-tab-btn">Sales</a>
-            <a href="#" class="nav-item" id="customer-orders-tab-btn">Customer Order</a>
-            <a href="#" class="nav-item" id="reports-tab-btn">Reports</a>
-            <a href="#" class="nav-item" id="setting-tab-btn">Setting</a>
-        </div>
-    </div>
-
-   <!-- User Profile Section -->
-   <div class="user-profile">
-    <div class="chat-floating-wrapper">
-      <button id="chat-modal-btn" class="chat-icon-btn">
-        <i class="glyphicon glyphicon-envelope"></i>
-      </button>
-      <!-- <span class="chat-badge"></span> -->
-    </div>
-    <div class="profile-icon">
-      <i class="glyphicon glyphicon-user"></i>
-    </div>
-    <div class="profile-details">
-      <span class="profile-name">{{ user.username }}</span>
-      <span class="profile-role">{{ user.role|upper }}</span>
-    </div>
-    <div class="dropdown-wrapper" style="position: relative;">
-      <button class="dropdown-btn" id="profile-dropdown-btn">
-        <span class="glyphicon glyphicon-chevron-down"></span>
-      </button>
-      <div class="dropdown-menu" id="profile-dropdown-menu">
-        <a href="{{ url_for('auth.logout') }}" class="logout-link">
-          <span class="glyphicon glyphicon-log-out" style="margin-right: 8px;"></span>
-          LOGOUT
-        </a>
+          <a href="#" class="nav-item active" id="dashboard-tab-btn">Dashboard</a>
+          <a href="#" class="nav-item" id="supplier-tab-btn">Supplier</a>
+          <a href="#" class="nav-item" id="inventory-tab-btn">Inventory</a>
+          <a href="#" class="nav-item" id="product-tab-btn">Product</a>
+          <a href="#" class="nav-item" id="sales-tab-btn">Sales</a>
+          <a href="#" class="nav-item" id="customer-orders-tab-btn">Customer Order</a>
+          <a href="#" class="nav-item" id="reports-tab-btn">Reports</a>
+          <a href="#" class="nav-item" id="setting-tab-btn">Setting</a>
       </div>
-      <script>
-        document.getElementById('profile-dropdown-btn').onclick = function(e) {
-          e.stopPropagation();
-          document.getElementById('profile-dropdown-menu').classList.toggle('active');
-        };
-        document.addEventListener('click', function() {
-          document.getElementById('profile-dropdown-menu').classList.remove('active');
-        });
-        document.getElementById('profile-dropdown-menu').onclick = function(e) {
-          e.stopPropagation();
-        };
-        </script>
-        <style>
-        .dropdown-menu { display: none; position: absolute; background: #fff; }
-        .dropdown-menu.active { display: block; }
-        </style>
     </div>
-  </div>
-    
-    <!-- Main Content (STAFF MAIN CONTENT) -->
+      
+      <!-- User Profile Section -->
+      <div class="main-content">
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert" style="margin-top: 20px;">
+              {{ message }}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+        <div class="user-profile compact-profile" style="position: absolute; top: 10px; right: 10px;">
+          <div class="chat-floating-wrapper compact-chat">
+            <button id="chat-modal-btn" class="chat-icon-btn compact-chat-btn">
+              <i class="glyphicon glyphicon-envelope"></i>
+            </button>
+          </div>
+          <div class="profile-icon compact-profile-icon">
+            <i class="glyphicon glyphicon-user"></i>
+          </div>
+          <div class="profile-details">
+            <span class="profile-name">{{ user.username }}</span>
+            <span class="profile-role">{{ user.role|upper }}</span>
+          </div>
+          <div class="dropdown-wrapper" style="position: relative;">
+            <button class="dropdown-btn" id="profile-dropdown-btn">
+              <span class="glyphicon glyphicon-chevron-down"></span>
+            </button>
+            <div class="dropdown-menu" id="profile-dropdown-menu">
+              <a href="{{ url_for('auth.logout') }}" class="logout-link">
+                <span class="glyphicon glyphicon-log-out" style="margin-right: 8px;"></span>
+                LOGOUT
+              </a>
+            </div>
+            <script>
+            document.getElementById('profile-dropdown-btn').onclick = function(e) {
+              e.stopPropagation();
+              document.getElementById('profile-dropdown-menu').classList.toggle('active');
+            };
+            document.addEventListener('click', function() {
+              document.getElementById('profile-dropdown-menu').classList.remove('active');
+            });
+            document.getElementById('profile-dropdown-menu').onclick = function(e) {
+              e.stopPropagation();
+            };
+            </script>
+            <style>
+            .dropdown-menu { display: none; position: absolute; background: #fff; }
+            .dropdown-menu.active { display: block; }
+            </style>
+        </div>
+      </div>
+
+    <!-- Main Content (ADMIN MAIN CONTENT) -->
     <div class="main-content">
-        <!-- Dashboard Section (STAFF DASHBOARD SECTION) -->
+        <!-- Dashboard Section (ADMIN DASHBOARD SECTION) -->
         <div id="dashboard-section" class="content-section active">
             <div class="header">
                 <h1>DASHBOARD</h1>
@@ -92,74 +102,60 @@
                         <thead>
                             <tr>
                                 <th>PRODUCT ID</th>
-                                <th>CATEGORY ID</th>
                                 <th>PRODUCT NAME</th>
                                 <th>SUPPLIER</th>
                                 <th>CURRENT STOCK</th>
                                 <th>ALERT LEVEL</th>
-                                <th>CONTACT</th>
-                                <th>ACTIONS</th>
+                                <th>NOTIFY SUPPLIER</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td></td>
-                                <td>JH563</td>
                                 <td>Portable sewing machine</td>
                                 <td>Shunfa</td>
                                 <td>3</td>
                                 <td class="alert-level">⚠ 10</td>
-                                <td></td>
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
                               <td></td>
-                                <td>B9117-012-000</td>
                                 <td>Bobbin case</td>
                                 <td>Shunfa</td>
                                 <td>5</td>
                                 <td class="alert-level">⚠ 15</td>
-                                <td></td>
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
                               <td></td>
-                                <td>59219</td>
                                 <td>China Cotton 165 GSM</td>
                                 <td>Guifang Manufacturing</td>
                                 <td>3</td>
                                 <td class="alert-level">⚠ 8</td>
-                                <td></td>
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
                               <td></td>
-                                <td>MO-6700</td>
                                 <td>Series Edger Machine</td>
                                 <td>Tai-Sing Industrial</td>
                                 <td>2</td>
                                 <td class="alert-level">⚠ 10</td>
-                                <td></td>
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
                               <td></td>
-                                <td>W582-02BB</td>
                                 <td>Piping Machine</td>
                                 <td>Tai-Sing Industrial</td>
                                 <td>5</td>
                                 <td class="alert-level">⚠ 15</td>
-                                <td></td>
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
                               <td></td>
-                                <td>B3421-552-000</td>
                                 <td>Presser foot</td>
                                 <td>Shunfa</td>
                                 <td>3</td>
                                 <td class="alert-level">⚠ 8</td>
-                                <td></td>
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                         </tbody>
@@ -262,32 +258,40 @@
                         <thead>
                             <tr>
                                 <th>ORDER ID</th>
-                                <th>ORDER NUMBER</th>
-                                <th>ITEM</th>
-                                <th>SHIPPING SERVICE</th>
-                                <th>TRACKING CODE</th>
+                                <th>PRODUCT ID</th>
+                                <th>PRODUCT NAME</th>
+                                <th>CUSTOMER NAME</th>
+                                <th>CUSTOMER ADDRESS</th>
+                                <th>PRODUCT QUANTITY</th>
+                                <th>TRACKING NUMBER</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>59217</td>
-                                <td>59217342</td>
                                 <td>1</td>
-                                <td>Standard</td>
+                                <td>1</td>
+                                <td>Portable sewing machine</td>
+                                <td>John Doe</td>
+                                <td>123 Main St, Anytown, USA</td>
+                                <td>1</td>
                                 <td>94001001093611300113</td>
                             </tr>
                             <tr>
-                                <td>59213</td>
-                                <td>59217343</td>
+                                <td>1</td>
+                                <td>1</td>
+                                <td>Portable sewing machine</td>
+                                <td>John Doe</td>
+                                <td>123 Main St, Anytown, USA</td>
                                 <td>2</td>
-                                <td>Priority</td>
                                 <td>94001001093611300113</td>
                             </tr>
                             <tr>
-                                <td>59219</td>
-                                <td>59217344</td>
+                                <td>1</td>
+                                <td>1</td>
+                                <td>Portable sewing machine</td>
+                                <td>John Doe</td>
+                                <td>123 Main St, Anytown, USA</td>
                                 <td>12</td>
-                                <td>Express</td>
                                 <td>94001001093611300113</td>
                             </tr>
                         </tbody>
@@ -677,6 +681,7 @@
           <div id="customer-orders-section" class="content-section">
             <div class="header">
               <h1>CUSTOMER ORDERS</h1>
+              
             </div>
             <div class="customer-orders-cards">
               <div class="card">
@@ -708,7 +713,7 @@
                 </div>
               </div>
               <div class="card">
-                <table class="table table-sm">
+                <table class="order-table">
                   <thead>
                     <tr>
                       <th>Order ID</th>
@@ -720,6 +725,7 @@
                       <th>MOP</th>
                       <th>Payment Reference Number</th>
                       <th>Delivery Reference Number</th>
+                      <th>Proof of Payment</th>
                       <th>Order Status</th>
                       <th>Order Date</th>
                       <th>Customer Issue</th>
@@ -740,6 +746,7 @@
                       <td>Gcash</td>
                       <td>PAY12345</td>
                       <td>REF12345</td>
+                      <td></td>
                       <td><span class="status-cell status-completed">Completed</span></td>
                       <td>2025-03-08</td>
                       <td></td>
@@ -761,6 +768,7 @@
                         <td>Bank</td>
                         <td>PAY54231</td>
                         <td>REF09876</td>
+                        <td></td>
                         <td><span class="status-cell status-pending">Pending</span></td>
                         <td>2025-03-08</td>
                         <td></td>
@@ -781,6 +789,7 @@
                       <td>COD</td>
                       <td>PAY22556</td>
                       <td>REF66552</td>
+                      <td></td>
                       <td><span class="status-cell status-completed">Completed</span></td>
                       <td>2025-03-08</td>
                       <td></td>
@@ -797,7 +806,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Reports Section -->
           <div id="reports-section" class="content-section">
 
@@ -941,9 +950,9 @@
   </div>
 </div>
         </div>
-
-           <!-- Settings Section -->
-           <div id="setting-section" class="content-section">
+ 
+          <!-- Settings Section -->
+          <div id="setting-section" class="content-section">
             <div class="header">
               <h1>SETTINGS MANAGEMENT</h1>
               
@@ -1007,11 +1016,109 @@
               </div>
             </div>
           </div>
-  
+          
+        <!-- Add Product Modal -->
+        <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form id="add-product-form">
+                  <div class="form-group">
+                    <label for="product-picture">Picture</label>
+                    <input type="file" class="form-control" id="product-picture" name="picture" accept="image/*">
+                  </div>
+                  <div class="form-group">
+                    <label for="product-id">ID</label>
+                    <input type="text" class="form-control" id="product-id" name="id" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="product-name">Product Name</label>
+                    <input type="text" class="form-control" id="product-name" name="name" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="product-category">Category</label>
+                    <input type="text" class="form-control" id="product-category" name="category" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="product-specifications">Specifications</label>
+                    <input type="text" class="form-control" id="product-specifications" name="specifications">
+                  </div>
+                  <div class="form-group">
+                    <label for="product-description">Description</label>
+                    <textarea class="form-control" id="product-description" name="description" rows="2"></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label for="product-price">Price</label>
+                    <input type="number" class="form-control" id="product-price" name="price" step="0.01" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="product-variation">Variation</label>
+                    <input type="text" class="form-control" id="product-variation" name="variation">
+                  </div>
+                  <button type="submit" class="btn btn-primary">Add Product</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
         </div> <!-- end of main-content -->
     </div> <!-- end of row/dashboard -->
 </div> <!-- end of container-fluid -->
 
+<div id="chatModal" class="chat-modal">
+  <div class="chat-modal-content">
+      <div class="chat-modal-header" id="chatHeaderBar">
+          <span class="chat-modal-title">Recent Chats</span>
+          <button class="chat-modal-close" id="closeChatModal" aria-label="Close">&times;</button>
+      </div>
+      <div class="chat-modal-list" id="chatList" style="display: block;">
+          <div class="chat-modal-item" id="openConversation">
+              <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
+              <div class="chat-modal-details">
+                  <div class="chat-modal-name">JBR Tanching C.O</div>
+                  <div class="chat-modal-message">We do not have enough stock avai ...</div>
+              </div>
+          </div>
+      </div>
+      <div class="chat-modal-conversation" id="chatConversation" style="display: none;">
+          <button class="chat-conv-back" id="backToList">&#8592; Back</button>
+          <div class="chat-conv-company-row">
+              <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
+              <div class="chat-conv-company-info">
+                  <div class="chat-modal-name">JBR Tanching C.O</div>
+                  <div class="chat-modal-role">Company</div>
+              </div>
+          </div>
+          <div class="chat-conv-divider">Yesterday</div>
+          <div class="chat-conv-messages">
+              <div class="chat-message chat-message-them">
+                  <span>When blue color will be available?</span>
+              </div>
+              <div class="chat-message chat-message-you">
+                  <span>We don't have enough stock for Lacoster Fabrics</span>
+              </div>
+          </div>
+          <div class="chat-conv-input">
+              <input type="text" id="chatInput" placeholder="Type here...." />
+              <input type="file" id="chatFileInput" style="display:none;" />
+              <div class="chat-conv-icons">
+                  <button class="chat-attach-btn" id="chatAttachBtn" type="button">
+                      <img src="{{ url_for('static', filename='pictures/attach.png') }}" alt="Attach" style="width:28px;height:28px;">
+                  </button>
+                  <button class="chat-send-btn" id="chatSendBtn" type="button">
+                      <img src="{{ url_for('static', filename='pictures/arrow.png') }}" alt="Send" style="width:28px;height:28px;">
+                  </button>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
 
 <script>
   // Sidebar navigation: show only the selected section
@@ -1068,52 +1175,3 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 </script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-<div id="chatModal" class="chat-modal">
-  <div class="chat-modal-content">
-      <div class="chat-modal-header" id="chatHeaderBar">
-          <span class="chat-modal-title">Recent Chats</span>
-          <button class="chat-modal-close" id="closeChatModal" aria-label="Close">&times;</button>
-      </div>
-      <div class="chat-modal-list" id="chatList" style="display: block;">
-          <div class="chat-modal-item" id="openConversation">
-              <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
-              <div class="chat-modal-details">
-                  <div class="chat-modal-name">JBR Tanching C.O</div>
-                  <div class="chat-modal-message">We do not have enough stock avai ...</div>
-              </div>
-          </div>
-      </div>
-      <div class="chat-modal-conversation" id="chatConversation" style="display: none;">
-          <button class="chat-conv-back" id="backToList">&#8592; Back</button>
-          <div class="chat-conv-company-row">
-              <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
-              <div class="chat-conv-company-info">
-                  <div class="chat-modal-name">JBR Tanching C.O</div>
-                  <div class="chat-modal-role">Company</div>
-              </div>
-          </div>
-          <div class="chat-conv-divider">Yesterday</div>
-          <div class="chat-conv-messages">
-              <div class="chat-message chat-message-them">
-                  <span>When blue color will be available?</span>
-              </div>
-              <div class="chat-message chat-message-you">
-                  <span>We don't have enough stock for Lacoster Fabrics</span>
-              </div>
-          </div>
-          <div class="chat-conv-input">
-              <input type="text" id="chatInput" placeholder="Type here...." />
-              <input type="file" id="chatFileInput" style="display:none;" />
-              <div class="chat-conv-icons">
-                  <button class="chat-attach-btn" id="chatAttachBtn" type="button">
-                      <img src="{{ url_for('static', filename='pictures/attach.png') }}" alt="Attach" style="width:28px;height:28px;">
-                  </button>
-                  <button class="chat-send-btn" id="chatSendBtn" type="button">
-                      <img src="{{ url_for('static', filename='pictures/arrow.png') }}" alt="Send" style="width:28px;height:28px;">
-                  </button>
-              </div>
-          </div>
-      </div>
-  </div>
-</div>
-{% endblock %}

@@ -74,9 +74,6 @@ class CartItem(db.Model):
     quantity = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    color = db.Column(db.String(50))
-    width = db.Column(db.String(50))
-    model = db.Column(db.String(50))
     
     __table_args__ = (db.UniqueConstraint('user_id', 'product_id', name='_user_product_uc'),)
 
@@ -84,18 +81,22 @@ class Order(db.Model):
     __tablename__ = 'orders'
     
     order_id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
-    payment_method = db.Column(db.String(50))
-    reference_number = db.Column(db.String(100))  # <-- must exist
+    user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     total_amount = db.Column(db.Float)
-    status = db.Column(db.String(50))
-    payment_status = db.Column(db.String(50))
-    shipping_address = db.Column(db.String(255))
-    proof_of_payment_url = db.Column(db.String(255))  # <-- must exist
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    status = db.Column(db.String(20))
+    payment_method = db.Column(db.String(50))
+    payment_status = db.Column(db.String(20))
+    shipping_address = db.Column(db.Text)
+    created_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)
     cancellation_reason = db.Column(db.String(255))
-    cancellation_requested_by = db.Column(db.String(50))  # 'buyer' or 'admin'
+    cancellation_requested_by = db.Column(db.String(50))
+    order_status = db.Column(db.String(50))
+    order_date = db.Column(db.DateTime)
+    customer_issue = db.Column(db.Text)
+    message = db.Column(db.Text)
+    feedback = db.Column(db.Text)
+    rate = db.Column(db.Integer)
     
     # Relationships
     items = db.relationship('OrderItem', backref='order', lazy=True)
@@ -193,6 +194,21 @@ class ProductSpecification(db.Model):
     spec_value = db.Column(db.String(255), nullable=False)
     display_order = db.Column(db.Integer, default=0)
 
+class ProductVariant(db.Model):
+    __tablename__ = 'product_variants'
+
+    variant_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False, index=True)
+    variant_name = db.Column(db.String(100), nullable=False)
+    variant_value = db.Column(db.String(100), nullable=False)
+    additional_price = db.Column(db.Numeric(10, 2), default=0.00)
+    stock_quantity = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<ProductVariant {self.variant_id} {self.variant_name}>'
+
 class Review(db.Model):
     __tablename__ = 'reviews'
     review_id = db.Column(db.Integer, primary_key=True)
@@ -206,3 +222,32 @@ class Review(db.Model):
 
     user = db.relationship('User', backref='reviews', lazy=True)
     product = db.relationship('Product', backref='reviews', lazy=True)
+
+class Supplier(db.Model):
+    __tablename__ = 'supplier_db'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_category = db.Column(db.String(255), nullable=False)
+    product_name = db.Column(db.String(255), nullable=False)
+    supplier_name = db.Column(db.String(255), nullable=False)
+    contact_person = db.Column(db.String(100), nullable=True)
+    phone_number = db.Column(db.String(30), nullable=True)
+    address = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(50), nullable=True)  # e.g. Active/Inactive
+    registration_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+class Inventory(db.Model):
+    __tablename__ = 'inventory_db'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    product_name = db.Column(db.String(255), nullable=False)
+    product_code = db.Column(db.String(100), nullable=False, unique=True)
+    category_name = db.Column(db.String(100), nullable=False)
+    selling_price = db.Column(db.Float, nullable=False)
+    min_stock = db.Column(db.Integer, nullable=False)
+    max_stock = db.Column(db.Integer, nullable=False)
+    last_updated = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    supplier_name = db.Column(db.String(255), nullable=False)
+    supplier_price = db.Column(db.Float, nullable=False)
+    available_stock = db.Column(db.Integer, nullable=False)
+    stock_status = db.Column(db.String(100), nullable=False)
+    product_status = db.Column(db.String(100), nullable=False)
+    memo = db.Column(db.Text, nullable=True)

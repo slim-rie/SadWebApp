@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, Brand, ProductSpecification, ProductVariant
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -98,6 +98,17 @@ def sewingmachines():
 @views.route('/sewingparts')
 def sewing_parts():
     return render_template('sewingparts.html', user=current_user)
+
+@views.route('/products-by-category/<category_name>')
+def products_by_category_new(category_name):
+    # Find category by name (case-insensitive)
+    category_obj = Category.query.filter(func.lower(Category.category_name) == category_name.lower()).first()
+    if not category_obj:
+        # No such category, show empty list
+        return render_template("products.html", user=current_user, products=[], category=category_name)
+    # Filter products by category_id
+    products = Product.query.filter_by(category_id=category_obj.category_id).all()
+    return render_template("products.html", user=current_user, products=products, category=category_obj.category_name)
 
 @views.route('/fabrics')
 def fabrics():
@@ -783,14 +794,14 @@ def create_order():
 
         # Create order
         order = Order(
-            user_id=current_user.user_id,
-            total_amount=total,
-            status='pending',
-            payment_method=payment_method,
-            reference_number=reference_number,
-            proof_of_payment_url=proof_of_payment_url,
-            payment_status='pending',
-            shipping_address=address.complete_address
+             user_id=current_user.user_id,
+             total_amount=total,
+             status='pending',
+             payment_method=payment_method,
+             payment_status='pending',
+             shipping_address=address.complete_address,
+             order_date=datetime.utcnow(),
+             order_status='To Pay'
         )
         db.session.add(order)
         db.session.flush()  # Get order_id
@@ -972,3 +983,617 @@ def buy_now():
         'model': model
     }
     return jsonify({'success': True})
+
+#ari
+
+@views.route('/admin/update_profile', methods=['PUT', 'POST'])
+@login_required
+def update_profile():
+    data = request.json or request.get_json()
+    user = User.query.get(current_user.user_id)
+    if not user:
+        return jsonify({"success": False, "error": "User not found"}), 404
+    try:
+        user.username = data.get('username', user.username)
+        user.email = data.get('email', user.email)
+        user.first_name = data.get('first_name', user.first_name)
+        user.last_name = data.get('last_name', user.last_name)
+        user.role = data.get('role', user.role)
+        if data.get('password'):
+            user.password = generate_password_hash(data['password'])
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@views.route('/admin/personnel_list', methods=['GET'])
+def personnel_list():
+    users = User.query.all()
+    user_list = [{
+        "user_id": u.user_id,
+        "username": u.username,
+        "email": u.email,
+        "first_name": u.first_name,
+        "last_name": u.last_name,
+        "role": u.role,
+        "last_login": u.last_login
+    } for u in users]
+    return jsonify(user_list), 200
+
+@views.route('/admin/add_personnel', methods=['POST'])
+def add_personnel():
+    data = request.json
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"success": False, "error": "Email already exists"}), 409
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({"success": False, "error": "Username already exists"}), 409
+
+    hashed_password = generate_password_hash(data['password'])
+    new_user = User(
+        username=data['username'],
+        email=data['email'],
+        password=hashed_password,
+        first_name=data.get('first_name'),
+        middle_name=data.get('middle_name'),
+        last_name=data.get('last_name'),
+        role=data['role'],
+    )
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({
+            "success": True,
+            "user": {
+                "user_id": new_user.user_id,
+                "username": new_user.username,
+                "email": new_user.email,
+                "first_name": new_user.first_name,
+                "middle_name": new_user.middle_name,
+                "last_name": new_user.last_name,
+                "role": new_user.role,
+                "last_login": new_user.last_login
+            }
+        }), 201
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"success": False, "error": "Database error"}), 500
+
+@views.route('/admin/update_personnel/<int:user_id>', methods=['PUT', 'POST'])
+def update_personnel(user_id):
+    data = request.json
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "error": "User not found"}), 404
+    try:
+        user.username = data.get('username', user.username)
+        user.email = data.get('email', user.email)
+        user.first_name = data.get('first_name', user.first_name)
+        user.middle_name = data.get('middle_name', user.middle_name)
+        user.last_name = data.get('last_name', user.last_name)
+        user.role = data.get('role', user.role)
+        # Only update password if provided
+        if data.get('password'):
+            user.password = generate_password_hash(data['password'])
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@views.route('/admin/delete_personnel/<int:user_id>', methods=['DELETE', 'POST'])
+def delete_personnel(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "error": "User not found"}), 404
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+import traceback
+@views.route('/admin/add_supplier', methods=['POST'])
+def add_supplier():
+    data = request.get_json()
+    print("DEBUG: Incoming data for add_supplier:", data)
+    required_fields = [
+        'product_category', 'product_name', 'supplier_name',
+        'contact_person', 'address', 'status', 'phone_number'
+    ]
+    if not data or not all(field in data and data[field] for field in required_fields):
+        print("DEBUG: Missing required fields")
+        return jsonify({'success': False, 'error': 'Missing required fields'})
+    try:
+        supplier = Supplier(
+            product_category=data['product_category'],
+            product_name=data['product_name'],
+            supplier_name=data['supplier_name'],
+            contact_person=data['contact_person'],
+            phone_number=data['phone_number'],
+            address=data['address'],
+            status=data['status']
+        )
+        db.session.add(supplier)
+        db.session.commit()
+        print("DEBUG: Supplier added successfully")
+        return jsonify({'success': True, 'id': supplier.id})
+    except Exception as e:
+        db.session.rollback()
+        print("ERROR: Exception in add_supplier:", e)
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+@views.route('/admin/product_spec_list')
+def product_spec_list():
+    product_id = request.args.get('product_id')
+    if product_id:
+        specs = ProductSpecification.query.filter_by(product_id=product_id).order_by(ProductSpecification.display_order).all()
+    else:
+        specs = ProductSpecification.query.order_by(ProductSpecification.product_id, ProductSpecification.display_order).all()
+    return jsonify([
+        {
+            'spec_id': getattr(spec, 'id', getattr(spec, 'spec_id', '')),
+            'product_id': spec.product_id,
+            'spec_name': spec.spec_name,
+            'spec_value': spec.spec_value,
+            'display_order': spec.display_order
+        }
+        for spec in specs
+    ])
+
+@views.route('/admin/inventory_list')
+def inventory_list():
+    items = Inventory.query.order_by(Inventory.id.desc()).all()
+    result = []
+    for i in items:
+        result.append({
+            'id': i.id,
+            'product_name': i.product_name,
+            'product_code': i.product_code,
+            'category_name': i.category_name,
+            'selling_price': i.selling_price,
+            'min_stock': i.min_stock,
+            'max_stock': i.max_stock,
+            'last_updated': i.last_updated.strftime('%Y-%m-%d %H:%M:%S') if i.last_updated else '',
+            'supplier_name': i.supplier_name,
+            'supplier_price': i.supplier_price,
+            'available_stock': i.available_stock,
+            'stock_status': i.stock_status,
+            'product_status': i.product_status,
+            'memo': i.memo or ''
+        })
+    return jsonify(result)
+
+@views.route('/admin/add_inventory', methods=['POST'])
+def add_inventory():
+
+    data = request.get_json()
+    required_fields = [
+        'product_name', 'product_code', 'category_name', 'selling_price', 'min_stock',
+        'max_stock', 'supplier_name', 'supplier_price', 'available_stock',
+        'stock_status', 'product_status'
+    ]
+    missing = [f for f in required_fields if f not in data or data[f] in (None, '')]
+    if missing:
+        return jsonify({'success': False, 'error': f'Missing required fields: {", ".join(missing)}'})
+    try:
+        from datetime import datetime
+        last_updated = data.get('last_updated')
+        if last_updated:
+            try:
+                last_updated_dt = datetime.strptime(last_updated, '%Y-%m-%dT%H:%M')
+            except Exception:
+                last_updated_dt = datetime.utcnow()
+        else:
+            last_updated_dt = datetime.utcnow()
+        inventory = Inventory(
+            product_name=data.get('product_name'),
+            product_code=data.get('product_code'),
+            category_name=data.get('category_name'),
+            selling_price=data.get('selling_price'),
+            min_stock=data.get('min_stock'),
+            max_stock=data.get('max_stock'),
+            last_updated=last_updated_dt,
+            supplier_name=data.get('supplier_name'),
+            supplier_price=data.get('supplier_price'),
+            available_stock=data.get('available_stock'),
+            stock_status=data.get('stock_status'),
+            product_status=data.get('product_status'),
+            memo=data.get('memo')
+        )
+        db.session.add(inventory)
+        db.session.commit()
+        return jsonify({'success': True, 'id': inventory.id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/update_inventory/<int:inventory_id>', methods=['PUT'])
+def update_inventory(inventory_id):
+    data = request.get_json()
+    inventory = Inventory.query.get_or_404(inventory_id)
+    try:
+        inventory.product_name = data.get('product_name', inventory.product_name)
+        inventory.product_code = data.get('product_code', inventory.product_code)
+        inventory.category_name = data.get('category_name', inventory.category_name)
+        inventory.selling_price = data.get('selling_price', inventory.selling_price)
+        inventory.min_stock = data.get('min_stock', inventory.min_stock)
+        inventory.max_stock = data.get('max_stock', inventory.max_stock)
+        inventory.supplier_name = data.get('supplier_name', inventory.supplier_name)
+        inventory.supplier_price = data.get('supplier_price', inventory.supplier_price)
+        inventory.available_stock = data.get('available_stock', inventory.available_stock)
+        inventory.stock_status = data.get('stock_status', inventory.stock_status)
+        inventory.product_status = data.get('product_status', inventory.product_status)
+        inventory.memo = data.get('memo', inventory.memo)
+        # Handle last_updated if provided
+        from datetime import datetime
+        last_updated = data.get('last_updated')
+        if last_updated:
+            try:
+                inventory.last_updated = datetime.strptime(last_updated, '%Y-%m-%dT%H:%M')
+            except Exception:
+                pass
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/delete_inventory/<int:inventory_id>', methods=['DELETE'])
+def delete_inventory(inventory_id):
+    inventory = Inventory.query.get(inventory_id)
+    if not inventory:
+        return jsonify({'success': False, 'error': 'Inventory not found'}), 404
+    db.session.delete(inventory)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@views.route('/admin/update_supplier/<int:supplier_id>', methods=['PUT'])
+def update_supplier(supplier_id):
+    data = request.get_json()
+    supplier = Supplier.query.get_or_404(supplier_id)
+    try:
+        supplier.product_category = data.get('product_category', supplier.product_category)
+        supplier.product_name = data.get('product_name', supplier.product_name)
+        supplier.supplier_name = data.get('supplier_name', supplier.supplier_name)
+        supplier.contact_person = data.get('contact_person', supplier.contact_person)
+        supplier.phone_number = data.get('phone_number', supplier.phone_number)
+        supplier.address = data.get('address', supplier.address)
+        supplier.status = data.get('status', supplier.status)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/delete_supplier/<int:supplier_id>', methods=['DELETE'])
+def delete_supplier(supplier_id):
+    try:
+        supplier = Supplier.query.get(supplier_id)
+        if not supplier:
+            return jsonify({'success': False, 'error': 'Supplier not found'})
+        db.session.delete(supplier)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/supplier_list')
+def supplier_list():
+    suppliers = Supplier.query.order_by(Supplier.id.desc()).all()
+    result = []
+    for s in suppliers:
+        result.append({
+            'id': s.id,
+            'product_category': s.product_category,
+            'product_name': s.product_name,
+            'supplier_name': s.supplier_name,
+            'contact_person': s.contact_person,
+            'phone_number': s.phone_number,
+            'address': s.address,
+            'status': s.status,
+            'registration_date': s.registration_date.strftime('%Y-%m-%d %H:%M:%S') if s.registration_date else ''
+        })
+    return jsonify(result)
+
+@views.route('/admin/add_product', methods=['POST'])
+def add_product():
+    try:
+        # Get product fields from form
+        product_name = request.form['product_name']
+        model_number = request.form['model_number']
+        description = request.form.get('description', '')
+        brand_id = request.form['brand_id']
+        category_id = request.form['category_id']
+        base_price = request.form['base_price']
+        discount_percentage = request.form.get('discount_percentage', 0)
+        stock_quantity = request.form['stock_quantity']
+        # Ignore subcategory and picture fields if present
+
+        # Create product
+        product = Product(
+            product_name=product_name,
+            model_number=model_number,
+            description=description,
+            brand_id=brand_id,
+            category_id=category_id,
+            base_price=base_price,
+            discount_percentage=discount_percentage,
+            stock_quantity=stock_quantity,
+        )
+        db.session.add(product)
+        db.session.commit()
+
+        # Handle images, specifications, variants (expand as needed)
+        # Example: save images, specs, variants using product.product_id
+
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+    # In views.py
+@views.route('/api/brands')
+def get_brands():
+    brands = Brand.query.all()
+    return jsonify([{
+        'brand_id': b.brand_id,
+        'brand_name': b.brand_name,
+        'description': b.description
+    } for b in brands])
+
+@views.route('/admin/brand_list')
+def admin_brand_list():
+    brands = Brand.query.all()
+    return jsonify([
+        {
+            'brand_id': b.brand_id,
+            'brand_name': b.brand_name,
+            'description': b.description
+        } for b in brands
+    ])
+
+@views.route('/api/categories')
+def get_categories():
+    categories = Category.query.all()
+    return jsonify([{
+        'category_id': c.category_id,
+        'category_name': c.category_name
+    } for c in categories])
+
+@views.route('/admin/category_list')
+def admin_category_list():
+    categories = Category.query.all()
+    return jsonify([
+        {
+            'category_id': c.category_id,
+            'category_name': c.category_name,
+            'parent_category_id': getattr(c, 'parent_category_id', None)
+        } for c in categories
+    ])
+
+@views.route('/admin/update_product/<int:product_id>', methods=['PUT'])
+def update_product(product_id):
+    try:
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({'success': False, 'error': 'Product not found'})
+        data = request.get_json()
+        # Map JS field names to model attributes
+        product.product_name = data.get('name', product.product_name)
+        product.model_number = data.get('model_number', product.model_number)
+        product.description = data.get('description', product.description)
+        product.category_id = data.get('category_id', product.category_id)
+        product.base_price = data.get('price', product.base_price)
+        product.discount_percentage = data.get('discount', product.discount_percentage)
+        product.stock_quantity = data.get('stock_quantity', product.stock_quantity)
+        product.brand_id = data.get('brand_id', product.brand_id)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/delete_product/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    try:
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({'success': False, 'error': 'Product not found'})
+        # Delete related product variants first
+        from .models import ProductVariant
+        ProductVariant.query.filter_by(product_id=product_id).delete()
+        db.session.delete(product)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/product_list')
+def admin_product_list():
+    products = Product.query.all()
+    product_list = []
+    for product in products:
+        product_list.append({
+            'product_id': getattr(product, 'product_id', ''),
+            'name': getattr(product, 'product_name', ''),
+            'model_number': getattr(product, 'model_number', ''),
+            'description': getattr(product, 'description', ''),
+            'category_id': getattr(product, 'category_id', ''),
+            'price': float(getattr(product, 'base_price', 0)),
+            'discount': getattr(product, 'discount_percentage', ''),
+            'stock_quantity': getattr(product, 'stock_quantity', ''),
+            'created_at': str(getattr(product, 'created_at', '')),
+            'updated_at': str(getattr(product, 'updated_at', '')),
+            'brand_id': getattr(product, 'brand_id', ''),
+            'image': product.images[0].image_url if product.images else '/static/pictures/default.jpg',
+        })
+    return jsonify(product_list)
+
+@views.route('/admin/product_variant_list')
+def product_variant_list():
+    variants = ProductVariant.query.order_by(ProductVariant.variant_id).all()
+    return jsonify([
+        {
+            'variant_id': v.variant_id,
+            'product_id': v.product_id,
+            'variant_name': v.variant_name,
+            'variant_value': v.variant_value,
+            'additional_price': str(v.additional_price) if hasattr(v, 'additional_price') else '',
+            'stock_quantity': v.stock_quantity if hasattr(v, 'stock_quantity') else '',
+            'created_at': str(v.created_at) if hasattr(v, 'created_at') else '',
+            'updated_at': str(v.updated_at) if hasattr(v, 'updated_at') else ''
+        }
+        for v in variants
+    ])
+
+@views.route('/admin/add_product_variant', methods=['POST'])
+def add_product_variant():
+    try:
+        product_id = request.form['product_id']
+        variant_name = request.form['variant_name']
+        variant_value = request.form['variant_value']
+        additional_price = request.form.get('additional_price', 0)
+        stock_quantity = request.form.get('stock_quantity', 0)
+        # Convert numeric fields safely
+        try:
+            additional_price = float(additional_price)
+        except Exception:
+            additional_price = 0.0
+        try:
+            stock_quantity = int(stock_quantity)
+        except Exception:
+            stock_quantity = 0
+        new_variant = ProductVariant(
+            product_id=product_id,
+            variant_name=variant_name,
+            variant_value=variant_value,
+            additional_price=additional_price,
+            stock_quantity=stock_quantity
+        )
+        db.session.add(new_variant)
+        db.session.commit()
+        return jsonify({'success': True, 'variant_id': new_variant.variant_id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+# --- PRODUCT IMAGE UPLOAD ---
+UPLOAD_FOLDER = os.path.join('SadWebApp', 'website', 'static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_image(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
+
+
+@views.route('/admin/product_images')
+def admin_product_images():
+
+
+
+    images = ProductImage.query.all()
+    image_list = []
+    for img in images:
+        image_list.append({
+            'image_id': img.image_id,
+            'product_id': img.product_id,
+            'image_url': img.image_url,
+            'image_type': img.image_type,
+            'display_order': img.display_order,
+            'text': img.alt_text
+        })
+    return jsonify(image_list)
+
+@views.route('/admin/add_product_image', methods=['POST'])
+def add_product_image():
+    if 'image' not in request.files:
+        return jsonify({'success': False, 'error': 'No image file provided'}), 400
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'success': False, 'error': 'No selected file'}), 400
+    if file and allowed_image(file.filename):
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(save_path)
+        image_url = f'/static/uploads/{filename}'
+        # Save to DB
+        new_img = ProductImage(
+            product_id=request.form.get('product_id'),
+            image_url=image_url,
+            image_type=request.form.get('image_type', ''),
+            display_order=request.form.get('display_order', 0),
+            alt_text=request.form.get('text', '')
+        )
+        db.session.add(new_img)
+        db.session.commit()
+        return jsonify({'success': True, 'image_url': image_url})
+    else:
+        return jsonify({'success': False, 'error': 'Invalid file type'}), 400
+
+@views.route('/admin/add_product_spec', methods=['POST'])
+def add_product_spec():
+    try:
+        product_id = request.form['product_id']
+        spec_name = request.form['spec_name']
+        spec_value = request.form['spec_value']
+        display_order = request.form.get('display_order', 0)
+
+        new_spec = ProductSpecification(
+            product_id=product_id,
+            spec_name=spec_name,
+            spec_value=spec_value,
+            display_order=display_order
+        )
+        db.session.add(new_spec)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+# ================= ADMIN: CUSTOMER ORDERS LIST API =================
+@views.route('/admin/orders_list')
+def admin_orders_list():
+    """
+    Returns all customer orders (with items) for admin panel. All statuses included.
+    """
+    from .models import Order, OrderItem, User
+    orders = Order.query.order_by(Order.created_at.desc()).all()
+    data = []
+    for order in orders:
+        user = User.query.get(order.user_id)
+        items = []
+        for item in order.items:
+            items.append({
+                "order_item_id": item.id,
+                "product_id": item.product_id,
+                "quantity": item.quantity,
+                "price": float(item.price),
+                "created_at": item.created_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else ""
+            })
+        data.append({
+            "order_id": order.order_id,
+            "user_id": order.user_id,
+            "customer_name": f"{user.first_name} {user.last_name}" if user else "",
+            "total_amount": float(order.total_amount) if order.total_amount is not None else 0,
+            "status": order.status,
+            "payment_method": order.payment_method,
+            "payment_status": order.payment_status,
+            "shipping_address": order.shipping_address,
+            "order_status": order.order_status,
+            "order_date": order.order_date.strftime("%Y-%m-%d %H:%M:%S") if order.order_date else "",
+            "customer_issue": order.customer_issue,
+            "message": order.message,
+            "feedback": order.feedback,
+            "rate": order.rate,
+            "cancellation_reason": order.cancellation_reason,
+            "items": items
+        })
+    return jsonify(data)
