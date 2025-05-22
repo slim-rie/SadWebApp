@@ -1,9 +1,11 @@
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/staff.css') }}">
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat_modal.css') }}">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,600&display=swap" rel="stylesheet">
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/admin.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/BACKUP_RESTORE.CSS') }}">
+
   <div class="row no-gutters dashboard">
     <!-- Sidebar -->
     <div class="sidebar fixed-sidebar" style="height: 100vh; overflow-y: hidden; width: 300px;">
@@ -12,15 +14,15 @@
             <div class="logo-text">JBR TANCHING C.O</div>
         </div>
         <div class="nav-items">
-          <a href="#" class="nav-item active" id="dashboard-tab-btn">Dashboard</a>
-          <a href="#" class="nav-item" id="supplier-tab-btn">Supplier</a>
-          <a href="#" class="nav-item" id="inventory-tab-btn">Inventory</a>
-          <a href="#" class="nav-item" id="product-tab-btn">Product</a>
-          <a href="#" class="nav-item" id="sales-tab-btn">Sales</a>
-          <a href="#" class="nav-item" id="customer-orders-tab-btn">Customer Order</a>
-          <a href="#" class="nav-item" id="reports-tab-btn">Reports</a>
-          <a href="#" class="nav-item" id="setting-tab-btn">Setting</a>
-      </div>
+            <a href="#" class="nav-item active" id="dashboard-tab-btn">Dashboard</a>
+            <a href="#" class="nav-item" id="supplier-tab-btn">Supplier</a>
+            <a href="#" class="nav-item" id="inventory-tab-btn">Inventory</a>
+            <a href="#" class="nav-item" id="product-tab-btn">Product</a>
+            <a href="#" class="nav-item" id="sales-tab-btn">Sales</a>
+            <a href="#" class="nav-item" id="customer-orders-tab-btn">Customer Order</a>
+            <a href="#" class="nav-item" id="reports-tab-btn">Reports</a>
+            <a href="#" class="nav-item" id="setting-tab-btn">Settings</a>
+        </div>
     </div>
       
       <!-- User Profile Section -->
@@ -42,23 +44,27 @@
         <div class="user-profile compact-profile" style="position: absolute; top: 10px; right: 10px;">
           <div class="chat-floating-wrapper compact-chat">
             <button id="chat-modal-btn" class="chat-icon-btn compact-chat-btn">
-              <i class="glyphicon glyphicon-envelope"></i>
+              <i class="fa fa-envelope"></i>
             </button>
           </div>
           <div class="profile-icon compact-profile-icon">
-            <i class="glyphicon glyphicon-user"></i>
+            <i class="fa fa-user"></i>
           </div>
           <div class="profile-details">
-            <span class="profile-name">{{ user.username }}</span>
-            <span class="profile-role">{{ user.role|upper }}</span>
-          </div>
-          <div class="dropdown-wrapper" style="position: relative;">
-            <button class="dropdown-btn" id="profile-dropdown-btn">
-              <span class="glyphicon glyphicon-chevron-down"></span>
+  <span class="profile-name">{{ user.username }}</span>
+  <span class="profile-role">{{ user.role|upper }}</span>
+</div>
+<div class="dropdown-wrapper" style="position: relative;">
+  <button class="dropdown-btn" id="profile-dropdown-btn">
+    <span class="fa fa-chevron-down"></span>
+  </button>
+  <div class="dropdown-menu" id="adminDropdownMenu" style="right: 0; min-width: 160px; position: absolute; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); z-index: 1000; display: none;">
+    <a href="#" class="dropdown-item" id="adminLogoutBtn" style="display: block; padding: 10px 20px; color: #333; text-decoration: none;">Log Out</a>
+  </div>
             </button>
             <div class="dropdown-menu" id="profile-dropdown-menu">
               <a href="{{ url_for('auth.logout') }}" class="logout-link">
-                <span class="glyphicon glyphicon-log-out" style="margin-right: 8px;"></span>
+                <span class="fa fa-sign-out" style="margin-right: 8px;"></span>
                 LOGOUT
               </a>
             </div>
@@ -80,6 +86,246 @@
             </style>
         </div>
       </div>
+
+      <!-- Product Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="modal-product-form" enctype="multipart/form-data">
+        <div class="modal-header">
+          <h5 class="modal-title" id="productModalLabel">Add Product</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Picture</label>
+            <input type="file" name="picture" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" name="product_name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Model Number</label>
+            <input type="text" name="model_number" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" class="form-control"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Category ID</label>
+            <input type="number" name="category_id" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Base Price</label>
+            <input type="number" name="base_price" class="form-control" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label>Discount Percentage</label>
+            <input type="number" name="discount_percentage" class="form-control" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Stock Quantity</label>
+            <input type="number" name="stock_quantity" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Brand ID</label>
+            <input type="number" name="brand_id" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Product Image Modal -->
+<div class="modal fade" id="productImageModal" tabindex="-1" role="dialog" aria-labelledby="productImageModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="modal-product-image-form" enctype="multipart/form-data">
+        <div class="modal-header">
+          <h5 class="modal-title" id="productImageModalLabel">Add Product Image</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Product ID</label>
+            <input type="number" name="product_id" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Image</label>
+            <input type="file" name="image" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Image Type</label>
+            <input type="text" name="image_type" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Display Order</label>
+            <input type="number" name="display_order" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Text</label>
+            <input type="text" name="text" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Product Specification Modal -->
+<div class="modal fade" id="productSpecModal" tabindex="-1" role="dialog" aria-labelledby="productSpecModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="modal-product-spec-form">
+        <div class="modal-header">
+          <h5 class="modal-title" id="productSpecModalLabel">Add Product Specification</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Product ID</label>
+            <input type="number" name="product_id" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Specification Name</label>
+            <input type="text" name="spec_name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Specification Value</label>
+            <input type="text" name="spec_value" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Display Order</label>
+            <input type="number" name="display_order" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Product Variant Modal -->
+<div class="modal fade" id="productVariantModal" tabindex="-1" role="dialog" aria-labelledby="productVariantModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="modal-product-variant-form">
+        <div class="modal-header">
+          <h5 class="modal-title" id="productVariantModalLabel">Add Product Variant</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Product ID</label>
+            <input type="number" name="product_id" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Variant Name</label>
+            <input type="text" name="variant_name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Variant Value</label>
+            <input type="text" name="variant_value" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Additional Price</label>
+            <input type="number" name="additional_price" class="form-control" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Stock Quantity</label>
+            <input type="number" name="stock_quantity" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Brand Modal -->
+<div class="modal fade" id="brandModal" tabindex="-1" role="dialog" aria-labelledby="brandModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="modal-brand-form">
+        <div class="modal-header">
+          <h5 class="modal-title" id="brandModalLabel">Add Brand</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Brand Name</label>
+            <input type="text" name="brand_name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea name="description" class="form-control"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="modal-category-form">
+        <div class="modal-header">
+          <h5 class="modal-title" id="categoryModalLabel">Add Category</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Category Name</label>
+            <input type="text" name="category_name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Parent Category ID</label>
+            <input type="number" name="parent_category_id" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
     <!-- Main Content (ADMIN MAIN CONTENT) -->
     <div class="main-content">
@@ -111,7 +357,7 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td></td>
+                                <td>15</td>
                                 <td>Portable sewing machine</td>
                                 <td>Shunfa</td>
                                 <td>3</td>
@@ -119,7 +365,7 @@
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
-                              <td></td>
+                              <td>29</td>
                                 <td>Bobbin case</td>
                                 <td>Shunfa</td>
                                 <td>5</td>
@@ -127,7 +373,7 @@
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
-                              <td></td>
+                              <td>44</td>
                                 <td>China Cotton 165 GSM</td>
                                 <td>Guifang Manufacturing</td>
                                 <td>3</td>
@@ -135,7 +381,7 @@
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
-                              <td></td>
+                              <td>59</td>
                                 <td>Series Edger Machine</td>
                                 <td>Tai-Sing Industrial</td>
                                 <td>2</td>
@@ -143,7 +389,7 @@
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
-                              <td></td>
+                              <td>65</td>
                                 <td>Piping Machine</td>
                                 <td>Tai-Sing Industrial</td>
                                 <td>5</td>
@@ -151,7 +397,7 @@
                                 <td><a href="#" class="notify-btn">Notify Supplier</a></td>
                             </tr>
                             <tr>
-                              <td></td>
+                              <td>78</td>
                                 <td>Presser foot</td>
                                 <td>Shunfa</td>
                                 <td>3</td>
@@ -473,76 +719,148 @@
                       </div>
                         <div class="filter-buttons">
                             <button class="filter-btn">Filter</button>
-                            <button class="add-btn" id="product-add-btn">Add</button>
-                        </div>
                     </div>
                 </div>
 
                 <!-- Product List Card -->
                 <div class="card">
-                    <table class="table table-sm product-table">
+                  <button class="btn btn-outline-dark" id="openProductModal">Add Product</button>
+                  <table class="table table-sm product-table">
+                    <h2>PRODUCTS</h2>
                         <thead>
                             <tr>
                                 <th>Picture</th>
                                 <th>ID</th>
                                 <th>Product Name</th>
-                                <th>Category</th>
-                                <th>Specifications</th>
+                                <th>Model Number</th>
                                 <th>Description</th>
-                                <th>Price</th>
-                                <th>Variation</th>
+                                <th>Category ID</th>
+                                <th>Base Price</th>
+                                <th>Discount Percentage</th>
+                                <th>Stock Quantity</th>
+                                <th>Created At</th>
+                                <th>Updated At</th>
+                                <th>Brand ID</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                         <!-- Product rows will be dynamically rendered by JavaScript -->
-                         <tr>
-                            <td><img src="{{ url_for('static', filename='pictures/Sewing White Machine.jpg') }}" alt="Product Image" class="product-image"></td>
-                            <td>1</td>
-                            <td>Single Sample Product</td>
-                            <td>Sewing Machine</td>
-                            <td>N/A</td>
-                            <td>White | singer sewing machine sample product </td>
-                            <td>₱25,000.00</td>
-                            <td>N/A</td>
-                            <td>
-                                <button class="edit-btn">Edit</button>
-                                <button class="delete-btn">Cancel</button>
-                            </td>
-                        </tr>
-                        <tr>
-                          <td><img src="{{ url_for('static', filename='pictures/Juki Machine.jpg') }}" alt="Product Image" class="product-image"></td>
-                          <td>2</td>
-                          <td>Juki Machine</td>
-                          <td>Sewing Machine</td>
-                          <td>N/A</td>
-                          <td>White | Juki sewing machine sample product </td>
-                          <td>₱15,000.00</td>
-                          <td>N/A</td>
-                          <td>
-                              <button class="edit-btn">Edit</button>
-                              <button class="delete-btn">Cancel</button>
-                          </td>
-                      </tr>
-                      <tr>
-                        <td><img src="{{ url_for('static', filename='pictures/Thonwell Machine.jpg') }}" alt="Product Image" class="product-image"></td>
-                        <td>2</td>
-                        <td>Thonwell Machine</td>
-                        <td>Sewing Machine</td>
-                        <td>N/A</td>
-                        <td>White | Thonwell sewing machine sample product </td>
-                        <td>₱15,000.00</td>
-                        <td>N/A</td>
-                        <td>
-                            <button class="edit-btn">Edit</button>
-                            <button class="delete-btn">Cancel</button>
-                        </td>
-                    </tr>
+                        
                         </tbody>
                     </table>
                 </div>
+
+                <div class="card">
+                  <button class="btn btn-outline-dark mb-2" id="openProductImageModal">Add Product Image</button>
+                  <table class="table table-sm product-table">
+                    <h2>PRODUCTS IMAGE</h2>
+                      <thead>
+                          <tr>
+                              <th>Image ID</th>
+                              <th>Product ID</th>
+                              <th>Image</th>
+                              <th>Image Type</th>
+                              <th>Display Order</th>
+                              <th>Text</th>
+                              <th>Actions</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                      <!-- Product rows will be dynamically rendered by JavaScript -->
+                       
+                      </tbody>
+                  </table>
+              </div>
+
+              <div class="card">
+                <button class="btn btn-outline-dark mb-2" id="openProductSpecModal">Add Product Specification</button>
+                <table class="table table-sm product-spec-table">
+                  <h2>PRODUCT SPECIFICATION</h2>
+                    <thead>
+                        <tr>
+                            <th>Specification ID</th>
+                            <th>Product ID</th>
+                            <th>Specification Name</th>
+                            <th>Specification Value</th>
+                            <th>Display Order</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Product rows will be dynamically rendered by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+              <button class="btn btn-outline-dark mb-2" id="openProductVariantModal">Add Product Variant</button>
+              <table class="table table-sm product-variant-table">
+                <h2>PRODUCTS VARIANTS</h2>
+                  <thead>
+                      <tr>
+                          <th>Variant ID</th>
+                          <th>Product ID</th>
+                          <th>Variant Name</th>
+                          <th>Variant Value</th>
+                          <th>Additional Price</th>
+                          <th>Stock Quantity</th>
+                          <th>Created At</th>
+                          <th>Updated At</th>
+                          <th>Actions</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                  <!-- Product rows will be dynamically rendered by JavaScript -->
+                  
+                  </tbody>
+              </table>
+          </div>
+
+          <div class="card">
+            <button class="btn btn-outline-dark mb-2" id="openBrandModal">Add Brand</button>
+            <table class="table table-sm brand-table">
+              <h2>BRANDS</h2>
+                <thead>
+                    <tr>
+                        <th>Brand ID</th>
+                        <th>Brand Name</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <!-- Product rows will be dynamically rendered by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+
+        <div class="card">
+          <button class="btn btn-outline-dark mb-2" id="openCategoryModal">Add Category</button>
+          <table class="table table-sm category-table">
+            <h2>CATEGORIES</h2>
+              <thead>
+                  <tr>
+                      <th>Category ID</th>
+                      <th>Category Name</th>
+                      <th>Parent Category ID</th>
+                      <th>Actions</th>
+                  </tr>
+              </thead>
+              <tbody>
+              <!-- Product rows will be dynamically rendered by JavaScript -->
+               
+              </tbody>
+          </table>
+      </div>
+
+
             </div>
         </div>
+      </div>
+
+
 
         
          <!-- Sales Section -->
@@ -681,7 +999,6 @@
           <div id="customer-orders-section" class="content-section">
             <div class="header">
               <h1>CUSTOMER ORDERS</h1>
-              
             </div>
             <div class="customer-orders-cards">
               <div class="card">
@@ -713,99 +1030,35 @@
                 </div>
               </div>
               <div class="card">
-                <table class="order-table">
+                <table class="table table-sm" id="customer-orders-table">
                   <thead>
                     <tr>
                       <th>Order ID</th>
-                      <th>Customer Name</th>
-                      <th>Item ID</th>
-                      <th>Product Name</th>
-                      <th>Quantity</th>
-                      <th>Amount</th>
-                      <th>MOP</th>
-                      <th>Payment Reference Number</th>
-                      <th>Delivery Reference Number</th>
-                      <th>Proof of Payment</th>
+                      <th>Product ID(s)</th>
+                      <th>User ID</th>
+                      <th>Total Amount</th>
+                      <th>Status</th>
+                      <th>Payment Method</th>
+                      <th>Payment Status</th>
+                      <th>Shipping Address</th>
                       <th>Order Status</th>
                       <th>Order Date</th>
                       <th>Customer Issue</th>
                       <th>Message</th>
                       <th>Feedback</th>
                       <th>Rate</th>
+                      <th>Cancellation Reason</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>ORD-001</td>
-                      <td>Sunghoon Park</td>
-                      <td>SM-3000</td>
-                      <td>•Positioning finger<br>•Button hole machine</td>
-                      <td>x1, x2</td>
-                      <td>₱1,750.00</td>
-                      <td>Gcash</td>
-                      <td>PAY12345</td>
-                      <td>REF12345</td>
-                      <td></td>
-                      <td><span class="status-cell status-completed">Completed</span></td>
-                      <td>2025-03-08</td>
-                      <td></td>
-                      <td></td>
-                      <td>Exellent quality, Fast delivery</td>
-                      <td> 5 ★</td>
-                      <td>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Cancel</button>
-                      </td>
-                    </tr>
-                    <tr>
-                        <td>ORD-002</td>
-                        <td>Maria Lopez</td>
-                        <td>FAB-COT-001</td>
-                        <td>•Button hole machine</td>
-                        <td>x5</td>
-                        <td>₱1,200.00</td>
-                        <td>Bank</td>
-                        <td>PAY54231</td>
-                        <td>REF09876</td>
-                        <td></td>
-                        <td><span class="status-cell status-pending">Pending</span></td>
-                        <td>2025-03-08</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                          <button class="edit-btn">Edit</button>
-                          <button class="delete-btn">Cancel</button>
-                        </td>
-                    </tr>
-                    <td>ORD-003</td>
-                      <td>John Doe</td>
-                      <td>SM-2000</td>
-                      <td>•Positioning finger</td>
-                      <td>x1</td>
-                      <td>₱25,000.00</td>
-                      <td>COD</td>
-                      <td>PAY22556</td>
-                      <td>REF66552</td>
-                      <td></td>
-                      <td><span class="status-cell status-completed">Completed</span></td>
-                      <td>2025-03-08</td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Cancel</button>
-                      </td>
-                      </tr>
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
+          
+          
 
           <!-- Reports Section -->
           <div id="reports-section" class="content-section">
@@ -1016,6 +1269,9 @@
               </div>
             </div>
           </div>
+
+          
+          
           
         <!-- Add Product Modal -->
         <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-labelledby="addProductModalLabel" aria-hidden="true">
@@ -1070,7 +1326,6 @@
         </div> <!-- end of main-content -->
     </div> <!-- end of row/dashboard -->
 </div> <!-- end of container-fluid -->
-
 <div id="chatModal" class="chat-modal">
   <div class="chat-modal-content">
       <div class="chat-modal-header" id="chatHeaderBar">
@@ -1174,4 +1429,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='js/chat_modal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/product_modal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin_profile_dropdown.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin_reports.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>

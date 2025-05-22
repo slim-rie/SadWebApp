@@ -249,8 +249,8 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
+INSERT INTO `orders` VALUES
 (41,1,10999,'pending','Cash on Delivery','To Pay','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'To Pay','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
-(42,1,10999,'paid','Cash on Delivery','Completed','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Completed','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
 (43,1,499,'shipped','Cash on Delivery','To Ship','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'To Ship','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
 (44,1,1198,'delivered','Cash on Delivery','Completed','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Completed','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
 (45,1,21998,'cancelled','Cash on Delivery','To Pay','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Cancelled','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
