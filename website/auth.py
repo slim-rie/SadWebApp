@@ -227,74 +227,21 @@ def logout():
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
     if request.method == 'POST':
-        data = request.get_json() if request.is_json else request.form
-        first_name = data.get('firstname')  # Get first name from form
-        last_name = data.get('lastname')    # Get last name from form
-        email = data.get('email')
-        password = data.get('new-password')
-        confirm_password = data.get('confirm-password')
-        
-        # Validation
-        if not all([first_name, last_name, email, password, confirm_password]):
-            message = 'All fields are required'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        if password != confirm_password:
-            message = 'Passwords do not match'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        if not validate_email(email):
-            message = 'Invalid email format'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        is_valid, message = validate_password(password)
-        if not is_valid:
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        # Generate personalized username
-        base_username = f"{first_name.lower()}{last_name.lower()}"
-        username = base_username
-        counter = 1
-        
-        # Keep trying until we find a unique username
-        while User.query.filter_by(username=username).first():
-            username = f"{base_username}{counter}"
-            counter += 1
-        
-        # Check if email already exists
-        if User.query.filter_by(email=email).first():
-            message = 'Email already exists'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        # Create new user
-        new_user = User(
-            username=username,  # Use generated username
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            password=password
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        login_user(new_user, remember=True)
-        return jsonify({'success': True, 'message': 'Email verified and account created successfully'})
+        data = request.get_json()
+        # ...validate fields...
+        # Do NOT create the user yet!
+        # Store signup data in session
+        session['pending_signup'] = {
+            'firstname': data['firstname'],
+            'lastname': data['lastname'],
+            'email': data['email'],
+            'password': data['new-password'],
+            'confirm_password': data['confirm-password']
+        }
+        send_verification_email(data['email'])
+        return jsonify({'success': True, 'message': 'Verification code sent to your email.'})
     else:
-        return jsonify({'success': False, 'message': message})
+        return render_template('signup.html')
 
 @auth.route('/resend-verification', methods=['POST'])
 def resend_verification():
@@ -425,6 +372,12 @@ def verify_google_email(token):
     name = user_data.get('name')
     picture = user_data.get('picture')
 
+    user_role = Role.query.filter_by(role_name='user').first()
+    if not user_role:
+        user_role = Role(role_name='user', description='Regular user')
+        db.session.add(user_role)
+        db.session.commit()
+
     # Check if user exists, else create
     user = User.query.filter_by(email=email).first()
     if not user:
@@ -434,7 +387,9 @@ def verify_google_email(token):
             first_name=name.split()[0] if name else "",
             last_name=" ".join(name.split()[1:]) if name and len(name.split()) > 1 else "",
             profile_image=picture,
-            is_google_user=True
+            is_google_user=True,
+            role_id=user_role.role_id
+
         )
         db.session.add(user)
         db.session.commit()
@@ -742,18 +697,18 @@ def api_sign_up():
         return jsonify({'success': False, 'message': 'Email already exists'}), 400
 
     try:
-        # Find the default role (user)
-        default_role = Role.query.filter_by(role_name='user').first()
-        if not default_role:
+        # Fetch the "user" role
+        user_role = Role.query.filter_by(role_name='user').first()
+        if not user_role:
             return jsonify({'success': False, 'message': 'Default user role not found. Please contact support.'}), 500
         new_user = User(
             username=first_name,  # Use first name as username
             email=email,
             first_name=first_name,
             last_name=last_name,
-            role_id=default_role.role_id
+            password=generate_password_hash(password, method='pbkdf2:sha256'),
+            role_id=user_role.role_id
         )
-        new_user.password = password  # This will hash the password
         db.session.add(new_user)
         db.session.commit()
         return jsonify({'success': True, 'message': 'Account created successfully!'}), 201
@@ -1213,3 +1168,35 @@ def send_login_notification(user_email):
 
 def generate_otp():
     return ''.join(random.choices('0123456789', k=6))
+
+@auth.route('/verify-email', methods=['POST'])
+def verify_email():
+    data = request.get_json()
+    email = data.get('email')
+    code = data.get('code')
+    # ...validate code...
+    # Retrieve signup data from session
+    signup_data = session.get('pending_signup')
+    if not signup_data or signup_data['email'] != email:
+        return jsonify({'success': False, 'message': 'Session expired or invalid.'}), 400
+    # Fetch the "user" role
+    user_role = Role.query.filter_by(role_name='user').first()
+    if not user_role:
+        # Optionally, create the role if it doesn't exist
+        user_role = Role(role_name='user', description='Regular user')
+        db.session.add(user_role)
+        db.session.commit()
+
+    new_user = User(
+        username=email.split('@')[0],
+        email=email,
+        first_name=signup_data['firstname'],
+        last_name=signup_data['lastname'],
+        password=generate_password_hash(signup_data['password'], method='pbkdf2:sha256'),
+        role_id=user_role.role_id
+    )
+    db.session.add(new_user)
+    db.session.commit()
+    session.pop('pending_signup', None)
+    login_user(new_user, remember=True)
+    return jsonify({'success': True, 'message': 'Account created successfully!'})

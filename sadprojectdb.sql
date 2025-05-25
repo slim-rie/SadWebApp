@@ -42,7 +42,7 @@ INSERT INTO `roles`
 VALUES (1,'admin','Admin role'),
 (2,'staff','Staff role'),
 (3, 'supplier', 'Supplier role'),
-(4, 'user', 'User role');
+(4, 'customer', 'Customer role');
 /*!40000 ALTER TABLE `roles` ENABLE KEYS */;
 UNLOCK TABLES;
 

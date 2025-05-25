@@ -143,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
             email: document.getElementById('email').value,
             firstname: document.getElementById('firstname').value,
             lastname: document.getElementById('lastname').value,
-            password: document.getElementById('new-password').value,
-            confirmPassword: document.getElementById('confirm-password').value
+            'new-password': document.getElementById('new-password').value,
+            'confirm-password': document.getElementById('confirm-password').value
         };
 
         // Validate form data
@@ -365,7 +365,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 code: code,
                 firstname: signupData.firstname,
                 lastname: signupData.lastname,
-                password: signupData.password
+                'new-password': signupData['new-password'],
+                'confirm-password': signupData['confirm-password'],
+                password: signupData['new-password'],
+                confirmPassword: signupData['confirm-password']
             })
         })
         .then(response => response.json())
@@ -384,18 +387,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Form validation
     function validateForm(data) {
-        if (!data.email || !data.firstname || !data.lastname || !data.password || !data.confirmPassword) {
+        if (!data.email || !data.firstname || !data.lastname || !data['new-password'] || !data['confirm-password']) {
             showMessage('All fields are required', 'error');
             return false;
         }
 
-        if (data.password !== data.confirmPassword) {
+        if (data['new-password'] !== data['confirm-password']) {
             showMessage('Passwords do not match', 'error');
             return false;
         }
 
-        if (data.password.length < 7) {
-            showMessage('Password must be at least 7 characters', 'error');
+        if (data['new-password'].length < 8) {
+            showMessage('Password must be at least 8 characters', 'error');
             return false;
         }
 
