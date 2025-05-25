@@ -74,12 +74,6 @@
             </div>
             
             <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" maxlength="11" pattern="[0-9]*" inputmode="numeric" required>
-                <small class="form-text">Enter 11-digit phone number (numbers only)</small>
-            </div>
-            
-            <div class="form-group">
                 <label for="new-password">New Password</label>
                 <input type="password" id="new-password" name="new-password" placeholder="Create a password" required>
             </div>
@@ -99,6 +93,16 @@
                 <label for="confirm-password">Confirm Password</label>
                 <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
                 <p class="password-match" id="password-match-message">Passwords do not match</p>
+            </div>
+
+            <div class="form-group verification-group" style="display: none;" id="verificationGroup">
+                <label for="verification-code">Verification Code</label>
+                <input type="text" id="verification-code" name="verification-code" placeholder="Enter verification code" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                <small class="form-text">Enter the 6-digit code sent to your email</small>
+                <div class="verification-timer">
+                    <span id="timer">2:00</span>
+                    <button type="button" id="resendCode" class="resend-btn" disabled>Resend Code</button>
+                </div>
             </div>
             
             <button type="submit" class="create-account-btn" id="createAccountBtn">CREATE ACCOUNT</button>
@@ -154,6 +158,224 @@
         </div>
         <div class="modal-overlay"></div>
     </div>
+
+    <div class="verification-modal" id="verificationModal">
+        <div class="verification-modal-content">
+            <div class="verification-header">
+                <h3><i class="fas fa-envelope"></i> Email Verification</h3>
+                <span class="close-verification">&times;</span>
+            </div>
+            <div class="verification-body">
+                <p>We've sent a verification code to your email address. Please enter the code below to verify your account.</p>
+                <div class="verification-code-input">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="code-input">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="code-input">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="code-input">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="code-input">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="code-input">
+                    <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric" class="code-input">
+                </div>
+                <div class="verification-timer">
+                    <span id="modalTimer">2:00</span>
+                    <button type="button" id="modalResendCode" class="resend-btn" disabled>Resend Code</button>
+                </div>
+                <p id="verificationError" class="error-message"></p>
+                <button type="button" class="verify-btn" id="verifyCodeBtn">Verify Email</button>
+            </div>
+        </div>
+        <div class="modal-overlay"></div>
+    </div>
+
+    <style>
+        .verification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+
+        .verification-modal.active {
+            display: block;
+        }
+
+        .verification-modal-content {
+            position: relative;
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .verification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .verification-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close-verification {
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .verification-code-input {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .code-input {
+            width: 40px;
+            height: 50px;
+            text-align: center;
+            font-size: 24px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .code-input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .verification-timer {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .resend-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .resend-btn:disabled {
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .verify-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .verify-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin: 10px 0;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const verificationModal = document.getElementById('verificationModal');
+            const closeVerification = document.querySelector('.close-verification');
+            const codeInputs = document.querySelectorAll('.code-input');
+            const verifyBtn = document.getElementById('verifyCodeBtn');
+            const modalTimer = document.getElementById('modalTimer');
+            const modalResendBtn = document.getElementById('modalResendCode');
+            let timerInterval;
+
+            // Handle code input
+            codeInputs.forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    if (this.value.length === 1) {
+                        if (index < codeInputs.length - 1) {
+                            codeInputs[index + 1].focus();
+                        }
+                    }
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && !this.value && index > 0) {
+                        codeInputs[index - 1].focus();
+                    }
+                });
+            });
+
+            // Start timer
+            function startTimer() {
+                let timeLeft = 120; // 2 minutes
+                modalTimer.textContent = '2:00';
+                modalResendBtn.disabled = true;
+
+                if (timerInterval) clearInterval(timerInterval); // Clear any previous interval
+
+                timerInterval = setInterval(() => {
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        modalTimer.textContent = '0:00';
+                        modalResendBtn.disabled = false;
+                        return;
+                    }
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    modalTimer.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+
+            // Show verification modal
+            function showVerificationModal() {
+                verificationModal.classList.add('active');
+                startTimer();
+            }
+
+            // Close verification modal
+            closeVerification.addEventListener('click', () => {
+                verificationModal.classList.remove('active');
+                if (timerInterval) clearInterval(timerInterval);
+            });
+
+            // Handle resend code
+            modalResendBtn.addEventListener('click', () => {
+                // Add your resend code logic here
+                startTimer();
+            });
+
+            // Handle verification
+            verifyBtn.addEventListener('click', () => {
+                const code = Array.from(codeInputs).map(input => input.value).join('');
+                // Add your verification logic here
+                // If verification is successful:
+                // verificationModal.classList.remove('active');
+                // show success modal
+            });
+
+            // Modify your existing signup form submission
+            document.getElementById('signupForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Add your form validation logic here
+                // If validation passes:
+                showVerificationModal();
+            });
+        });
+    </script>
 
     <footer>
         <div class="container footer-grid">
