@@ -17,6 +17,8 @@ import re
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 from . import mail  # Import mail from your app
+from .email_verification import send_verification_email, verify_code
+import random
 
 # Allow OAuth over HTTP for development
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -224,97 +226,148 @@ def logout():
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
 def sign_up():
-    if current_user.is_authenticated:
-        return redirect(url_for('views.home'))
-    
     if request.method == 'POST':
-        data = request.get_json() if request.is_json else request.form
-        first_name = data.get('firstname')  # Get first name from form
-        last_name = data.get('lastname')    # Get last name from form
-        email = data.get('email')
-        password = data.get('new-password')
-        confirm_password = data.get('confirm-password')
-        
-        # Validation
-        if not all([first_name, last_name, email, password, confirm_password]):
-            message = 'All fields are required'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        if password != confirm_password:
-            message = 'Passwords do not match'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        if not validate_email(email):
-            message = 'Invalid email format'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        is_valid, message = validate_password(password)
-        if not is_valid:
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
-        # Generate personalized username
-        base_username = f"{first_name.lower()}{last_name.lower()}"
-        username = base_username
-        counter = 1
-        
-        # Keep trying until we find a unique username
-        while User.query.filter_by(username=username).first():
-            username = f"{base_username}{counter}"
-            counter += 1
-        
-        # Check if email already exists
-        if User.query.filter_by(email=email).first():
-            message = 'Email already exists'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 400
-            flash(message, 'error')
-            return render_template('signup.html')
-        
+        try:
+            if not request.is_json:
+                current_app.logger.error("Request is not JSON")
+                return jsonify({
+                    'success': False,
+                    'message': 'Invalid request format. JSON expected.'
+                }), 400
+
+            data = request.get_json()
+            current_app.logger.info(f"Received sign-up data: {data}")
+
+            email = data.get('email')
+            first_name = data.get('firstname')
+            last_name = data.get('lastname')
+            password1 = data.get('password')
+            password2 = data.get('confirmPassword')
+
+            # Validate required fields
+            if not all([email, first_name, last_name, password1, password2]):
+                current_app.logger.error("Missing required fields")
+                return jsonify({
+                    'success': False,
+                    'message': 'All fields are required.'
+                }), 400
+
+            # Check if user already exists
+            user = User.query.filter_by(email=email).first()
+            if user:
+                current_app.logger.error(f"Email already exists: {email}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Email already exists.'
+                }), 400
+
+            # Validate email format
+            if not validate_email(email):
+                current_app.logger.error(f"Invalid email format: {email}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Invalid email format.'
+                }), 400
+
+            # Validate name lengths
+            if len(first_name) < 2:
+                current_app.logger.error(f"First name too short: {first_name}")
+                return jsonify({
+                    'success': False,
+                    'message': 'First name must be greater than 1 character.'
+                }), 400
+            if len(last_name) < 2:
+                current_app.logger.error(f"Last name too short: {last_name}")
+                return jsonify({
+                    'success': False,
+                    'message': 'Last name must be greater than 1 character.'
+                }), 400
+
+            # Validate passwords
+            if password1 != password2:
+                current_app.logger.error("Passwords do not match")
+                return jsonify({
+                    'success': False,
+                    'message': 'Passwords don\'t match.'
+                }), 400
+            if len(password1) < 7:
+                current_app.logger.error("Password too short")
+                return jsonify({
+                    'success': False,
+                    'message': 'Password must be at least 7 characters.'
+                }), 400
+
+            # Send verification email
+            try:
+                current_app.logger.info(f"Attempting to send verification email to {email}")
+                if send_verification_email(email):
+                    current_app.logger.info(f"Verification email sent successfully to {email}")
+                    return jsonify({
+                        'success': True,
+                        'message': 'Verification code sent successfully.'
+                    })
+                else:
+                    current_app.logger.error(f"Failed to send verification email to {email}")
+                    return jsonify({
+                        'success': False,
+                        'message': 'Failed to send verification code. Please try again.'
+                    }), 500
+            except Exception as e:
+                current_app.logger.error(f"Error sending verification email: {str(e)}")
+                return jsonify({
+                    'success': False,
+                    'message': 'An error occurred while sending the verification code.'
+                }), 500
+
+        except Exception as e:
+            current_app.logger.error(f"Error in sign-up route: {str(e)}")
+            return jsonify({
+                'success': False,
+                'message': 'An unexpected error occurred. Please try again.'
+            }), 500
+
+    return render_template("signup.html", user=current_user)
+
+@auth.route('/verify-email', methods=['POST'])
+def verify_email():
+    data = request.get_json()
+    email = data.get('email')
+    code = data.get('code')
+
+    if not email or not code:
+        return jsonify({'success': False, 'message': 'Missing email or verification code'})
+
+    success, message = verify_code(email, code)
+    if success:
         # Create new user
+        username = data.get('firstname')
+
         new_user = User(
             username=username,  # Use generated username
             email=email,
-            first_name=first_name,
-            last_name=last_name,
-            password=password
+            first_name=data.get('firstname'),
+            last_name=data.get('lastname'),
+            password=generate_password_hash(data.get('password'), method='pbkdf2:sha256')
         )
-        
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            
-            if request.is_json:
-                return jsonify({
-                    'success': True,
-                    'message': 'Account created successfully',
-                    'redirect': url_for('auth.login')
-                })
-            flash('Account created successfully', 'success')
-            return redirect(url_for('auth.login'))
-        except Exception as e:
-            import traceback
-            db.session.rollback()
-            tb = traceback.format_exc()
-            print(f"\n[SignUp Error] {str(e)}\nTraceback:\n{tb}")
-            message = f'An error occurred while creating your account: {str(e)}'
-            if request.is_json:
-                return jsonify({'success': False, 'message': message}), 500
-            flash(message, 'error')
-            return render_template('signup.html', error=message)
-    
-    return render_template('signup.html')
+        db.session.add(new_user)
+        db.session.commit()
+        login_user(new_user, remember=True)
+        return jsonify({'success': True, 'message': 'Email verified and account created successfully'})
+    else:
+        return jsonify({'success': False, 'message': message})
+
+@auth.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'success': False, 'message': 'Email is required'})
+
+    if send_verification_email(email):
+        return jsonify({'success': True, 'message': 'Verification code resent successfully'})
+    else:
+        return jsonify({'success': False, 'message': 'Error sending verification code'})
 
 @auth.route('/google-oauth-login')
 def google_oauth_login():
@@ -377,6 +430,61 @@ def google_oauth_callback():
     name = userinfo.get("name")
     picture = userinfo.get("picture")
 
+    # Store user info in session for verification
+    session['pending_google_user'] = {
+        'email': email,
+        'name': name,
+        'picture': picture
+    }
+
+    # Generate verification token
+    verification_token = str(uuid.uuid4())
+    session['verification_token'] = verification_token
+
+    # Send verification email
+    verification_url = url_for('auth.verify_google_email', token=verification_token, _external=True)
+    msg = Message(
+        "Verify your email for JBR Tanching C.O",
+        recipients=[email]
+    )
+    msg.html = f"""
+    <h2>Welcome to JBR Tanching C.O!</h2>
+    <p>Please verify your email address to complete your registration.</p>
+    <p>Click the button below to verify your email and log in:</p>
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{verification_url}" style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-size: 16px;">
+            Verify Your Email
+        </a>
+    </div>
+    <p>If you did not create an account with JBR Tanching C.O, please ignore this email.</p>
+    """
+    mail.send(msg)
+
+    # Redirect to check email page
+    return redirect(url_for('auth.check_email'))
+
+@auth.route('/check-email')
+def check_email():
+    if 'pending_google_user' not in session:
+        flash("No pending Google signup found.", "danger")
+        return redirect(url_for('views.home'))
+    return render_template('check_email.html', email=session['pending_google_user']['email'])
+
+@auth.route('/verify-google-email/<token>')
+def verify_google_email(token):
+    if 'pending_google_user' not in session or 'verification_token' not in session:
+        flash("Invalid or expired verification link.", "danger")
+        return redirect(url_for('views.home'))
+    
+    if token != session['verification_token']:
+        flash("Invalid verification token.", "danger")
+        return redirect(url_for('views.home'))
+
+    user_data = session['pending_google_user']
+    email = user_data.get('email')
+    name = user_data.get('name')
+    picture = user_data.get('picture')
+
     # Check if user exists, else create
     user = User.query.filter_by(email=email).first()
     if not user:
@@ -397,7 +505,12 @@ def google_oauth_callback():
 
     login_user(user)
     send_login_notification(user.email)  # Send email notification after login
-    flash("Successfully signed in with Google!", "success")
+    
+    # Clear the session data
+    session.pop('pending_google_user', None)
+    session.pop('verification_token', None)
+    
+    flash("Email verified successfully! You are now logged in.", "success")
     return redirect(url_for('views.home'))
 
 @auth.route('/update-profile', methods=['POST'])
@@ -1151,4 +1264,7 @@ def send_login_notification(user_email):
         recipients=[user_email]
     )
     msg.body = "You just logged in to JBR Web App. We hope you have a great experience using our platform."
-    mail.send(msg) 
+    mail.send(msg)
+
+def generate_otp():
+    return ''.join(random.choices('0123456789', k=6))

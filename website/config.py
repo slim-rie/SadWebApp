@@ -1,3 +1,9 @@
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 # Google OAuth 2.0 credentials
 # To get these credentials:
 # 1. Go to https://console.cloud.google.com/
@@ -51,4 +57,7 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') 
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'tanchingcojbr@gmail.com')
+    MAIL_MAX_EMAILS = 10
+    MAIL_ASCII_ATTACHMENTS = False
+    MAIL_SUPPRESS_SEND = False 
