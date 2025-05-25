@@ -4,7 +4,7 @@ from flask_mail import Message
 auth = Blueprint('auth', __name__)
 
 from flask import render_template, request, flash, redirect, url_for, session, current_app, jsonify
-from .models import User, CartItem, Product, Address, Order, OrderItem
+from .models import User, CartItem, Product, Address, Order, OrderItem, Role
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -282,13 +282,22 @@ def sign_up():
             flash(message, 'error')
             return render_template('signup.html')
         
-        # Create new user
+        # Find the default role (user)
+        default_role = Role.query.filter_by(role_name='user').first()
+        if not default_role:
+            message = 'Default user role not found. Please contact support.'
+            if request.is_json:
+                return jsonify({'success': False, 'message': message}), 500
+            flash(message, 'error')
+            return render_template('signup.html', error=message)
+        # Create new user with role_id
         new_user = User(
             username=username,  # Use generated username
             email=email,
             first_name=first_name,
             last_name=last_name,
-            password=password
+            password=password,
+            role_id=default_role.role_id
         )
         
         try:
@@ -689,11 +698,16 @@ def api_sign_up():
         return jsonify({'success': False, 'message': 'Email already exists'}), 400
 
     try:
+        # Find the default role (user)
+        default_role = Role.query.filter_by(role_name='user').first()
+        if not default_role:
+            return jsonify({'success': False, 'message': 'Default user role not found. Please contact support.'}), 500
         new_user = User(
             username=first_name,  # Use first name as username
             email=email,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            role_id=default_role.role_id
         )
         new_user.password = password  # This will hash the password
         db.session.add(new_user)

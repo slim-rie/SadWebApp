@@ -15,9 +15,9 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    # Add street_address column to addresses table
-    op.add_column('addresses', sa.Column('street_address', sa.String(255), nullable=True))
+    # op.add_column('addresses', sa.Column('street_address', sa.String(255), nullable=True))
+    pass
 
 def downgrade():
-    # Remove street_address column from addresses table
-    op.drop_column('addresses', 'street_address') 
+    # op.drop_column('addresses', 'street_address')
+    pass

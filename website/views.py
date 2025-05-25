@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, Brand, ProductSpecification, ProductVariant
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -617,7 +617,7 @@ def get_product_details():
         'images': [img.image_url for img in sorted(product.images, key=lambda i: i.display_order)],
         'category_id': product.category_id,
         'category_name': category_name,
-        'brand': brand_name,
+
         'specifications': specs,
         'model_options': model_options
     })
@@ -939,7 +939,7 @@ def get_related_products():
             'sold': p.sold if hasattr(p, 'sold') else 0,
             'rating': avg_rating,
             'review_count': review_count,
-            'brand': p.brand_obj.brand_name if p.brand_obj else None
+    
         })
     return jsonify(result)
 
@@ -1349,23 +1349,11 @@ def add_product():
     # In views.py
 @views.route('/api/brands')
 def get_brands():
-    brands = Brand.query.all()
-    return jsonify([{
-        'brand_id': b.brand_id,
-        'brand_name': b.brand_name,
-        'description': b.description
-    } for b in brands])
+    return jsonify([])
 
 @views.route('/admin/brand_list')
 def admin_brand_list():
-    brands = Brand.query.all()
-    return jsonify([
-        {
-            'brand_id': b.brand_id,
-            'brand_name': b.brand_name,
-            'description': b.description
-        } for b in brands
-    ])
+    return jsonify([])
 
 @views.route('/api/categories')
 def get_categories():
@@ -1446,7 +1434,7 @@ def admin_product_list():
             'stock_quantity': getattr(product, 'stock_quantity', ''),
             'created_at': str(getattr(product, 'created_at', '')),
             'updated_at': str(getattr(product, 'updated_at', '')),
-            'brand_id': getattr(product, 'brand_id', ''),
+    
             'image': product.images[0].image_url if product.images else '/static/pictures/default.jpg',
         })
     return jsonify(product_list)

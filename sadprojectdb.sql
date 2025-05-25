@@ -18,6 +18,81 @@ USE `sadprojectdb`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `roles`
+--
+DROP TABLE IF EXISTS `roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `roles` (
+  `role_id` int NOT NULL AUTO_INCREMENT,
+  `role_name` varchar(20) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`role_id`),
+  UNIQUE KEY `role_name` (`role_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `roles`
+--
+
+LOCK TABLES `roles` WRITE;
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+INSERT INTO `roles` 
+VALUES (1,'admin','Admin role'),
+(2,'staff','Staff role'),
+(3, 'supplier', 'Supplier role'),
+(4, 'user', 'User role');
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `user_id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(120) NOT NULL,
+  `password_hash` text,
+  `role_id` int NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `last_login` datetime ,
+  `is_active` tinyint(1) DEFAULT 1,
+  `first_name` varchar(100),
+  `last_name` varchar(100),
+  `gender` varchar(10),
+  `date_of_birth` date,
+  `profile_image` varchar(255),
+  `phone_number` varchar(20),
+  `is_google_user` tinyint(1) DEFAULT 0,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `username` (`username`),
+  KEY `role_id` (`role_id`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` 
+VALUES 
+(1,'john jerriehlpontino','johnjerriehlp@gmail.com','scrypt:32768:8:1$lMYRXQATix7as5yp$fdf5093b578c36f302c6fbe019bf4527007182fba442ea6ef9289685fc5a734b72f661f27b98082297592a1a12184f5b36610ca34a2136b7f343ba970ff49c9e','user','2025-05-11 12:55:05','2025-05-15 06:25:39',1,'John Jerriehl','Pontino','male','2005-06-20','https://lh3.googleusercontent.com/a/ACg8ocLHymdwl2aLTBYIx0cFQVr2fTTxaMEWIjkssrjRoJxDHnDeJxfW=s96-c','09317649032',0),
+(2,'pontino.johnjerriehl.00246','pontino.johnjerriehl.00246@dyci.edu.ph',NULL,'user','2025-05-13 16:32:57',NULL,1,'rie','JERRIEHL PONTINO','male','1931-06-11','https://lh3.googleusercontent.com/a/ACg8ocJCW0oZOAkBoQKt5OJ18hEmLFlJBU8euuM_nJ1TfxIYQp7pPpE=s96-c','09942436659',1),
+(3,'banrizyon','ignacioken397@gmail.com','scrypt:32768:8:1$eOMwwNTPe9kKhh7g$9434ce1dc32c5b1f3f06aaa4c5d771aa4a1406e4f930e39c6674a111196f9bf2d02115ea89382f2dc16c442973470e1a250230b5756b85cdefccadafb8a97982','user','2025-05-14 05:13:01','2025-05-14 05:13:10',1,'Banri','Zyon','male','2005-06-20','3_1747170845.jpg','09317649032',0),
+(4,'hershelle gemmabutol','Hershellegemmabutol1@gmail.com','scrypt:32768:8:1$GBo51rgGhHcZXk3v$2ef408b14d698d4e5bf42144b4f9420135ff15cd39285a63bf104a3241babc9416c14de50854baadf35b1bf8340b07be8c22d3720ca0daadf487cb7b2ffa5418','user','2025-05-14 10:43:50','2025-05-14 10:44:04',1,'Hershelle Gem','Mabutol',NULL,NULL,'static/defaultprofile.jpg',NULL,0);
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `addresses`
 --
 
@@ -25,18 +100,18 @@ DROP TABLE IF EXISTS `addresses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `addresses` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `address_id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
-  `first_name` varchar(100) DEFAULT NULL,
-  `last_name` varchar(100) DEFAULT NULL,
-  `postal_code` varchar(20) DEFAULT NULL,
-  `complete_address` varchar(255) DEFAULT NULL,
-  `label` varchar(20) DEFAULT NULL,
-  `is_default` tinyint(1) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
+  `first_name` varchar(100) NOT NULL,
+  `last_name` varchar(100) NOT NULL,
+  `postal_code` varchar(20) NOT NULL,
+  `complete_address` varchar(255) NOT NULL,
+  `label` varchar(20) NOT NULL,
+  `is_default` tinyint(1) DEFAULT 0,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `phone_number` varchar(20) DEFAULT NULL,
   `street_address` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`address_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -48,94 +123,10 @@ CREATE TABLE `addresses` (
 
 LOCK TABLES `addresses` WRITE;
 /*!40000 ALTER TABLE `addresses` DISABLE KEYS */;
-INSERT INTO `addresses` VALUES (1,1,'John Jerriehl','Pontino','3019','National Capital Region (NCR)','home',1,'2025-05-14 19:25:25','09317649032','Remy 2nd floor'),(2,2,'John Jerriehl','Pontino','3019','National Capital Region (NCR)','home',1,'2025-05-15 07:08:26','09317649032','Remy 2nd floor');
+INSERT INTO `addresses` VALUES 
+(1,1,'John Jerriehl','Pontino','3019','National Capital Region (NCR)','home',1,'2025-05-14 19:25:25','09317649032','Remy 2nd floor'),
+(2,2,'John Jerriehl','Pontino','3019','National Capital Region (NCR)','home',1,'2025-05-15 07:08:26','09317649032','Remy 2nd floor');
 /*!40000 ALTER TABLE `addresses` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `alembic_version`
---
-
-DROP TABLE IF EXISTS `alembic_version`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `alembic_version` (
-  `version_num` varchar(32) NOT NULL,
-  PRIMARY KEY (`version_num`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `alembic_version`
---
-
-LOCK TABLES `alembic_version` WRITE;
-/*!40000 ALTER TABLE `alembic_version` DISABLE KEYS */;
-INSERT INTO `alembic_version` VALUES ('e8ab16225aab');
-/*!40000 ALTER TABLE `alembic_version` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `brands`
---
-
-DROP TABLE IF EXISTS `brands`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `brands` (
-  `brand_id` int NOT NULL AUTO_INCREMENT,
-  `brand_name` varchar(100) NOT NULL,
-  `description` text,
-  PRIMARY KEY (`brand_id`),
-  UNIQUE KEY `name` (`brand_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `brands`
---
-
-LOCK TABLES `brands` WRITE;
-/*!40000 ALTER TABLE `brands` DISABLE KEYS */;
-INSERT INTO `brands` VALUES (1,'SHUNFA','SHUNFA is a leading manufacturer of industrial sewing machines and equipment, known for quality and innovation.'),
-(2,'Juki','Juki industrial sewing machines'),
-(3,'Skylab','Local fabric manufacturer'),
-(4,'Quitalig','Quitalig');
-/*!40000 ALTER TABLE `brands` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `cart_items`
---
-
-DROP TABLE IF EXISTS `cart_items`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `cart_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `product_id` int NOT NULL,
-  `quantity` int DEFAULT NULL,
-  `color` VARCHAR(50),
-  `width` VARCHAR(50),
-  `model` VARCHAR(50),
-  `created_at` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `_user_product_uc` (`user_id`,`product_id`),
-  KEY `product_id` (`product_id`),
-  CONSTRAINT `cart_items_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
-  CONSTRAINT `cart_items_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `cart_items`
---
-
-LOCK TABLES `cart_items` WRITE;
-/*!40000 ALTER TABLE `cart_items` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cart_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -172,151 +163,6 @@ INSERT INTO `categories` VALUES
 (32, 'Lacoste Fabrics', 3),
 (33, 'Silk Fabrics', 3);
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `order_items`
---
-
-DROP TABLE IF EXISTS `order_items`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `order_items` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `order_id` int NOT NULL,
-  `product_id` int NOT NULL,
-  `quantity` int NOT NULL,
-  `price` float NOT NULL,
-  `created_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `order_id` (`order_id`),
-  KEY `product_id` (`product_id`),
-  CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
-  CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `order_items`
---
-
-LOCK TABLES `order_items` WRITE;
-/*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES 
-(69,42,49,1,10999,'2025-05-16 16:06:35'),
-(70,43,59,1,499,'2025-05-16 16:06:35'),
-(71,44,61,2,599,'2025-05-16 16:06:35'),
-(72,45,47,2,10999,'2025-05-16 16:06:35'),
-(73,46,41,1,8450.75,'2025-05-16 16:06:35'),
-(74,47,45,1,10999,'2025-05-17 07:34:41');
-/*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `orders`
---
-
-DROP TABLE IF EXISTS `orders`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `orders` (
-  `order_id` int NOT NULL AUTO_INCREMENT,
-  `user_id` int NOT NULL,
-  `total_amount` float,
-  `status` varchar(20),
-  `payment_method` varchar(50),
-  `payment_status` varchar(20),
-  `shipping_address` text,
-  `created_at` datetime ,
-  `updated_at` datetime ,
-  `cancellation_reason` varchar(255),
-  `cancellation_requested_by` varchar(50),
-  `order_status` VARCHAR(50),
-  `order_date` DATETIME ,
-  `customer_issue` TEXT,
-  `message` TEXT,
-  `feedback` TEXT,
-  `rate` INT,
-  PRIMARY KEY (`order_id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `orders`
---
-
-LOCK TABLES `orders` WRITE;
-/*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES
-(41,1,10999,'pending','Cash on Delivery','To Pay','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'To Pay','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
-(43,1,499,'shipped','Cash on Delivery','To Ship','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'To Ship','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
-(44,1,1198,'delivered','Cash on Delivery','Completed','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Completed','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
-(45,1,21998,'cancelled','Cash on Delivery','To Pay','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Cancelled','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
-(46,1,8450.75,'refunded','Cash on Delivery','Completed','National Capital Region (NCR)','2025-05-17 00:06:35','2025-05-16 16:06:35',NULL,NULL,'Refunded','2025-05-17 00:06:35',NULL,NULL,NULL,NULL),
-(47,1,11149,'pending','Cash on Delivery','To Pay','National Capital Region (NCR)','2025-05-17 07:34:41','2025-05-17 07:34:41',NULL,NULL,'To Pay','2025-05-17 07:34:41',NULL,NULL,NULL,NULL);
-/*!40000 ALTER TABLE `orders` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `product_images`
---
-
-DROP TABLE IF EXISTS `product_images`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `product_images` (
-  `image_id` int NOT NULL AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `image_url` varchar(255) NOT NULL,
-  `image_type` varchar(50) NOT NULL,
-  `display_order` int NOT NULL,
-  `alt_text` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`image_id`),
-  KEY `product_id` (`product_id`),
-  CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `product_images`
---
-
-LOCK TABLES `product_images` WRITE;
-/*!40000 ALTER TABLE `product_images` DISABLE KEYS */;
-INSERT INTO `product_images` VALUES (8,43,'/static/pictures/SHUNFA SF-372 Buttonsew machine.jpg','main',0,'SHUNFA SF-372 - Button Sew Machine'),(9,44,'/static/pictures/SHUNFA SF-781 Buttonholer machine.jpg','main',0,'SHUNFA SF-781 - Buttonholer Machine'),(10,45,'/static/pictures/SHUNFA SF-737 - 3-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-737 - 3-Thread Overlock Machine'),(12,47,'/static/pictures/SHUNFA SF-757 – 5-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-757 – 5-Thread Overlock Machine'),(13,48,'/static/pictures/SHUNFA JA2-2 – Household Sewing Machine.jpg','main',0,'SHUNFA JA2-2 – Household Sewing Machine'),(14,49,'/static/pictures/SHUNFA SF-747 – 4-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-747 – 4-Thread Overlock Machine'),(15,50,'/static/pictures/Juki DDL-8100E – Single Needle High-Speed Lockstitch Machine.jpg','main',0,'Juki DDL-8100E – Single Needle High-Speed Lockstitch Machine'),(16,51,'/static/pictures/Juki MO-6700DA Series – Semi-Dry Head Overlock Machine.jpg','main',0,'Juki MO-6700DA Series – Semi-Dry Head Overlock Machine'),(17,52,'/static/pictures/Juki W562-02BB – Piping Machine.jpg','main',0,'Juki W562-02BB – Piping Machine'),(18,53,'/static/pictures/Juki LU-1508N – Walking Foot Lockstitch Machine.jpg','main',0,'Juki LU-1508N – Walking Foot Lockstitch Machine'),(19,54,'/static/pictures/Juki LK-1900S – Computer-Controlled Bartacking Machine.jpg','main',0,'Juki LK-1900S – Computer-Controlled Bartacking Machine'),(20,55,'/static/pictures/Skylab – Lacoste Fabric.jpg','main',0,'Skylab – Lacoste Fabric'),(22,57,'/static/pictures/Quitalig – China Cotton 135 GSM.jpg','main',0,'Quitalig – China Cotton 135 GSM'),(23,58,'/static/pictures/Quitalig – China Cotton 165 GSM.png','main',0,'Quitalig – China Cotton 165 GSM'),(24,59,'/static/pictures/Quitalig – China Cotton 185 GSM.png','main',0,'Quitalig – China Cotton 185 GSM'),(25,60,'/static/pictures/Quitalig – China Cotton 200 GSM.png','main',0,'Quitalig – China Cotton 200 GSM'),(27,62,'/static/pictures/Skylab – CVC Cotton Fabric.jpg','main',0,'Skylab – CVC Cotton Fabric'),(130,83,'/static/pictures/B9117-012-000.jpg','main',0,'Bobbin Case'),(131,84,'/static/pictures/B1837-012-000.jpg','main',0,'Bobbin'),(132,85,'/static/pictures/B1835-012-000.jpg','main',0,'Positioning Finger'),(133,86,'/static/pictures/B1830-127-000.jpg','main',0,'Rotating Hook'),(134,87,'/static/pictures/B3421-552-000.png','main',0,'Presser Foot'),(139,41,'pictures/SHUNFA SF-5550 Single Needle High-Speed Machine (1).jpg','main',1,'SHUNFA SF-5550 Single Needle High-Speed Machine'),(140,41,'pictures/SHUNFA SF-5550 Single Needle High-Speed Machine (2).jpg','main',2,'SHUNFA SF-5550 Single Needle High-Speed Machine'), (141, 65, '/static/pictures/chiffon-fabric.jpeg', 'main', 0, null);
-
-/*!40000 ALTER TABLE `product_images` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `product_specifications`
---
-
-DROP TABLE IF EXISTS `product_specifications`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `product_specifications` (
-  `spec_id` int NOT NULL AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `spec_name` varchar(100) NOT NULL,
-  `spec_value` varchar(255) NOT NULL,
-  `display_order` int DEFAULT NULL,
-  PRIMARY KEY (`spec_id`),
-  KEY `product_id` (`product_id`),
-  CONSTRAINT `product_specifications_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=436 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `product_specifications`
---
-
-LOCK TABLES `product_specifications` WRITE;
-/*!40000 ALTER TABLE `product_specifications` DISABLE KEYS */;
-INSERT INTO `product_specifications` VALUES (39,41,'Brand','Shunfa',0),(40,41,'Model','SF-5550',1),(41,41,'Type','Single Needle High-Speed Lockstitch',2),(42,41,'Speed','5,000 stitches per minute',3),(43,41,'Motor','Servo',4),(44,41,'Needle System','DBX1 (DPx16)',5),(45,41,'Stitch Length','Up to 5mm',6),(46,41,'Presser Foot Lift','6mm',7),(61,42,'Brand','Shunfa',0),(62,42,'Model','SF-562-02BB',1),(63,42,'Type','Overlock Piping Machine',2),(64,42,'Threads','4-thread',3),(65,42,'Stitch Length','Up to 4mm',4),(66,42,'Overedge Width','1.5–6mm',5),(67,42,'Motor','550W',6),(68,43,'Brand','Shunfa',0),(69,43,'Model','SF-372',1),(70,43,'Type','Button Sew Machine',2),(71,43,'Needle System','DBx1 #11',3),(72,43,'Stitch Type','Lockstitch',4),(73,43,'Motor','550W',5),(74,44,'Brand','Shunfa',0),(75,44,'Model','SF-781',1),(76,44,'Type','Buttonholer Machine',2),(77,44,'Stitch Type','Buttonhole Stitch',3),(78,44,'Needle System','DBx1 #11',4),(79,44,'Motor','550W',5),(80,45,'Brand','Shunfa',0),(81,45,'Model','SF-737',1),(82,45,'Type','3-Thread Overlock Machine',2),(83,45,'Threads','3-thread',3),(84,45,'Stitch Length','Up to 4mm',4),(85,45,'Overedge Width','1.5–6mm',5),(86,45,'Motor','550W',6),(94,47,'Brand','Shunfa',0),(95,47,'Model','SF-757',1),(96,47,'Type','5-Thread Overlock Machine',2),(97,47,'Threads','5-thread',3),(98,47,'Stitch Length','Up to 4mm',4),(99,47,'Overedge Width','1.5–6mm',5),(100,47,'Motor','550W',6),(101,48,'Brand','Shunfa',0),(102,48,'Model','JA2-2',1),(103,48,'Type','Household Sewing Machine',2),(104,48,'Needle System','HA x1 #11-#14',3),(105,48,'Stitch Length','6mm',4),(106,48,'Max Sewing Thickness','5mm',5),(107,48,'Presser Foot Height','6mm',6),(108,48,'Dimensions','420 × 200 × 290 mm',7),(109,48,'Weight','11/10 kg',8),(110,48,'Motor','Manual',9),(111,49,'Brand','Shunfa',0),(112,49,'Model','SF-747',1),(113,49,'Type','4-Thread Overlock Machine',2),(114,49,'Threads','4-thread',3),(115,49,'Stitch Length','Up to 4mm',4),(116,49,'Overedge Width','1.5–6mm',5),(117,49,'Motor','550W',6),(118,50,'Brand','Juki',0),(119,50,'Model','DDL-8100E',1),(120,50,'Type','Single Needle High-Speed Lockstitch',2),(121,50,'Speed','4,500 stitches per minute',3),(122,50,'Stitch Length','Up to 5mm',4),(123,50,'Needle System','DB×1 #9–#18',5),(124,50,'Motor','Servo motor',6),(125,50,'Weight','26kg',7),(126,51,'Brand','Juki',0),(127,51,'Model','MO-6700DA Series',1),(128,51,'Type','Overlock / Safety Stitch',2),(129,51,'Speed','7,000 stitches per minute',3),(130,51,'Stitch Length','0.8–4mm',4),(131,51,'Needle System','DC×27',5),(132,51,'Differential Feed Ratio','Gathering 1:2 (max. 1:4), Stretching 1:0.7 (max. 1:0.6)',6),(133,51,'Overedging Width','1.6, 3.2, 4.0, 4.8mm',7),(134,51,'Weight','28kg',8),(135,52,'Brand','Juki',0),(136,52,'Model','W562-02BB',1),(137,52,'Type','Piping Machine',2),(138,52,'Threads','4-thread',3),(139,52,'Stitch Length','Up to 4mm',4),(140,52,'Overedge Width','1.5–6mm',5),(141,52,'Motor','550W',6),(142,53,'Brand','Juki',0),(143,53,'Model','LU-1508N',1),(144,53,'Type','Walking Foot Lockstitch',2),(145,53,'Speed','2,000 stitches per minute',3),(146,53,'Stitch Length','Up to 9mm',4),(147,53,'Needle System','DP×17 #22–#27',5),(148,53,'Motor','Servo motor',6),(149,53,'Weight','70kg',7),(150,54,'Brand','Juki',0),(151,54,'Model','LK-1900S',1),(152,54,'Type','Computer-Controlled Bartacking',2),(153,54,'Speed','3,200 stitches per minute',3),(154,54,'Stitch Length','0.1–10mm',4),(155,54,'Needle System','DP×5 (#14)',5),(156,54,'Motor','Compact AC servo motor',6),(157,54,'Weight','47.1kg',7),(158,55,'Brand','Skylab',0),(159,55,'Fabric Type','Lacoste',1),(160,55,'Composition','Cotton or CVC (Cotton-Poly Blend)',2),(161,55,'Texture','Piqué knit',3),(162,55,'Use','Polo shirts, casual tops',4),(163,55,'Color','White / Black / Navy / pwede mag add pa mas maganda',5),(164,55,'Width','1.2m / 1.5m',6),(165,56,'Brand','Skylab',0),(166,56,'Fabric Type','TR Lacoste',1),(167,56,'Composition','Polyester + Rayon',2),(168,56,'Texture','Piqué knit',3),(169,56,'Use','Uniforms, casual wear',4),(170,56,'Color Options','Red, Navy',5),(171,56,'Width Options','1.2m, 1.5m',6),(172,57,'Brand','Quitalig',0),(173,57,'Fabric Type','Cotton',1),(174,57,'Composition','100% Cotton',2),(175,57,'GSM','135',3),(176,57,'Use','Shirts, linings',4),(177,57,'Color Options','Blue, Red, Black',5),(178,57,'Width Options','1.2m, 1.5m',6),(179,58,'Brand','Quitalig',0),(180,58,'Fabric Type','Cotton',1),(181,58,'Composition','100% Cotton',2),(182,58,'GSM','165',3),(183,58,'Use','T-shirts, uniforms',4),(184,58,'Color Options','Gray, Black, White',5),(185,58,'Width Options','1.2m, 1.5m',6),(186,59,'Brand','Quitalig',0),(187,59,'Fabric Type','Cotton',1),(188,59,'Composition','100% Cotton',2),(189,59,'GSM','185',3),(190,59,'Use','Polo shirts, jackets',4),(191,59,'Color Options','Red, Blue, White',5),(192,59,'Width Options','1.2m, 1.5m',6),(193,60,'Brand','Quitalig',0),(194,60,'Fabric Type','Cotton',1),(195,60,'Composition','100% Cotton',2),(196,60,'GSM','200',3),(197,60,'Use','Workwear, embroidery',4),(198,60,'Color Options','Black, Navy, White',5),(199,60,'Width Options','1.2m, 1.5m',6),(200,61,'Brand','Skylab',0),(201,61,'Fabric Type','TC (Tetron Cotton)',1),(202,61,'Composition','65% Polyester, 35% Cotton',2),(203,61,'GSM','Approx. 150–180',3),(204,61,'Use','Uniforms, shirts',4),(205,61,'Color Options','Red, Blue, Gray',5),(206,61,'Width Options','1.2m, 1.5m',6),(207,62,'Brand','Skylab',0),(208,62,'Fabric Type','CVC',1),(209,62,'Composition','60% Cotton, 40% Polyester',2),(210,62,'GSM','Approx. 160–200',3),(211,62,'Use','T-shirts, uniforms',4),(212,62,'Color Options','Red, Blue, Gray',5),(213,62,'Width Options','1.2m, 1.5m',6),(214,63,'Brand','Skylab',0),(215,63,'Fabric Type','Ribbing',1),(216,63,'Composition','Cotton + Spandex blend',2),(217,63,'Use','Necklines, cuffs, hems',3),(218,63,'Color Options','Black, White, Navy',4),(219,63,'Width Options','1.0m, 1.5m',5),(220,64,'Fabric Type','Charmeuse Silk',0),(221,64,'Composition','100% Mulberry Silk',1),(222,64,'Weight','85 GSM',2),(223,64,'Width','44 inches',3),(224,64,'Use','Evening wear, lingerie, scarves',4),(225,64,'Silk Type Options','Pure Charmeuse Silk, Charmeuse Silk Blend',5),(226,64,'Color Options','Ivory, Champagne, Black',6),(227,64,'Width Options','0.9m, 1.5m',7),(228,65,'Fabric Type','Chiffon Silk',0),(229,65,'Composition','100% Mulberry Silk',1),(230,65,'Weight','29–34 GSM',2),(231,65,'Width','44–54 inches',3),(232,65,'Use','Dresses, blouses, scarves',4),(233,65,'Silk Type Options','Pure Charmeuse Silk, Charmeuse Silk Blend',5),(234,65,'Color Options','Ivory, Champagne, Black',6),(235,65,'Width Options','0.9m, 1.5m',7),(236,66,'Fabric Type','Crepe de Chine Silk',0),(237,66,'Composition','100% Mulberry Silk',1),(238,66,'Weight','45–60 GSM',2),(239,66,'Width','44 inches',3),(240,66,'Use','Blouses, dresses, scarves',4),(241,66,'Silk Type Options','Pure Crepe de Chine Silk, Crepe de Chine Silk Blend',5),(242,66,'Color Options','Champagne, Black, Navy',6),(243,66,'Width Options','0.9m, 1.5m',7),(340,83,'Part Number','B9117-012-000',0),(341,83,'Material','Stainless Steel',1),(342,83,'Compatibility','Compatible with various Shunfa and industrial machines',2),(343,83,'Use','Holds bobbin for smooth thread operation',3),(344,83,'Material Type','Stainless Steel',4),(345,83,'Size','Standard',5),(346,83,'Size','Large',6),(347,84,'Part Number','B1837-012-000',0),(348,84,'Material','Metal or Plastic',1),(349,84,'Compatibility','Compatible with Shunfa and similar industrial machines',2),(350,84,'Use','Stores the bottom thread for consistent stitching',3),(351,84,'Material Type','Metal',4),(352,84,'Size','Small',5),(353,84,'Size','Medium',6),(354,84,'Size','Large',7),(355,85,'Part Number','B1835-012-000',0),(356,85,'Material','Steel',1),(357,85,'Compatibility','Compatible with Shunfa industrial sewing machines',2),(358,85,'Use','Positions fabric for accurate stitching',3),(359,85,'Material','Steel',4),(360,85,'Material','Alloy',5),(361,85,'Size','Standard',6),(362,86,'Part Number','B1830-127-000',0),(363,86,'Material','High-strength steel',1),(364,86,'Compatibility','Shunfa, Juki, and other lockstitch machines',2),(365,86,'Use','Forms stitches by looping thread',3),(366,86,'Material','Steel',4),(367,86,'Material','Alloy',5),(368,87,'Part Number','B3421-552-000',0),(369,87,'Material','Steel or Plastic',1),(370,87,'Compatibility','Shunfa, Juki, and other industrial machines',2),(371,87,'Use','Holds fabric in place for consistent stitching',3),(372,87,'Material','Steel',4),(373,87,'Material','Plastic',5),(374,88,'Part Number','UNO Clutch Motor',0),(375,88,'Power','750W–1000W',1),(376,88,'Speed','2,500–3,000 RPM',2),(377,88,'Compatibility','Compatible with various industrial sewing machines',3),(378,88,'Use','Powers sewing machine for high-speed operation',4),(379,88,'Power','750W',5),(380,88,'Power','1000W',6),(381,88,'Speed Control','Fixed Speed',7),(382,89,'Part Number','UNO Servo Motor',0),(383,89,'Power','Typically 550W',1),(384,89,'Speed Control','Adjustable',2),(385,89,'Compatibility','Fits most industrial sewing machines',3),(386,89,'Use','Powers sewing machine with energy-efficient control',4),(387,89,'Power','550W',5),(388,90,'Part Number','VARIES',0),(389,90,'Material','Steel Frame, Laminate Surface',1),(390,90,'Compatibility','Compatible with Shunfa, Juki, and other industrial machines',2),(391,90,'Use','Supports the sewing machine during operations',3),(392,90,'Table Size','Standard',4),(393,90,'Frame Material','Steel Frame',5),(394,91,'Part Number','DBx1',0),(395,91,'Needle Size','#9 to #18',1),(396,91,'Material','Steel',2),(397,91,'Compatibility','Works with most sewing machines',3),(398,91,'Use','General-purpose needle for various fabrics',4),(399,91,'Needle Size','#9',5),(400,91,'Needle Size','#10',6),(401,91,'Needle Size','#12',7),(402,91,'Needle Size','#14',8),(403,91,'Needle Size','#16',9),(404,91,'Needle Size','#18',10),(405,91,'Material','Steel',11),(406,91,'Material','Titanium Coated',12),(407,92,'Part Number','DBxK',0),(408,92,'Needle Size','#11 to #16',1),(409,92,'Material','Steel with Ballpoint tip',2),(410,92,'Compatibility','Compatible with most industrial machines',3),(411,92,'Use','For knit fabrics, jerseys, and stretch fabrics',4),(412,92,'Needle Size','#11',5),(413,92,'Needle Size','#14',6),(414,92,'Needle Size','#16',7),(415,92,'Material','Steel',8),(416,92,'Material','Titanium Coated',9),(417,93,'Part Number','DBx1-JEANS',0),(418,93,'Needle Size','#16 to #18',1),(419,93,'Material','Steel with reinforced shaft',2),(420,93,'Compatibility','Works with most sewing machines',3),(421,93,'Use','For heavy fabrics such as denim, canvas, and thick upholstery materials',4),(422,93,'Needle Size','#16',5),(423,93,'Needle Size','#18',6),(424,93,'Material','Steel',7),(425,93,'Material','Titanium Coated',8),(426,94,'Part Number','DBx1-Microtex',0),(427,94,'Needle Size','#9 to #11',1),(428,94,'Material','Steel with a slim, tapered point',2),(429,94,'Compatibility','Compatible with most industrial and domestic sewing machines',3),(430,94,'Use','For fine fabrics like silk, satin, and microfibers',4),(431,94,'Needle Size','#9',5),(432,94,'Needle Size','#10',6),(433,94,'Needle Size','#11',7),(434,94,'Material','Steel',8),(435,94,'Material','Titanium Coated',9);
-/*!40000 ALTER TABLE `product_specifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -396,109 +242,121 @@ INSERT INTO `products` VALUES
 UNLOCK TABLES;
 
 --
--- Table structure for table `reviews`
+-- Table structure for table `product_specifications`
 --
 
-DROP TABLE IF EXISTS `reviews`;
+DROP TABLE IF EXISTS `product_specifications`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `reviews` (
-  `review_id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `product_specifications` (
+  `spec_id` int NOT NULL AUTO_INCREMENT,
   `product_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  `rating` int NOT NULL,
-  `comment` text NOT NULL,
-  `media_url` varchar(255) DEFAULT NULL,
-  `media_type` varchar(50) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`review_id`),
+  `spec_name` varchar(100) NOT NULL,
+  `spec_value` varchar(255) NOT NULL,
+  `display_order` int DEFAULT NULL,
+  PRIMARY KEY (`spec_id`),
   KEY `product_id` (`product_id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
-  CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `product_specifications_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=436 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `reviews`
+-- Dumping data for table `product_specifications`
 --
 
-LOCK TABLES `reviews` WRITE;
-/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
-/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
+LOCK TABLES `product_specifications` WRITE;
+/*!40000 ALTER TABLE `product_specifications` DISABLE KEYS */;
+INSERT INTO `product_specifications` VALUES (39,41,'Brand','Shunfa',0),(40,41,'Model','SF-5550',1),(41,41,'Type','Single Needle High-Speed Lockstitch',2),(42,41,'Speed','5,000 stitches per minute',3),(43,41,'Motor','Servo',4),(44,41,'Needle System','DBX1 (DPx16)',5),(45,41,'Stitch Length','Up to 5mm',6),(46,41,'Presser Foot Lift','6mm',7),(61,42,'Brand','Shunfa',0),(62,42,'Model','SF-562-02BB',1),(63,42,'Type','Overlock Piping Machine',2),(64,42,'Threads','4-thread',3),(65,42,'Stitch Length','Up to 4mm',4),(66,42,'Overedge Width','1.5–6mm',5),(67,42,'Motor','550W',6),(68,43,'Brand','Shunfa',0),(69,43,'Model','SF-372',1),(70,43,'Type','Button Sew Machine',2),(71,43,'Needle System','DBx1 #11',3),(72,43,'Stitch Type','Lockstitch',4),(73,43,'Motor','550W',5),(74,44,'Brand','Shunfa',0),(75,44,'Model','SF-781',1),(76,44,'Type','Buttonholer Machine',2),(77,44,'Stitch Type','Buttonhole Stitch',3),(78,44,'Needle System','DBx1 #11',4),(79,44,'Motor','550W',5),(80,45,'Brand','Shunfa',0),(81,45,'Model','SF-737',1),(82,45,'Type','3-Thread Overlock Machine',2),(83,45,'Threads','3-thread',3),(84,45,'Stitch Length','Up to 4mm',4),(85,45,'Overedge Width','1.5–6mm',5),(86,45,'Motor','550W',6),(94,47,'Brand','Shunfa',0),(95,47,'Model','SF-757',1),(96,47,'Type','5-Thread Overlock Machine',2),(97,47,'Threads','5-thread',3),(98,47,'Stitch Length','Up to 4mm',4),(99,47,'Overedge Width','1.5–6mm',5),(100,47,'Motor','550W',6),(101,48,'Brand','Shunfa',0),(102,48,'Model','JA2-2',1),(103,48,'Type','Household Sewing Machine',2),(104,48,'Needle System','HA x1 #11-#14',3),(105,48,'Stitch Length','6mm',4),(106,48,'Max Sewing Thickness','5mm',5),(107,48,'Presser Foot Height','6mm',6),(108,48,'Dimensions','420 × 200 × 290 mm',7),(109,48,'Weight','11/10 kg',8),(110,48,'Motor','Manual',9),(111,49,'Brand','Shunfa',0),(112,49,'Model','SF-747',1),(113,49,'Type','4-Thread Overlock Machine',2),(114,49,'Threads','4-thread',3),(115,49,'Stitch Length','Up to 4mm',4),(116,49,'Overedge Width','1.5–6mm',5),(117,49,'Motor','550W',6),(118,50,'Brand','Juki',0),(119,50,'Model','DDL-8100E',1),(120,50,'Type','Single Needle High-Speed Lockstitch',2),(121,50,'Speed','4,500 stitches per minute',3),(122,50,'Stitch Length','Up to 5mm',4),(123,50,'Needle System','DB×1 #9–#18',5),(124,50,'Motor','Servo motor',6),(125,50,'Weight','26kg',7),(126,51,'Brand','Juki',0),(127,51,'Model','MO-6700DA Series',1),(128,51,'Type','Overlock / Safety Stitch',2),(129,51,'Speed','7,000 stitches per minute',3),(130,51,'Stitch Length','0.8–4mm',4),(131,51,'Needle System','DC×27',5),(132,51,'Differential Feed Ratio','Gathering 1:2 (max. 1:4), Stretching 1:0.7 (max. 1:0.6)',6),(133,51,'Overedging Width','1.6, 3.2, 4.0, 4.8mm',7),(134,51,'Weight','28kg',8),(135,52,'Brand','Juki',0),(136,52,'Model','W562-02BB',1),(137,52,'Type','Piping Machine',2),(138,52,'Threads','4-thread',3),(139,52,'Stitch Length','Up to 4mm',4),(140,52,'Overedge Width','1.5–6mm',5),(141,52,'Motor','550W',6),(142,53,'Brand','Juki',0),(143,53,'Model','LU-1508N',1),(144,53,'Type','Walking Foot Lockstitch',2),(145,53,'Speed','2,000 stitches per minute',3),(146,53,'Stitch Length','Up to 9mm',4),(147,53,'Needle System','DP×17 #22–#27',5),(148,53,'Motor','Servo motor',6),(149,53,'Weight','70kg',7),(150,54,'Brand','Juki',0),(151,54,'Model','LK-1900S',1),(152,54,'Type','Computer-Controlled Bartacking',2),(153,54,'Speed','3,200 stitches per minute',3),(154,54,'Stitch Length','0.1–10mm',4),(155,54,'Needle System','DP×5 (#14)',5),(156,54,'Motor','Compact AC servo motor',6),(157,54,'Weight','47.1kg',7),(158,55,'Brand','Skylab',0),(159,55,'Fabric Type','Lacoste',1),(160,55,'Composition','Cotton or CVC (Cotton-Poly Blend)',2),(161,55,'Texture','Piqué knit',3),(162,55,'Use','Polo shirts, casual tops',4),(163,55,'Color','White / Black / Navy / pwede mag add pa mas maganda',5),(164,55,'Width','1.2m / 1.5m',6),(165,56,'Brand','Skylab',0),(166,56,'Fabric Type','TR Lacoste',1),(167,56,'Composition','Polyester + Rayon',2),(168,56,'Texture','Piqué knit',3),(169,56,'Use','Uniforms, casual wear',4),(170,56,'Color Options','Red, Navy',5),(171,56,'Width Options','1.2m, 1.5m',6),(172,57,'Brand','Quitalig',0),(173,57,'Fabric Type','Cotton',1),(174,57,'Composition','100% Cotton',2),(175,57,'GSM','135',3),(176,57,'Use','Shirts, linings',4),(177,57,'Color Options','Blue, Red, Black',5),(178,57,'Width Options','1.2m, 1.5m',6),(179,58,'Brand','Quitalig',0),(180,58,'Fabric Type','Cotton',1),(181,58,'Composition','100% Cotton',2),(182,58,'GSM','165',3),(183,58,'Use','T-shirts, uniforms',4),(184,58,'Color Options','Gray, Black, White',5),(185,58,'Width Options','1.2m, 1.5m',6),(186,59,'Brand','Quitalig',0),(187,59,'Fabric Type','Cotton',1),(188,59,'Composition','100% Cotton',2),(189,59,'GSM','185',3),(190,59,'Use','Polo shirts, jackets',4),(191,59,'Color Options','Red, Blue, White',5),(192,59,'Width Options','1.2m, 1.5m',6),(193,60,'Brand','Quitalig',0),(194,60,'Fabric Type','Cotton',1),(195,60,'Composition','100% Cotton',2),(196,60,'GSM','200',3),(197,60,'Use','Workwear, embroidery',4),(198,60,'Color Options','Black, Navy, White',5),(199,60,'Width Options','1.2m, 1.5m',6),(200,61,'Brand','Skylab',0),(201,61,'Fabric Type','TC (Tetron Cotton)',1),(202,61,'Composition','65% Polyester, 35% Cotton',2),(203,61,'GSM','Approx. 150–180',3),(204,61,'Use','Uniforms, shirts',4),(205,61,'Color Options','Red, Blue, Gray',5),(206,61,'Width Options','1.2m, 1.5m',6),(207,62,'Brand','Skylab',0),(208,62,'Fabric Type','CVC',1),(209,62,'Composition','60% Cotton, 40% Polyester',2),(210,62,'GSM','Approx. 160–200',3),(211,62,'Use','T-shirts, uniforms',4),(212,62,'Color Options','Red, Blue, Gray',5),(213,62,'Width Options','1.2m, 1.5m',6),(214,63,'Brand','Skylab',0),(215,63,'Fabric Type','Ribbing',1),(216,63,'Composition','Cotton + Spandex blend',2),(217,63,'Use','Necklines, cuffs, hems',3),(218,63,'Color Options','Black, White, Navy',4),(219,63,'Width Options','1.0m, 1.5m',5),(220,64,'Fabric Type','Charmeuse Silk',0),(221,64,'Composition','100% Mulberry Silk',1),(222,64,'Weight','85 GSM',2),(223,64,'Width','44 inches',3),(224,64,'Use','Evening wear, lingerie, scarves',4),(225,64,'Silk Type Options','Pure Charmeuse Silk, Charmeuse Silk Blend',5),(226,64,'Color Options','Ivory, Champagne, Black',6),(227,64,'Width Options','0.9m, 1.5m',7),(228,65,'Fabric Type','Chiffon Silk',0),(229,65,'Composition','100% Mulberry Silk',1),(230,65,'Weight','29–34 GSM',2),(231,65,'Width','44–54 inches',3),(232,65,'Use','Dresses, blouses, scarves',4),(233,65,'Silk Type Options','Pure Charmeuse Silk, Charmeuse Silk Blend',5),(234,65,'Color Options','Ivory, Champagne, Black',6),(235,65,'Width Options','0.9m, 1.5m',7),(236,66,'Fabric Type','Crepe de Chine Silk',0),(237,66,'Composition','100% Mulberry Silk',1),(238,66,'Weight','45–60 GSM',2),(239,66,'Width','44 inches',3),(240,66,'Use','Blouses, dresses, scarves',4),(241,66,'Silk Type Options','Pure Crepe de Chine Silk, Crepe de Chine Silk Blend',5),(242,66,'Color Options','Champagne, Black, Navy',6),(243,66,'Width Options','0.9m, 1.5m',7),(340,83,'Part Number','B9117-012-000',0),(341,83,'Material','Stainless Steel',1),(342,83,'Compatibility','Compatible with various Shunfa and industrial machines',2),(343,83,'Use','Holds bobbin for smooth thread operation',3),(344,83,'Material Type','Stainless Steel',4),(345,83,'Size','Standard',5),(346,83,'Size','Large',6),(347,84,'Part Number','B1837-012-000',0),(348,84,'Material','Metal or Plastic',1),(349,84,'Compatibility','Compatible with Shunfa and similar industrial machines',2),(350,84,'Use','Stores the bottom thread for consistent stitching',3),(351,84,'Material Type','Metal',4),(352,84,'Size','Small',5),(353,84,'Size','Medium',6),(354,84,'Size','Large',7),(355,85,'Part Number','B1835-012-000',0),(356,85,'Material','Steel',1),(357,85,'Compatibility','Compatible with Shunfa industrial sewing machines',2),(358,85,'Use','Positions fabric for accurate stitching',3),(359,85,'Material','Steel',4),(360,85,'Material','Alloy',5),(361,85,'Size','Standard',6),(362,86,'Part Number','B1830-127-000',0),(363,86,'Material','High-strength steel',1),(364,86,'Compatibility','Shunfa, Juki, and other lockstitch machines',2),(365,86,'Use','Forms stitches by looping thread',3),(366,86,'Material','Steel',4),(367,86,'Material','Alloy',5),(368,87,'Part Number','B3421-552-000',0),(369,87,'Material','Steel or Plastic',1),(370,87,'Compatibility','Shunfa, Juki, and other industrial machines',2),(371,87,'Use','Holds fabric in place for consistent stitching',3),(372,87,'Material','Steel',4),(373,87,'Material','Plastic',5),(374,88,'Part Number','UNO Clutch Motor',0),(375,88,'Power','750W–1000W',1),(376,88,'Speed','2,500–3,000 RPM',2),(377,88,'Compatibility','Compatible with various industrial sewing machines',3),(378,88,'Use','Powers sewing machine for high-speed operation',4),(379,88,'Power','750W',5),(380,88,'Power','1000W',6),(381,88,'Speed Control','Fixed Speed',7),(382,89,'Part Number','UNO Servo Motor',0),(383,89,'Power','Typically 550W',1),(384,89,'Speed Control','Adjustable',2),(385,89,'Compatibility','Fits most industrial sewing machines',3),(386,89,'Use','Powers sewing machine with energy-efficient control',4),(387,89,'Power','550W',5),(388,90,'Part Number','VARIES',0),(389,90,'Material','Steel Frame, Laminate Surface',1),(390,90,'Compatibility','Compatible with Shunfa, Juki, and other industrial machines',2),(391,90,'Use','Supports the sewing machine during operations',3),(392,90,'Table Size','Standard',4),(393,90,'Frame Material','Steel Frame',5),(394,91,'Part Number','DBx1',0),(395,91,'Needle Size','#9 to #18',1),(396,91,'Material','Steel',2),(397,91,'Compatibility','Works with most sewing machines',3),(398,91,'Use','General-purpose needle for various fabrics',4),(399,91,'Needle Size','#9',5),(400,91,'Needle Size','#10',6),(401,91,'Needle Size','#12',7),(402,91,'Needle Size','#14',8),(403,91,'Needle Size','#16',9),(404,91,'Needle Size','#18',10),(405,91,'Material','Steel',11),(406,91,'Material','Titanium Coated',12),(407,92,'Part Number','DBxK',0),(408,92,'Needle Size','#11 to #16',1),(409,92,'Material','Steel with Ballpoint tip',2),(410,92,'Compatibility','Compatible with most industrial machines',3),(411,92,'Use','For knit fabrics, jerseys, and stretch fabrics',4),(412,92,'Needle Size','#11',5),(413,92,'Needle Size','#14',6),(414,92,'Needle Size','#16',7),(415,92,'Material','Steel',8),(416,92,'Material','Titanium Coated',9),(417,93,'Part Number','DBx1-JEANS',0),(418,93,'Needle Size','#16 to #18',1),(419,93,'Material','Steel with reinforced shaft',2),(420,93,'Compatibility','Works with most sewing machines',3),(421,93,'Use','For heavy fabrics such as denim, canvas, and thick upholstery materials',4),(422,93,'Needle Size','#16',5),(423,93,'Needle Size','#18',6),(424,93,'Material','Steel',7),(425,93,'Material','Titanium Coated',8),(426,94,'Part Number','DBx1-Microtex',0),(427,94,'Needle Size','#9 to #11',1),(428,94,'Material','Steel with a slim, tapered point',2),(429,94,'Compatibility','Compatible with most industrial and domestic sewing machines',3),(430,94,'Use','For fine fabrics like silk, satin, and microfibers',4),(431,94,'Needle Size','#9',5),(432,94,'Needle Size','#10',6),(433,94,'Needle Size','#11',7),(434,94,'Material','Steel',8),(435,94,'Material','Titanium Coated',9);
+/*!40000 ALTER TABLE `product_specifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Table structure for table `supply_requests`
+-- Table structure for table `product_images`
 --
 
-DROP TABLE IF EXISTS `supply_requests`;
+DROP TABLE IF EXISTS `product_images`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `supply_requests` (
-  `id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `product_images` (
+  `image_id` int NOT NULL AUTO_INCREMENT,
   `product_id` int NOT NULL,
-  `staff_id` int NOT NULL,
-  `quantity_requested` int NOT NULL,
-  `status` varchar(20) DEFAULT NULL,
-  `notes` text,
-  `request_date` datetime DEFAULT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
+  `image_url` varchar(255) NOT NULL,
+  `image_type` varchar(50) NOT NULL,
+  `display_order` int NOT NULL,
+  `alt_text` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`image_id`),
   KEY `product_id` (`product_id`),
-  KEY `idx_supply_request_staff` (`staff_id`),
-  KEY `idx_supply_request_status` (`status`),
-  CONSTRAINT `supply_requests_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
-  CONSTRAINT `supply_requests_ibfk_2` FOREIGN KEY (`staff_id`) REFERENCES `users` (`user_id`)
+  CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=141 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_images`
+--
+
+LOCK TABLES `product_images` WRITE;
+/*!40000 ALTER TABLE `product_images` DISABLE KEYS */;
+INSERT INTO `product_images` 
+VALUES 
+(8,43,'/static/pictures/SHUNFA SF-372 Buttonsew machine.jpg','main',0,'SHUNFA SF-372 - Button Sew Machine'),
+(9,44,'/static/pictures/SHUNFA SF-781 Buttonholer machine.jpg','main',0,'SHUNFA SF-781 - Buttonholer Machine'),
+(10,45,'/static/pictures/SHUNFA SF-737 - 3-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-737 - 3-Thread Overlock Machine'),
+(12,47,'/static/pictures/SHUNFA SF-757 – 5-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-757 – 5-Thread Overlock Machine'),
+(13,48,'/static/pictures/SHUNFA JA2-2 – Household Sewing Machine.jpg','main',0,'SHUNFA JA2-2 – Household Sewing Machine'),
+(14,49,'/static/pictures/SHUNFA SF-747 – 4-Thread Overlock Machine.jpg','main',0,'SHUNFA SF-747 – 4-Thread Overlock Machine'),
+(15,50,'/static/pictures/Juki DDL-8100E – Single Needle High-Speed Lockstitch Machine.jpg','main',0,'Juki DDL-8100E – Single Needle High-Speed Lockstitch Machine'),
+(16,51,'/static/pictures/Juki MO-6700DA Series – Semi-Dry Head Overlock Machine.jpg','main',0,'Juki MO-6700DA Series – Semi-Dry Head Overlock Machine'),
+(17,52,'/static/pictures/Juki W562-02BB – Piping Machine.jpg','main',0,'Juki W562-02BB – Piping Machine'),
+(18,53,'/static/pictures/Juki LU-1508N – Walking Foot Lockstitch Machine.jpg','main',0,'Juki LU-1508N – Walking Foot Lockstitch Machine'),
+(19,54,'/static/pictures/Juki LK-1900S – Computer-Controlled Bartacking Machine.jpg','main',0,'Juki LK-1900S – Computer-Controlled Bartacking Machine'),
+(20,55,'/static/pictures/Skylab – Lacoste Fabric.jpg','main',0,'Skylab – Lacoste Fabric'),
+(22,57,'/static/pictures/Quitalig – China Cotton 135 GSM.jpg','main',0,'Quitalig – China Cotton 135 GSM'),
+(23,58,'/static/pictures/Quitalig – China Cotton 165 GSM.png','main',0,'Quitalig – China Cotton 165 GSM'),
+(24,59,'/static/pictures/Quitalig – China Cotton 185 GSM.png','main',0,'Quitalig – China Cotton 185 GSM'),
+(25,60,'/static/pictures/Quitalig – China Cotton 200 GSM.png','main',0,'Quitalig – China Cotton 200 GSM'),
+(27,62,'/static/pictures/Skylab – CVC Cotton Fabric.jpg','main',0,'Skylab – CVC Cotton Fabric'),
+(130,83,'/static/pictures/B9117-012-000.jpg','main',0,'Bobbin Case'),
+(131,84,'/static/pictures/B1837-012-000.jpg','main',0,'Bobbin'),
+(132,85,'/static/pictures/B1835-012-000.jpg','main',0,'Positioning Finger'),
+(133,86,'/static/pictures/B1830-127-000.jpg','main',0,'Rotating Hook'),
+(134,87,'/static/pictures/B3421-552-000.png','main',0,'Presser Foot'),
+(139,41,'pictures/SHUNFA SF-5550 Single Needle High-Speed Machine (1).jpg','main',1,'SHUNFA SF-5550 Single Needle High-Speed Machine'),
+(140,41,'pictures/SHUNFA SF-5550 Single Needle High-Speed Machine (2).jpg','main',2,'SHUNFA SF-5550 Single Needle High-Speed Machine'), 
+(141, 65, '/static/pictures/chiffon-fabric.jpeg', 'main', 0, null);
+
+/*!40000 ALTER TABLE `product_images` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `product_variants`
+--
+
+DROP TABLE IF EXISTS `product_variants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_variants` (
+  `variant_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `variant_name` varchar(100) NOT NULL,
+  `variant_value` varchar(100) NOT NULL,
+  `additional_price` decimal(10,2) DEFAULT '0.00',
+  `stock_quantity` int DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`variant_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `product_variants_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `supply_requests`
---
-
-LOCK TABLES `supply_requests` WRITE;
-/*!40000 ALTER TABLE `supply_requests` DISABLE KEYS */;
-/*!40000 ALTER TABLE `supply_requests` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `users`
---
-
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users` (
-  `user_id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(120) NOT NULL,
-  `password_hash` text,
-  `role` varchar(20) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
-  `last_login` datetime DEFAULT NULL,
-  `is_active` tinyint(1) DEFAULT NULL,
-  `first_name` varchar(100) DEFAULT NULL,
-  `last_name` varchar(100) DEFAULT NULL,
-  `gender` varchar(10) DEFAULT NULL,
-  `date_of_birth` date DEFAULT NULL,
-  `profile_image` varchar(255) DEFAULT NULL,
-  `phone_number` varchar(20) DEFAULT NULL,
-  `is_google_user` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `email` (`email`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'john jerriehlpontino','johnjerriehlp@gmail.com','scrypt:32768:8:1$lMYRXQATix7as5yp$fdf5093b578c36f302c6fbe019bf4527007182fba442ea6ef9289685fc5a734b72f661f27b98082297592a1a12184f5b36610ca34a2136b7f343ba970ff49c9e','user','2025-05-11 12:55:05','2025-05-15 06:25:39',1,'John Jerriehl','Pontino','male','2005-06-20','https://lh3.googleusercontent.com/a/ACg8ocLHymdwl2aLTBYIx0cFQVr2fTTxaMEWIjkssrjRoJxDHnDeJxfW=s96-c','09317649032',0),(2,'pontino.johnjerriehl.00246','pontino.johnjerriehl.00246@dyci.edu.ph',NULL,'user','2025-05-13 16:32:57',NULL,1,'rie','JERRIEHL PONTINO','male','1931-06-11','https://lh3.googleusercontent.com/a/ACg8ocJCW0oZOAkBoQKt5OJ18hEmLFlJBU8euuM_nJ1TfxIYQp7pPpE=s96-c','09942436659',1),(3,'banrizyon','ignacioken397@gmail.com','scrypt:32768:8:1$eOMwwNTPe9kKhh7g$9434ce1dc32c5b1f3f06aaa4c5d771aa4a1406e4f930e39c6674a111196f9bf2d02115ea89382f2dc16c442973470e1a250230b5756b85cdefccadafb8a97982','user','2025-05-14 05:13:01','2025-05-14 05:13:10',1,'Banri','Zyon','male','2005-06-20','3_1747170845.jpg','09317649032',0),(4,'hershelle gemmabutol','Hershellegemmabutol1@gmail.com','scrypt:32768:8:1$GBo51rgGhHcZXk3v$2ef408b14d698d4e5bf42144b4f9420135ff15cd39285a63bf104a3241babc9416c14de50854baadf35b1bf8340b07be8c22d3720ca0daadf487cb7b2ffa5418','user','2025-05-14 10:43:50','2025-05-14 10:44:04',1,'Hershelle Gem','Mabutol',NULL,NULL,'static/defaultprofile.jpg',NULL,0);
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+LOCK TABLES `product_variants` WRITE;
+/*!40000 ALTER TABLE `product_variants` DISABLE KEYS */;
+INSERT INTO `product_variants` VALUES 
+(1, 55, 'Color', 'Red', 0.00, 50, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
+(2, 55, 'Color', 'Blue', 0.00, 50, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
+(3, 55, 'Size', '1.2m', 0.00, 25, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
+(4, 55, 'Size', '1.5m', 50.00, 25, '2025-05-18 14:00:00', '2025-05-18 14:00:00');
+/*!40000 ALTER TABLE `product_variants` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -524,42 +382,6 @@ CREATE TABLE `product_promotions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `product_variants`
---
-
-DROP TABLE IF EXISTS `product_variants`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `product_variants` (
-  `variant_id` int NOT NULL AUTO_INCREMENT,
-  `product_id` int NOT NULL,
-  `variant_name` varchar(100) NOT NULL,
-  `variant_value` varchar(100) NOT NULL,
-  `additional_price` decimal(10,2) DEFAULT '0.00',
-  `stock_quantity` int DEFAULT '0',
-  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`variant_id`),
-  KEY `product_id` (`product_id`),
-  CONSTRAINT `product_variants_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Adding useful indexes to existing tables
---
-
-ALTER TABLE `products` ADD INDEX `idx_product_price` (`base_price`);
-ALTER TABLE `products` ADD INDEX `idx_product_stock` (`stock_quantity`);
-ALTER TABLE `orders` ADD INDEX `idx_order_status` (`status`);
-ALTER TABLE `orders` ADD INDEX `idx_order_date` (`created_at`);
-ALTER TABLE `users` ADD INDEX `idx_user_role` (`role`);
-
---
--- Inserting sample data for new tables
---
-
 LOCK TABLES `product_promotions` WRITE;
 /*!40000 ALTER TABLE `product_promotions` DISABLE KEYS */;
 INSERT INTO `product_promotions` VALUES 
@@ -568,20 +390,736 @@ INSERT INTO `product_promotions` VALUES
 /*!40000 ALTER TABLE `product_promotions` ENABLE KEYS */;
 UNLOCK TABLES;
 
-LOCK TABLES `product_variants` WRITE;
-/*!40000 ALTER TABLE `product_variants` DISABLE KEYS */;
-INSERT INTO `product_variants` VALUES 
-(1, 55, 'Color', 'Red', 0.00, 50, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
-(2, 55, 'Color', 'Blue', 0.00, 50, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
-(3, 55, 'Size', '1.2m', 0.00, 25, '2025-05-18 14:00:00', '2025-05-18 14:00:00'),
-(4, 55, 'Size', '1.5m', 50.00, 25, '2025-05-18 14:00:00', '2025-05-18 14:00:00');
-/*!40000 ALTER TABLE `product_variants` ENABLE KEYS */;
+--
+-- Table structure for table `orders_statuses`
+--
+
+DROP TABLE IF EXISTS `orders_statuses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `orders_statuses` (
+  `status_id` int NOT NULL AUTO_INCREMENT,
+  `status_name` varchar(20) NOT NULL UNIQUE,
+  `description` text,
+  PRIMARY KEY (`status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `orders_statuses` WRITE;
+/*!40000 ALTER TABLE `orders_statuses` DISABLE KEYS */;
+INSERT INTO `orders_statuses` VALUES 
+(1, 'To Pay', 'The order has not been paid for yet.'),
+(2, 'To Ship', 'The order has not been shipped yet.'),
+(3, 'To Receive', 'The order has not been received yet.'),
+(4, 'Completed', 'The order has been completed.'),
+(5, 'Cancelled', 'The order has been cancelled.'),
+(6, 'Refunded', 'The order has been refunded.'),
+(7, 'Returned', 'The order has been returned.');
+/*!40000 ALTER TABLE `orders_statuses` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `orders`
+--
+
+DROP TABLE IF EXISTS `orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `orders` (
+  `order_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `cancellation_id` int,
+  `order_date` DATETIME ,
+  `total_amount` float,
+  `shipping_address_id` int NOT NULL,
+  `status_id` int NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`order_id`),
+  KEY `user_id` (`user_id`),
+  KEY `status_id` (`status_id`),
+  KEY `cancellation_id` (`cancellation_id`),
+  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`shipping_address_id`) REFERENCES `shipping_addresses` (`shipping_address_id`),
+  CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`status_id`) REFERENCES `orders_statuses` (`status_id`),
+  CONSTRAINT `orders_ibfk_4` FOREIGN KEY (`cancellation_id`) REFERENCES `order_cancellation` (`cancellation_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `orders`
+--
+
+LOCK TABLES `orders` WRITE;
+/*!40000 ALTER TABLE `orders` DISABLE KEYS */;
+/*!40000 ALTER TABLE `orders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cancellation_reason`
+--
+
+DROP TABLE IF EXISTS `cancellation_reason`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cancellation_reason` (
+  `cancellation_reason_id` int NOT NULL AUTO_INCREMENT,
+  `cancellation_reason_name` varchar(100) NOT NULL,
+  `other_reason` text,
+  PRIMARY KEY (`cancellation_reason_id`),
+  UNIQUE KEY `name` (`cancellation_reason_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `order_cancellation`
+--
+
+DROP TABLE IF EXISTS `order_cancellation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `order_cancellation` (
+  `cancellation_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `cancellation_reason_id` INT NOT NULL,
+  `cancelled_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cancellation_id`),
+  KEY `order_id` (`order_id`),
+  KEY `cancellation_reason_id` (`cancellation_reason_id`),
+  CONSTRAINT `order_cancellation_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `tracking_statuses`
+--
+
+DROP TABLE IF EXISTS `tracking_statuses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tracking_statuses` (
+  `status_id` int NOT NULL AUTO_INCREMENT,
+  `status_name` varchar(100) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `name` (`status_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tracking_statuses`
+--
+
+LOCK TABLES `tracking_statuses` WRITE;
+/*!40000 ALTER TABLE `tracking_statuses` DISABLE KEYS */;
+INSERT INTO `tracking_statuses` VALUES 
+(1,'To Ship','The order has not been shipped yet.'),
+(2,'To Receive','The order has not been received yet.'),
+(3,'Out for Delivery','The order is out for delivery.'),
+(4,'Completed','The order has been completed.');
+/*!40000 ALTER TABLE `tracking_statuses` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `tracking`
+--
+
+DROP TABLE IF EXISTS `tracking`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tracking` (
+  `tracking_id` int NOT NULL AUTO_INCREMENT,
+  `tracking_number` varchar(100) NOT NULL,
+  `courier` varchar(100) NOT NULL,
+  `status_id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`tracking_id`),
+  KEY `order_id` (`order_id`),
+  KEY `status_id` (`status_id`),
+  CONSTRAINT `tracking_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `tracking_ibfk_2` FOREIGN KEY (`status_id`) REFERENCES `tracking_statuses` (`status_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `payment_method`
+--
+
+DROP TABLE IF EXISTS `payment_methods`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payment_methods` (
+  `payment_method_id` int NOT NULL AUTO_INCREMENT,
+  `method_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`payment_method_id`),
+  UNIQUE KEY `name` (`method_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `payment_methods`
+--
+
+LOCK TABLES `payment_methods` WRITE;
+/*!40000 ALTER TABLE `payment_methods` DISABLE KEYS */;
+INSERT INTO `payment_methods` VALUES 
+(1,'Cash on Delivery'),
+(2,'GCash'),
+(3,'Bank Transfer');
+/*!40000 ALTER TABLE `payment_methods` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `payment`
+--
+
+DROP TABLE IF EXISTS `payment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payment` (
+  `payment_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `payment_method_id` int NOT NULL,
+  `payment_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `payment_proof_url` VARCHAR(255), -- URL or path to uploaded image
+  `payment_status` VARCHAR(20) DEFAULT 'pending', -- pending, approved, rejected, etc.
+  `reference_number` TEXT, 
+  PRIMARY KEY (`payment_id`),
+  KEY `order_id` (`order_id`),
+  KEY `payment_method_id` (`payment_method_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `payment_ibfk_2` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`payment_method_id`),
+  CONSTRAINT `payment_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `order_items`
+--
+
+DROP TABLE IF EXISTS `order_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `order_items` (
+  `item_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `variant_id` int NOT NULL,
+  `quantity` int NOT NULL,
+  `unit_price` decimal(10,2) NOT NULL,
+  `discount_amount` decimal(10,2) DEFAULT 0.00,
+  PRIMARY KEY (`item_id`),
+  KEY `order_id` (`order_id`),
+  KEY `product_id` (`product_id`),
+  KEY `variant_id` (`variant_id`),
+  CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `order_items_ibfk_3` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`variant_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order_items`
+--
+
+LOCK TABLES `order_items` WRITE;
+/*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cart_items`
+--
+
+DROP TABLE IF EXISTS `cart_items`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cart_items` (
+  `cart_item_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `product_id` int NOT NULL,
+  `variant_id` int NOT NULL,
+  `quantity` int DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`cart_item_id`),
+  KEY `user_id` (`user_id`),
+  KEY `product_id` (`product_id`),
+  KEY `variant_id` (`variant_id`),
+  CONSTRAINT `cart_items_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `cart_items_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `cart_items_ibfk_3` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`variant_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cart_items`
+--
+
+LOCK TABLES `cart_items` WRITE;
+/*!40000 ALTER TABLE `cart_items` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cart_items` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `reviews`
+--
+
+DROP TABLE IF EXISTS `reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reviews` (
+  `review_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `rating` int NOT NULL,
+  `comment` text NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`review_id`),
+  KEY `product_id` (`product_id`),
+  KEY `order_id` (`order_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `reviews_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `reviews`
+--
+
+LOCK TABLES `reviews` WRITE;
+/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
+/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `review_media`
+--
+
+DROP TABLE IF EXISTS `review_media`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `review_media` (
+  `media_id` int NOT NULL AUTO_INCREMENT,
+  `review_id` int NOT NULL,
+  `media_url` varchar(255) DEFAULT NULL,
+  `media_type` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`media_id`),
+  KEY `review_id` (`review_id`),
+  CONSTRAINT `review_media_ibfk_1` FOREIGN KEY (`review_id`) REFERENCES `reviews` (`review_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `review_media`
+--
+
+LOCK TABLES `review_media` WRITE;
+/*!40000 ALTER TABLE `review_media` DISABLE KEYS */;
+/*!40000 ALTER TABLE `review_media` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `refunds`
+--
+
+DROP TABLE IF EXISTS `refunds`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `refunds` (
+  `refund_id` int NOT NULL AUTO_INCREMENT,
+  `refund_reason` varchar(255) NOT NULL,
+  `refund_status` varchar(50) NOT NULL,-- pending, approved, rejected, completed
+  `proof_of_refund` varchar(255),-- proof of refund image
+  `order_id` int NOT NULL,
+  `return_id` int,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`refund_id`),
+  KEY `order_id` (`order_id`),
+  KEY `return_id` (`return_id`),
+  CONSTRAINT `refunds_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `refunds_ibfk_2` FOREIGN KEY (`return_id`) REFERENCES `returns` (`return_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `refunds`
+--
+
+LOCK TABLES `refunds` WRITE;
+/*!40000 ALTER TABLE `refunds` DISABLE KEYS */;
+/*!40000 ALTER TABLE `refunds` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `returns`
+--
+
+DROP TABLE IF EXISTS `returns`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `returns` (
+  `return_id` int NOT NULL AUTO_INCREMENT,
+  `return_reason` varchar(255) NOT NULL,
+  `return_issue` varchar(50) NOT NULL,
+  `return_status` varchar(50) NOT NULL,-- pending, approved, rejected, completed
+  `refund_id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`return_id`),
+  KEY `order_id` (`order_id`),
+  KEY `refund_id` (`refund_id`),
+  CONSTRAINT `returns_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `returns_ibfk_2` FOREIGN KEY (`refund_id`) REFERENCES `refunds` (`refund_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `returns`
+--
+
+LOCK TABLES `returns` WRITE;
+/*!40000 ALTER TABLE `returns` DISABLE KEYS */;
+/*!40000 ALTER TABLE `returns` ENABLE KEYS */;
+UNLOCK TABLES;
+
+-- Inventory and Supplier Management
+--
+-- Table structure for table `suppliers`
+--
+DROP TABLE IF EXISTS `suppliers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `suppliers` (
+  `supplier_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `supplier_name` VARCHAR(255) NOT NULL,
+  `contact_person` VARCHAR(100),
+  `phone_number` VARCHAR(30) NOT NULL UNIQUE,
+  `email` VARCHAR(100) NOT NULL UNIQUE ,
+  `address` VARCHAR(255),
+  `supplier_status` VARCHAR(50) DEFAULT 'active',
+  `registration_date` DATETIME DEFAULT CURRENT_TIMESTAMP 
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `suppliers`
+--
+LOCK TABLES `suppliers` WRITE;
+/*!40000 ALTER TABLE `suppliers` DISABLE KEYS */;
+INSERT INTO `suppliers` VALUES 
+(1,'SHUNFA','SHUNFA','1234567890','shunfa@gmail.com','123 Main St, Anytown, USA','active','2025-05-16 08:23:38'),
+(2,'Juki','Juki','1334567890','juki@gmail.com','123 Main St, Anytown, USA','active','2025-05-16 08:23:38'),
+(3,'Skylab','Skylab','1434567890','skylab@gmail.com','123 Main St, Anytown, USA','active','2025-05-16 08:23:38'),
+(4,'Quitalig','Quitalig','1534567890','quitalig@gmail.com','123 Main St, Anytown, USA','active','2025-05-16 08:23:38');
+/*!40000 ALTER TABLE `suppliers` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `product_suppliers`
+--
+
+DROP TABLE IF EXISTS `product_suppliers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_suppliers` (
+  `product_supplier_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `supplier_id` int NOT NULL,
+  `supplier_price` DECIMAL(10,2) NOT NULL,
+  `is_primary` TINYINT(1) DEFAULT 0,
+  PRIMARY KEY (`product_supplier_id`),
+  KEY `product_id` (`product_id`),
+  KEY `supplier_id` (`supplier_id`),
+  CONSTRAINT `product_suppliers_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `product_suppliers_ibfk_2` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`supplier_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_suppliers`
+--
+
+LOCK TABLES `product_suppliers` WRITE;
+/*!40000 ALTER TABLE `product_suppliers` DISABLE KEYS */;
+INSERT INTO `product_suppliers` VALUES 
+(1,1,1,100.00,0),
+(2,1,2,100.00,0),
+(3,1,3,100.00,0),
+(4,1,4,100.00,0);
+/*!40000 ALTER TABLE `product_suppliers` ENABLE KEYS */;
+UNLOCK TABLES;
+
+-- DAMAGE PRODUCTS 
+--
+-- Table structure for table `damage_products`
+--
+
+DROP TABLE IF EXISTS `damage_products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `damage_products` (
+  `damage_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `damage_reason` TEXT NOT NULL,
+  `reported_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `quantity` INT NOT NULL DEFAULT 1,
+  `user_id` INT NOT NULL,
+  `product_id` INT NOT NULL,
+  `order_id` INT NOT NULL,
+  `supplier_id` INT NOT NULL,
+  `return_id` INT NOT NULL,
+  `refund_id` INT NOT NULL,
+  KEY `user_id` (`user_id`),
+  KEY `product_id` (`product_id`),
+  KEY `order_id` (`order_id`),
+  KEY `supplier_id` (`supplier_id`),
+  KEY `return_id` (`return_id`),
+  KEY `refund_id` (`refund_id`),
+  CONSTRAINT `damage_products_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `damage_products_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `damage_products_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `damage_products_ibfk_4` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`supplier_id`),
+  CONSTRAINT `damage_products_ibfk_5` FOREIGN KEY (`return_id`) REFERENCES `returns` (`return_id`),
+  CONSTRAINT `damage_products_ibfk_6` FOREIGN KEY (`refund_id`) REFERENCES `refunds` (`refund_id`)
+
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `damage_products`
+--
+LOCK TABLES `damage_products` WRITE;
+/*!40000 ALTER TABLE `damage_products` DISABLE KEYS */;
+INSERT INTO `damage_products` VALUES 
+(1,'Damage','Damage','2025-05-16 08:23:38',1,1,1,1,1,1);
+/*!40000 ALTER TABLE `damage_products` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `inventory_transactions`
+--
+DROP TABLE IF EXISTS `inventory_transactions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `inventory_transactions` (
+  `transaction_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `quantity_change` int NOT NULL,
+  `transaction_type` varchar(50) NOT NULL,
+  `reference_id` INT NOT NULL, -- can link to order_id, return_request_id, etc.
+  `notes` TEXT,
+  `transaction_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `staff_id` INT NOT NULL,
+  PRIMARY KEY (`transaction_id`),
+  KEY `product_id` (`product_id`),
+  KEY `staff_id` (`staff_id`),
+  CONSTRAINT `inventory_transactions_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `inventory_transactions_ibfk_2` FOREIGN KEY (`staff_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inventory_transactions`
+--
+
+LOCK TABLES `inventory_transactions` WRITE;
+/*!40000 ALTER TABLE `inventory_transactions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `inventory_transactions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `inventory`
+--
+DROP TABLE IF EXISTS `inventory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `inventory` (
+  `inventory_id` INT NOT NULL AUTO_INCREMENT,
+  `product_id` INT NOT NULL,
+  `order_id` INT NOT NULL,
+  `stock_quantity` INT NOT NULL,
+  `stock_in` INT NOT NULL,
+  `stock_out` INT NOT NULL,
+  `min_stock` INT NOT NULL,
+  `max_stock` INT NOT NULL,
+  `available_stock` INT NOT NULL,
+  `stock_status` VARCHAR(50) NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE  CURRENT_TIMESTAMP,
+  PRIMARY KEY (inventory_id),
+  KEY `product_id` (`product_id`),
+  KEY `order_id` (`order_id`),
+  CONSTRAINT `inventory_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `inventory_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `inventory`
+--
+
+LOCK TABLES `inventory` WRITE;
+/*!40000 ALTER TABLE `inventory` DISABLE KEYS */;
+/*!40000 ALTER TABLE `inventory` ENABLE KEYS */;
+UNLOCK TABLES;
+  
+--
+-- Table structure for table `supply_requests`
+--
+DROP TABLE IF EXISTS `supply_requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `supply_requests` (
+  `request_id` INT NOT NULL AUTO_INCREMENT,
+  `product_id` INT NOT NULL,
+  `staff_id` INT NOT NULL,
+  `quantity_requested` INT NOT NULL,
+  `supply_status` VARCHAR(20) DEFAULT 'pending', -- approve, reject
+  `notes` TEXT,
+  `request_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`request_id`),
+  KEY `product_id` (`product_id`),
+  KEY `idx_supply_request_staff` (`staff_id`),
+  KEY `idx_supply_request_status` (`supply_status`),
+  CONSTRAINT `supply_requests_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `supply_requests_ibfk_2` FOREIGN KEY (`staff_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `supply_requests`
+--
+LOCK TABLES `supply_requests` WRITE;
+/*!40000 ALTER TABLE `supply_requests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `supply_requests` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sales`
+--
+DROP TABLE IF EXISTS `sales`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sales` (
+  `sales_id` INT NOT NULL AUTO_INCREMENT,
+  `order_id` INT NOT NULL,
+  `product_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `sale_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `total_amount` DECIMAL(10,2) NOT NULL,
+  `payment_id` INT NOT NULL,
+
+  PRIMARY KEY (`sales_id`),
+  KEY `product_id` (`product_id`),
+  KEY `idx_sale_user` (`user_id`),
+  KEY `idx_sale_payment` (`payment_id`),
+  CONSTRAINT `sales_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `sales_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `sales_ibfk_3` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sales`
+--
+LOCK TABLES `sales` WRITE;
+/*!40000 ALTER TABLE `sales` DISABLE KEYS */;
+/*!40000 ALTER TABLE `sales` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `email_verifications`
+--
+DROP TABLE IF EXISTS `email_verifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `email_verifications` (
+  `email_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `email` VARCHAR(150) NOT NULL,
+  `code` VARCHAR(6) NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` DATETIME NOT NULL,
+  `is_used` BOOLEAN DEFAULT FALSE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `email_verifications`
+--
+LOCK TABLES `email_verifications` WRITE;
+/*!40000 ALTER TABLE `email_verifications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `email_verifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `phone_verifications`
+--
+DROP TABLE IF EXISTS `phone_verifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `phone_verifications` (
+  `phone_id` INT AUTO_INCREMENT PRIMARY KEY,
+  `phone` VARCHAR(20) NOT NULL,
+  `code` VARCHAR(6) NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` DATETIME NOT NULL,
+  `is_used` BOOLEAN DEFAULT FALSE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `phone_verifications`
+--
+LOCK TABLES `phone_verifications` WRITE;
+/*!40000 ALTER TABLE `phone_verifications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `phone_verifications` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `alembic_version`
+--
+
+DROP TABLE IF EXISTS `alembic_version`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `alembic_version` (
+  `version_num` varchar(32) NOT NULL,
+  PRIMARY KEY (`version_num`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `alembic_version`
+--
+
+LOCK TABLES `alembic_version` WRITE;
+/*!40000 ALTER TABLE `alembic_version` DISABLE KEYS */;
+INSERT INTO `alembic_version` VALUES ('e8ab16225aab');
+/*!40000 ALTER TABLE `alembic_version` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Adding useful indexes to existing tables
+--
+
+--
+-- Inserting sample data for new tables
+--
 
 --
 -- Dumping events for database 'sadprojectdb'
 --
-
 --
 -- Dumping routines for database 'sadprojectdb'
 --

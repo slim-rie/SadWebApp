@@ -1191,11 +1191,10 @@ function renderProductTable(products) {
             <td>${product.stock_quantity !== undefined ? product.stock_quantity : ''}</td>
             <td>${product.created_at || ''}</td>
             <td>${product.updated_at || ''}</td>
-            <td>${product.brand_id || ''}</td>
             <td>
-                <button class="update-product-btn" data-id="${product.product_id}">Update</button>
-                <button class="delete-product-btn" data-id="${product.product_id}">Delete</button>
-            </td>
+    <button class="update-product-btn" data-id="${product.product_id}">Update</button>
+    <button class="delete-product-btn" data-id="${product.product_id}">Delete</button>
+</td>
         `;
         tbody.appendChild(tr);
     });
@@ -1240,7 +1239,6 @@ function showUpdateProductModal(product) {
                     <div class="form-group"><label>Price</label><input type="number" name="price" id="update-product-price" step="0.01" required></div>
                     <div class="form-group"><label>Discount</label><input type="number" name="discount" id="update-product-discount" step="0.01"></div>
                     <div class="form-group"><label>Stock Quantity</label><input type="number" name="stock_quantity" id="update-product-stock-quantity"></div>
-                    <div class="form-group"><label>Brand ID</label><input type="number" name="brand_id" id="update-product-brand-id"></div>
                     <button type="submit">Save</button>
                 </form>
             </div>
@@ -1257,7 +1255,6 @@ function showUpdateProductModal(product) {
     document.getElementById('update-product-price').value = product.price || '';
     document.getElementById('update-product-discount').value = product.discount || '';
     document.getElementById('update-product-stock-quantity').value = product.stock_quantity || '';
-    document.getElementById('update-product-brand-id').value = product.brand_id || '';
     modal.style.display = 'block';
 
     document.getElementById('update-product-form').onsubmit = function(e) {
@@ -1270,206 +1267,67 @@ function showUpdateProductModal(product) {
             price: document.getElementById('update-product-price').value,
             discount: document.getElementById('update-product-discount').value,
             stock_quantity: document.getElementById('update-product-stock-quantity').value,
-            brand_id: document.getElementById('update-product-brand-id').value
         };
         updateProduct(product.product_id, updated);
         modal.style.display = 'none';
     };
 }
 
-function updateProduct(productId, updated) {
-    fetch(`/admin/update_product/${productId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated)
-    })
+// ... (rest of the code remains the same)
+
+// --- 2. PRODUCT MODAL DROPDOWNS ---
+// (Auto-fill Brand/Category dropdowns when Product modal opens)
+$('#productModal').on('show.bs.modal', function() {
+    fetch('/api/categories').then(r=>r.json()).then(categories => {
+        const select = document.querySelector('#productModal [name="category_id"]');
+        select.innerHTML = categories.map(c => `<option value="${c.category_id}" data-name="${c.category_name}">${c.category_name}</option>`).join('');
+        select.onchange = function() {
+            let name = '';
+            if (select && select.options && select.selectedIndex >= 0 && select.options.length > 0) {
+                name = select.options[select.selectedIndex].getAttribute('data-name') || '';
+            }
+            // If you have a category-desc span, update it here
+        };
+        select.onchange();
+    });
+});
+
+// --- 3. PRODUCT FORM SUBMIT ---
+document.getElementById('modal-product-form').onsubmit = function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch('/admin/add_product', { method: 'POST', body: formData })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
+            $('#productModal').modal('hide');
+            this.reset();
             fetchAndRenderProducts();
+            alert('Product added!');
         } else {
-            alert('Failed to update product: ' + (data.error || 'Unknown error'));
+            alert('Failed to add product: ' + (data.error || 'Unknown error'));
         }
-    })
-    .catch(err => alert('Failed to update product: ' + err));
-}
+    }).catch(err => alert('Error adding product: ' + err));
+};
 
-
-// --- DEBUGGING DELETE FUNCTION ---
-function deleteProduct(productId) {
-    console.log('[DEBUG] Attempting to delete product with ID:', productId);
-    fetch(`/admin/delete_product/${productId}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(async res => {
-        let data;
-        try {
-            data = await res.json();
-        } catch (e) {
-            alert('Failed to parse server response.');
-            console.error('[DEBUG] Parse error:', e, res);
-            return;
-        }
-        console.log('[DEBUG] Delete response:', data);
-        if (res.ok && data.success) {
-            fetchAndRenderProducts();
-        } else {
-            alert('Failed to delete product: ' + (data.error || 'Unknown error'));
-            console.error('[DEBUG] Delete failed:', data);
-        }
-    })
-    .catch(err => {
-        alert('Failed to delete product: ' + err);
-        console.error('[DEBUG] Network or server error:', err);
-    });
-}
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    // --- 1. OPEN MODALS ---
-    document.getElementById('openProductModal').onclick = () => $('#productModal').modal('show');
-    fetchAndRenderProducts();
-    document.getElementById('openProductImageModal').onclick = () => $('#productImageModal').modal('show');
-    document.getElementById('openProductSpecModal').onclick = () => $('#productSpecModal').modal('show');
-    document.getElementById('openProductVariantModal').onclick = () => $('#productVariantModal').modal('show');
-    document.getElementById('openBrandModal').onclick = () => $('#brandModal').modal('show');
-    document.getElementById('openCategoryModal').onclick = () => $('#categoryModal').modal('show');
-
-    // --- PRODUCT SPEC TABLE: Always fetch and render ALL product specifications on page load ---
-    fetchAndRenderProductSpecs();
-
-    // --- PRODUCT VARIANT TABLE: Always fetch and render ALL product variants on page load ---
-    fetchAndRenderProductVariants();
-    // --- BRAND TABLE: Always fetch and render ALL brands on page load ---
-    fetchAndRenderBrands();
-    // --- CATEGORY TABLE: Always fetch and render ALL categories on page load ---
-    fetchAndRenderCategories();
-
-
-    function fetchAndRenderProductVariants() {
-        fetch('/admin/product_variant_list')
-            .then(res => res.json())
-            .then(variants => renderProductVariantTable(variants))
-            .catch(err => {
-                console.error('Failed to fetch product variants:', err);
-                const tbody = document.querySelector('.product-variant-table tbody');
-                if (tbody) tbody.innerHTML = '<tr><td colspan="9">Failed to load product variants.</td></tr>';
-            });
+// --- 5. PRODUCT SPEC FORM SUBMIT ---
+document.getElementById('modal-product-spec-form').onsubmit = function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const product_id = formData.get('product_id');
+    const spec_name = formData.get('spec_name');
+    const spec_value = formData.get('spec_value');
+    const display_order = formData.get('display_order') || 0;
+    if (!product_id || !spec_name || !spec_value) {
+        alert('Please fill out all required fields (Product ID, Specification Name, Specification Value).');
+        return;
     }
-
-    function renderProductVariantTable(variants) {
-    console.log('Product Variants received:', variants);
-        const tbody = document.querySelector('.product-variant-table tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        if (!Array.isArray(variants) || variants.length === 0 || variants.error) {
-            tbody.innerHTML = '<tr><td colspan="9">No product variants found.</td></tr>';
-            return;
-        }
-        variants.forEach(variant => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${variant.variant_id || ''}</td>
-                <td>${variant.product_id || ''}</td>
-                <td>${variant.variant_name || ''}</td>
-                <td>${variant.variant_value || ''}</td>
-                <td>${variant.additional_price !== undefined ? variant.additional_price : ''}</td>
-                <td>${variant.stock_quantity !== undefined ? variant.stock_quantity : ''}</td>
-                <td>${variant.created_at || ''}</td>
-                <td>${variant.updated_at || ''}</td>
-                <td><!-- Actions (edit/delete) can go here --></td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    // --- 2. PRODUCT MODAL DROPDOWNS ---
-    // (Auto-fill Brand/Category dropdowns when Product modal opens)
-    $('#productModal').on('show.bs.modal', function() {
-        fetch('/api/brands').then(r=>r.json()).then(brands => {
-            const select = document.querySelector('#productModal [name="brand_id"]');
-            select.innerHTML = brands.map(b => `<option value="${b.brand_id}" data-desc="${b.description}">${b.brand_name}</option>`).join('');
-            select.onchange = function() {
-                let desc = '';
-                if (select && select.options && select.selectedIndex >= 0 && select.options.length > 0) {
-                    desc = select.options[select.selectedIndex].getAttribute('data-desc') || '';
-                }
-                // If you have a brand-desc span, update it here
-            };
-            select.onchange();
-        });
-        fetch('/api/categories').then(r=>r.json()).then(categories => {
-            const select = document.querySelector('#productModal [name="category_id"]');
-            select.innerHTML = categories.map(c => `<option value="${c.category_id}" data-name="${c.category_name}">${c.category_name}</option>`).join('');
-            select.onchange = function() {
-                let name = '';
-                if (select && select.options && select.selectedIndex >= 0 && select.options.length > 0) {
-                    name = select.options[select.selectedIndex].getAttribute('data-name') || '';
-                }
-                // If you have a category-name span, update it here
-            };
-            select.onchange();
-        });
-    });
-
-    // --- 3. PRODUCT FORM SUBMIT ---
-    document.getElementById('modal-product-form').onsubmit = function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('/admin/add_product', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                $('#productModal').modal('hide');
-                this.reset();
-                fetchAndRenderProducts();
-                alert('Product added!');
-            } else {
-                alert('Failed to add product: ' + (data.error || 'Unknown error'));
-            }
-        }).catch(err => alert('Error adding product: ' + err));
-    };
-
-    // --- 4. PRODUCT IMAGE FORM SUBMIT ---
-    document.getElementById('modal-product-image-form').onsubmit = function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('/admin/add_product_image', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                $('#productImageModal').modal('hide');
-                this.reset();
-                fetchAndRenderProductImages();
-                alert('Product image added!');
-            } else {
-                alert('Failed to add product image: ' + (data.error || 'Unknown error'));
-            }
-        }).catch(err => alert('Error adding product image: ' + err));
-    };
-
-    // --- 5. PRODUCT SPEC FORM SUBMIT ---
-    document.getElementById('modal-product-spec-form').onsubmit = function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        // Validate required fields
-        const product_id = formData.get('product_id');
-        const spec_name = formData.get('spec_name');
-        const spec_value = formData.get('spec_value');
-        const display_order = formData.get('display_order') || 0;
-        if (!product_id || !spec_name || !spec_value) {
-            alert('Please fill out all required fields (Product ID, Specification Name, Specification Value).');
-            return;
-        }
-        // Compose new FormData for correct backend keys
-        const payload = new FormData();
-        payload.append('product_id', product_id);
-        payload.append('spec_name', spec_name);
-        payload.append('spec_value', spec_value);
-        payload.append('display_order', display_order);
+    // Compose new FormData for correct backend keys
+    const payload = new FormData();
+    payload.append('product_id', product_id);
+    payload.append('spec_name', spec_name);
+    payload.append('spec_value', spec_value);
+    payload.append('display_order', display_order);
         fetch('/admin/add_product_spec', { method: 'POST', body: payload })
         .then(res => res.json())
         .then(data => {
@@ -1588,10 +1446,7 @@ document.addEventListener('DOMContentLoaded', function() {
         brands.forEach(brand => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${brand.brand_id || ''}</td>
-                <td>${brand.brand_name || ''}</td>
-                <td>${brand.description || ''}</td>
-                <td><!-- Actions (edit/delete) can go here --></td>
+                <!-- Brand columns removed -->
             `;
             tbody.appendChild(tr);
         });
@@ -1645,9 +1500,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }).catch(err => alert('Error adding category: ' + err));
     };
-});
-
-
 
 // ================= CUSTOMER ORDER MANAGEMENT =================
 function fetchAndRenderCustomerOrders() {}
@@ -1700,7 +1552,13 @@ function renderCustomerOrdersTable(orders) {
             <td>${order.feedback || 'N/A'}</td>
             <td>${order.rate || 'N/A'}</td>
             <td>${order.cancellation_reason || 'N/A'}</td>
+            <td>
+                <button class="approve-order-btn" data-id="${order.order_id}">Approve</button>
+                <button class="reject-order-btn" data-id="${order.order_id}">Reject</button>
+                <button class="delete-order-btn" data-id="${order.order_id}">Delete</button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
 }
+    

@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     first_name = db.Column(db.String(20), nullable=False)
     last_name = db.Column(db.String(20), nullable=False)
-    role = db.Column(db.String(20), nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.role_id'), nullable=False)
     password_hash = db.Column(db.String(60), nullable=False)
     is_active = db.Column(db.Boolean, default=True)  # Add this column to match main User model
 
@@ -32,7 +32,7 @@ def create_admin_accounts():
             'email': 'admin@example.com',
             'first_name': 'Admin',
             'last_name': 'User',
-            'role': 'admin',
+            'role_id': 1,
             'password': 'admin123'
         },
         {
@@ -40,7 +40,7 @@ def create_admin_accounts():
             'email': 'staff@example.com',
             'first_name': 'Staff',
             'last_name': 'User',
-            'role': 'staff',
+            'role_id': 2,
             'password': 'staff123'
         },
         {
@@ -48,7 +48,7 @@ def create_admin_accounts():
             'email': 'supplier@example.com',
             'first_name': 'Supplier',
             'last_name': 'User',
-            'role': 'supplier',
+            'role_id': 3,
             'password': 'supplier123'
         },
         {
@@ -56,7 +56,7 @@ def create_admin_accounts():
             'email': 'user@example.com',
             'first_name': 'Default',
             'last_name': 'User',
-            'role': 'user',
+            'role_id': 4,
             'password': 'user123'
         }
     ]
@@ -67,24 +67,28 @@ def create_admin_accounts():
             user.username = acc['username']
             user.first_name = acc['first_name']
             user.last_name = acc['last_name']
-            user.role = acc['role']
+            user.role_id = acc['role_id']
             user.password_hash = generate_password_hash(acc['password'])
             setattr(user, 'is_active', True)  # Ensure account is active
-            print(f"Updated {acc['role']} - Username: {acc['username']}, Password: {acc['password']}")
+            print(f"Updated {acc['role_id']} - Username: {acc['username']}, Password: {acc['password']}")
         else:
             user = User(
                 username=acc['username'],
                 email=acc['email'],
                 first_name=acc['first_name'],
                 last_name=acc['last_name'],
-                role=acc['role'],
+                role_id =acc['role_id'],
                 password_hash=generate_password_hash(acc['password']),
             )
             setattr(user, 'is_active', True)  # Ensure account is active after creation
             db.session.add(user)
-            print(f"Created {acc['role']} - Username: {acc['username']}, Password: {acc['password']}")
+            print(f"Created role_id={acc['role_id']} - Username: {acc['username']}, Password: {acc['password']}")
     db.session.commit()
 
+from website import create_app
+
 if __name__ == "__main__":
+    app = create_app()
     with app.app_context():
-        create_admin_accounts() 
+        from website.models import db, User  # Import inside app context!
+        create_admin_accounts()

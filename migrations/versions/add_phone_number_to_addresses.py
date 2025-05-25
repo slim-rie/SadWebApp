@@ -16,8 +16,10 @@ depends_on = None
 
 def upgrade():
     # Add phone_number column to addresses table
-    op.add_column('addresses', sa.Column('phone_number', sa.String(20), nullable=True))
+    # op.add_column('addresses', sa.Column('phone_number', sa.String(20), nullable=True))
+    pass
 
 def downgrade():
     # Remove phone_number column from addresses table
-    op.drop_column('addresses', 'phone_number') 
+    # op.drop_column('addresses', 'phone_number')
+    pass
