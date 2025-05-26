@@ -430,6 +430,9 @@ CREATE TABLE `product_variants` (
   CONSTRAINT `product_variants_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+--
+-- Dumping data for table `products`
+--
 
 LOCK TABLES `product_variants` WRITE;
 /*!40000 ALTER TABLE `product_variants` DISABLE KEYS */;
@@ -570,7 +573,7 @@ CREATE TABLE `orders` (
 
 --
 -- Dumping data for table `orders`
---okay, try!
+--
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
@@ -712,6 +715,29 @@ UNLOCK TABLES;
 -- Dumping data for table `payment`
 --
 
+DROP TABLE IF EXISTS `payment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `payment` (
+  `payment_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `payment_method_id` int NOT NULL,
+  `payment_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `payment_proof_url` VARCHAR(255), -- URL or path to uploaded image
+  `payment_status` VARCHAR(20) DEFAULT 'pending', -- pending, approved, rejected, etc.
+  `reference_number` TEXT, 
+  PRIMARY KEY (`payment_id`),
+  KEY `order_id` (`order_id`),
+  KEY `payment_method_id` (`payment_method_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `payment_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `payment_ibfk_2` FOREIGN KEY (`payment_method_id`) REFERENCES `payment_methods` (`payment_method_id`),
+  CONSTRAINT `payment_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
 LOCK TABLES `payment` WRITE;
 /*!40000 ALTER TABLE `payment` DISABLE KEYS */;
 INSERT INTO `payment` VALUES 
@@ -785,6 +811,26 @@ INSERT INTO `sales` VALUES
 -- Continue pattern for remaining users (3-20)
 /*!40000 ALTER TABLE `sales` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `reviews`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reviews` (
+  `review_id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL,
+  `order_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `rating` int NOT NULL,
+  `comment` text NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`review_id`),
+  KEY `product_id` (`product_id`),
+  KEY `order_id` (`order_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `reviews_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `reviews_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `reviews`
@@ -818,6 +864,20 @@ INSERT INTO `reviews` VALUES
 (15, 45, 29, 3, 5, 'Very reliable and fast!', NOW());
 /*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
 UNLOCK TABLES;
+
+DROP TABLE IF EXISTS `review_media`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `review_media` (
+  `media_id` int NOT NULL AUTO_INCREMENT,
+  `review_id` int NOT NULL,
+  `media_url` varchar(255) DEFAULT NULL,
+  `media_type` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`media_id`),
+  KEY `review_id` (`review_id`),
+  CONSTRAINT `review_media_ibfk_1` FOREIGN KEY (`review_id`) REFERENCES `reviews` (`review_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `review_media`
