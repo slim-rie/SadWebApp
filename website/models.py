@@ -96,11 +96,8 @@ class Product(db.Model):
     description = db.Column(db.Text)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'), nullable=False)
     base_price = db.Column(db.Numeric(10, 2), nullable=False)
-    discount_percentage = db.Column(db.Numeric(5, 2), nullable=True)
-    stock_quantity = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime, nullable=True)
     updated_at = db.Column(db.DateTime, nullable=True)
-    subcategory = db.Column(db.Text, nullable=True)
     __table_args__ = (
         db.UniqueConstraint('product_name', 'model_number', name='unique_product_name_model'),
     )
@@ -110,6 +107,7 @@ class Product(db.Model):
     cart_items = db.relationship('CartItem', backref='product', lazy=True)
     order_items = db.relationship('OrderItem', backref='product', lazy=True)
     supply_requests = db.relationship('SupplyRequest', backref='product', lazy=True)
+    promotions = db.relationship('ProductPromotion', backref='product', lazy=True)
 
 class ProductSpecification(db.Model):
     __tablename__ = 'product_specifications'

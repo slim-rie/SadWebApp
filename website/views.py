@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -1317,23 +1317,16 @@ def add_product():
         product_name = request.form['product_name']
         model_number = request.form['model_number']
         description = request.form.get('description', '')
-        brand_id = request.form['brand_id']
         category_id = request.form['category_id']
         base_price = request.form['base_price']
-        discount_percentage = request.form.get('discount_percentage', 0)
-        stock_quantity = request.form['stock_quantity']
-        # Ignore subcategory and picture fields if present
 
         # Create product
         product = Product(
             product_name=product_name,
             model_number=model_number,
             description=description,
-            brand_id=brand_id,
             category_id=category_id,
             base_price=base_price,
-            discount_percentage=discount_percentage,
-            stock_quantity=stock_quantity,
         )
         db.session.add(product)
         db.session.commit()
@@ -1345,34 +1338,6 @@ def add_product():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
-
-    # In views.py
-@views.route('/api/brands')
-def get_brands():
-    return jsonify([])
-
-@views.route('/admin/brand_list')
-def admin_brand_list():
-    return jsonify([])
-
-@views.route('/api/categories')
-def get_categories():
-    categories = Category.query.all()
-    return jsonify([{
-        'category_id': c.category_id,
-        'category_name': c.category_name
-    } for c in categories])
-
-@views.route('/admin/category_list')
-def admin_category_list():
-    categories = Category.query.all()
-    return jsonify([
-        {
-            'category_id': c.category_id,
-            'category_name': c.category_name,
-            'parent_category_id': getattr(c, 'parent_category_id', None)
-        } for c in categories
-    ])
 
 @views.route('/admin/update_product/<int:product_id>', methods=['PUT'])
 def update_product(product_id):
@@ -1387,9 +1352,7 @@ def update_product(product_id):
         product.description = data.get('description', product.description)
         product.category_id = data.get('category_id', product.category_id)
         product.base_price = data.get('price', product.base_price)
-        product.discount_percentage = data.get('discount', product.discount_percentage)
         product.stock_quantity = data.get('stock_quantity', product.stock_quantity)
-        product.brand_id = data.get('brand_id', product.brand_id)
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -1423,6 +1386,14 @@ def admin_product_list():
     products = Product.query.all()
     product_list = []
     for product in products:
+        # Get active promotion if any
+        active_promotion = ProductPromotion.query.filter(
+            ProductPromotion.product_id == product.product_id,
+            ProductPromotion.is_active == True,
+            ProductPromotion.start_date <= datetime.utcnow(),
+            ProductPromotion.end_date >= datetime.utcnow()
+        ).first()
+
         product_list.append({
             'product_id': getattr(product, 'product_id', ''),
             'name': getattr(product, 'product_name', ''),
@@ -1430,11 +1401,10 @@ def admin_product_list():
             'description': getattr(product, 'description', ''),
             'category_id': getattr(product, 'category_id', ''),
             'price': float(getattr(product, 'base_price', 0)),
-            'discount': getattr(product, 'discount_percentage', ''),
+            'discount': float(active_promotion.discount_percentage) if active_promotion else 0,
             'stock_quantity': getattr(product, 'stock_quantity', ''),
             'created_at': str(getattr(product, 'created_at', '')),
             'updated_at': str(getattr(product, 'updated_at', '')),
-    
             'image': product.images[0].image_url if product.images else '/static/pictures/default.jpg',
         })
     return jsonify(product_list)
@@ -1600,3 +1570,77 @@ def admin_orders_list():
             "items": items
         })
     return jsonify(data)
+
+@views.route('/admin/promotion_list')
+def promotion_list():
+    promotions = ProductPromotion.query.all()
+    promotion_list = []
+    for promotion in promotions:
+        product = Product.query.get(promotion.product_id)
+        promotion_list.append({
+            'promotion_id': promotion.promotion_id,
+            'product_id': promotion.product_id,
+            'product_name': product.product_name if product else 'Unknown Product',
+            'promotion_name': promotion.promotion_name,
+            'discount_percentage': float(promotion.discount_percentage),
+            'start_date': promotion.start_date.strftime('%Y-%m-%d %H:%M:%S'),
+            'end_date': promotion.end_date.strftime('%Y-%m-%d %H:%M:%S'),
+            'is_active': promotion.is_active,
+            'created_at': promotion.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'updated_at': promotion.updated_at.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    return jsonify(promotion_list)
+
+@views.route('/admin/add_promotion', methods=['POST'])
+def add_promotion():
+    try:
+        data = request.get_json()
+        promotion = ProductPromotion(
+            product_id=data['product_id'],
+            promotion_name=data['promotion_name'],
+            discount_percentage=data['discount_percentage'],
+            start_date=datetime.strptime(data['start_date'], '%Y-%m-%d %H:%M:%S'),
+            end_date=datetime.strptime(data['end_date'], '%Y-%m-%d %H:%M:%S'),
+            is_active=data.get('is_active', True)
+        )
+        db.session.add(promotion)
+        db.session.commit()
+        return jsonify({'success': True, 'promotion_id': promotion.promotion_id})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/update_promotion/<int:promotion_id>', methods=['PUT'])
+def update_promotion(promotion_id):
+    try:
+        promotion = ProductPromotion.query.get(promotion_id)
+        if not promotion:
+            return jsonify({'success': False, 'error': 'Promotion not found'})
+        
+        data = request.get_json()
+        promotion.product_id = data.get('product_id', promotion.product_id)
+        promotion.promotion_name = data.get('promotion_name', promotion.promotion_name)
+        promotion.discount_percentage = data.get('discount_percentage', promotion.discount_percentage)
+        promotion.start_date = datetime.strptime(data['start_date'], '%Y-%m-%d %H:%M:%S') if 'start_date' in data else promotion.start_date
+        promotion.end_date = datetime.strptime(data['end_date'], '%Y-%m-%d %H:%M:%S') if 'end_date' in data else promotion.end_date
+        promotion.is_active = data.get('is_active', promotion.is_active)
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/admin/delete_promotion/<int:promotion_id>', methods=['DELETE'])
+def delete_promotion(promotion_id):
+    try:
+        promotion = ProductPromotion.query.get(promotion_id)
+        if not promotion:
+            return jsonify({'success': False, 'error': 'Promotion not found'})
+        
+        db.session.delete(promotion)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
