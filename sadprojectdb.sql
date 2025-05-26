@@ -782,7 +782,6 @@ INSERT INTO `reviews` VALUES
 (4, 42, 2, 1, 5, 'Great piping machine, very precise.', NOW()),
 (5, 42, 14, 2, 4, 'Works well but needs regular maintenance.', NOW()),
 (6, 42, 26, 3, 5, 'Excellent for professional use!', NOW()),
-
 -- Product 43 Reviews
 (7, 43, 3, 1, 5, 'Button sewing machine works perfectly!', NOW()),
 (8, 43, 15, 2, 4, 'Good machine but instructions could be better.', NOW()),
