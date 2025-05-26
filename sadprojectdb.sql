@@ -140,7 +140,6 @@ CREATE TABLE `addresses` (
 LOCK TABLES `addresses` WRITE;
 /*!40000 ALTER TABLE `addresses` DISABLE KEYS */;
 INSERT INTO `addresses` VALUES 
-INSERT INTO addresses (address_id, user_id, first_name, last_name, postal_code, complete_address, label, is_default, created_at, phone_number, street_address) VALUES
 (1, 1, 'Alice', 'Smith', '1000', '123 Alpha Street, Zone 1', 'home', 1, NOW(), '1111111111', '123 Alpha Street'),
 (2, 2, 'Bob', 'Brown', '1001', '456 Beta Road, Zone 2', 'home', 1, NOW(), '1111111112', '456 Beta Road'),
 (3, 3, 'Charlie', 'Green', '1002', '789 Gamma Ave, Zone 3', 'home', 1, NOW(), '1111111113', '789 Gamma Ave'),
@@ -217,13 +216,13 @@ CREATE TABLE `products` (
   `description` text,
   `category_id` int NOT NULL,
   `base_price` decimal(10,2) NOT NULL,
-  `FULLTEXT` (product_name, description),
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`product_id`),
   UNIQUE KEY `unique_product_name_model` (`product_name`,`model_number`),
   KEY `category_id` (`category_id`),
-  CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`),
+  FULLTEXT KEY `product_search` (`product_name`, `description`),
+  CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=95 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -553,7 +552,7 @@ CREATE TABLE `orders` (
   `cancellation_id` int,
   `order_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `total_amount` float NOT NULL,
-  `shipping_address_id` int NOT NULL,
+  `address_id` int NOT NULL,
   `status_id` int NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -562,7 +561,7 @@ CREATE TABLE `orders` (
   KEY `status_id` (`status_id`),
   KEY `cancellation_id` (`cancellation_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`shipping_address_id`) REFERENCES `addresses` (`address_id`),
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`address_id`),
   CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`status_id`) REFERENCES `orders_statuses` (`status_id`),
   CONSTRAINT `orders_ibfk_4` FOREIGN KEY (`cancellation_id`) REFERENCES `order_cancellation` (`cancellation_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=48 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -840,10 +839,11 @@ CREATE TABLE `suppliers` (
 LOCK TABLES `suppliers` WRITE;
 /*!40000 ALTER TABLE `suppliers` DISABLE KEYS */;
 INSERT INTO `suppliers` VALUES 
-(1,'SHUNFA','SHUNFA','1234567890','shunfa@gmail.com','123 Main St, Anytown, USA','active','2025-05-16 08:23:38'),
-(2,'Juki','Juki','1334567890','juki@gmail.com','123 Main St, Anytown, USA','active','2025-05-16 08:23:38'),
-(3,'Skylab','Skylab','1434567890','skylab@gmail.com','123 Main St, Anytown, USA','active','2025-05-16 08:23:38'),
-(4,'Quitalig','Quitalig','1534567890','quitalig@gmail.com','123 Main St, Anytown, USA','active','2025-05-16 08:23:38');
+(1, 'Shunfa Sewing Machines and Parts', 'Mr. Shun', '09171234567', 'shunfa@example.com', 'China Town, Manila', 'Active', NOW()),
+(2, 'Tai-Sing Industrial Sewing Machine', 'Mr. Tai', '09182345678', 'taising@example.com', 'Makati, Metro Manila', 'Active', NOW()),
+(3, 'Skylab Manufacturing', 'Ms. Sky', '09183456789', 'skylab@example.com', 'Valenzuela City', 'Active', NOW()),
+(4, 'Quitalig Manufacturing', 'Mr. Quitalig', '09184567890', 'quitalig@example.com', 'Divisoria, Manila', 'Active', NOW()),
+(5, 'UNO Sewing Machine and Parts', 'Ms. Uno', '09185678901', 'uno@example.com', 'Quezon City', 'Active', NOW());
 /*!40000 ALTER TABLE `suppliers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -875,10 +875,48 @@ CREATE TABLE `product_suppliers` (
 LOCK TABLES `product_suppliers` WRITE;
 /*!40000 ALTER TABLE `product_suppliers` DISABLE KEYS */;
 INSERT INTO `product_suppliers` VALUES 
-(1,1,1,100.00,0),
-(2,1,2,100.00,0),
-(3,1,3,100.00,0),
-(4,1,4,100.00,0);
+(1, 41, 1, 15000.00, 1),
+(2, 42, 1, 18000.00, 1),
+(3, 43, 1, 16000.00, 1),
+(4, 44, 1, 17000.00, 1),
+(5, 45, 1, 19000.00, 1),
+(6, 47, 1, 20000.00, 1),
+(7, 48, 1, 8000.00, 1),
+(8, 49, 1, 19500.00, 1),
+
+(9, 50, 2, 25000.00, 1),
+(10, 51, 2, 26000.00, 1),
+(11, 52, 2, 24000.00, 1),
+(12, 53, 2, 28000.00, 1),
+(13, 54, 2, 30000.00, 1),
+
+(14, 55, 3, 100.00, 1),
+(15, 56, 3, 110.00, 1),
+(16, 61, 3, 90.00, 1),
+(17, 62, 3, 95.00, 1),
+(18, 63, 3, 85.00, 1),
+
+(19, 57, 4, 70.00, 1),
+(20, 58, 4, 65.00, 1),
+(21, 59, 4, 75.00, 1),
+(22, 60, 4, 80.00, 1),
+
+(23, 83, 1, 50.00, 1),
+(24, 84, 1, 10.00, 1),
+(25, 85, 1, 15.00, 1),
+(26, 86, 1, 45.00, 1),
+(27, 87, 1, 40.00, 1),
+
+(28, 88, 5, 3500.00, 1),
+(29, 89, 5, 4000.00, 1),
+(30, 90, 5, 2500.00, 1),
+(31, 64, 1, 200.00, 1),
+(32, 65, 1, 220.00, 1),
+(33, 66, 1, 230.00, 1),
+(34, 91, 5, 12.00, 1),
+(35, 92, 5, 12.00, 1),
+(36, 93, 5, 12.00, 1),
+(37, 94, 5, 12.00, 1);
 /*!40000 ALTER TABLE `product_suppliers` ENABLE KEYS */;
 UNLOCK TABLES;
 

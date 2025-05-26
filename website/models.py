@@ -166,7 +166,7 @@ class Order(db.Model):
     cancellation_id = db.Column(db.Integer, db.ForeignKey('order_cancellation.cancellation_id'), nullable=True)
     order_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     total_amount = db.Column(db.Float, nullable=False)
-    shipping_address_id = db.Column(db.Integer, db.ForeignKey('shipping_addresses.shipping_address_id'), nullable=False)
+    address_id = db.Column(db.Integer, db.ForeignKey('addresses.address_id'), nullable=False)
     status_id = db.Column(db.Integer, db.ForeignKey('orders_statuses.status_id'), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
