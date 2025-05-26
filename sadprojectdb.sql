@@ -570,7 +570,7 @@ CREATE TABLE `orders` (
 
 --
 -- Dumping data for table `orders`
---
+--okay, try!
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
