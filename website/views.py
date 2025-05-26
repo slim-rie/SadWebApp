@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -527,6 +527,7 @@ def products():
     print(f"[DEBUG] Number of products found: {len(products)}")
     if not products:
         return jsonify({'error': 'No products found'}), 404
+
     # Fetch real average rating and review count for each product
     product_list = []
     for product in products:
@@ -534,6 +535,10 @@ def products():
         reviews = Review.query.filter_by(product_id=product.product_id).all()
         avg_rating = sum(review.rating for review in reviews) / len(reviews) if reviews else 0
         review_count = len(reviews)
+        
+        # Count sales for this product
+        sales_count = Sales.query.filter_by(product_id=product.product_id).count()
+        
         # Always use ProductImage from DB if available
         img = None
         if product.images and len(product.images) > 0:
@@ -559,7 +564,7 @@ def products():
             'image': img,
             'discount': None,
             'refurbished': product.refurbished if hasattr(product, 'refurbished') else None,
-            'sold': product.sold if hasattr(product, 'sold') else None,
+            'sold': sales_count,  # Use actual sales count from Sales table
             'rating': avg_rating,
             'review_count': review_count
         })
