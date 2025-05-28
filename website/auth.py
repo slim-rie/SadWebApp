@@ -4,7 +4,7 @@ from flask_mail import Message
 auth = Blueprint('auth', __name__)
 
 from flask import render_template, request, flash, redirect, url_for, session, current_app, jsonify
-from .models import User, CartItem, Product, Address, Order, OrderItem, Role
+from .models import User, CartItem, Product, Address, Order, OrderItem, Role, ProductSpecification, Inventory, Review, OrderStatus
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -638,12 +638,12 @@ def orders():
                 img = '/static/' + img.lstrip('/')
             image_path = img
             order_items.append({
-                'id': item.id,  # order item ID for linking
+                'id': item.item_id,  # order item ID for linking
                 'product_id': product.product_id,  # product ID for reference
                 'name': product.product_name,
                 'variation': '',  # Add variation if you have it
                 'quantity': item.quantity,
-                'price': float(item.price),
+                'price': float(item.price) if hasattr(item, 'price') else float(item.unit_price),
                 'originalPrice': float(product.base_price),
                 'image': image_path
             })
@@ -664,14 +664,16 @@ def orders():
             'cancelled': 'Cancelled by you',
             'refunded': 'REFUND COMPLETED'
         }
+        status_obj = OrderStatus.query.get(order.status_id)
+        status_name = status_obj.status_name.lower() if status_obj and hasattr(status_obj, 'status_name') else 'pending'
         formatted_orders.append({
             'id': order.order_id,
-            'status': status_mapping.get(order.status, 'to-pay'),
-            'statusText': status_text_mapping.get(order.status, 'Pending Payment'),
+            'status': status_mapping.get(status_name, 'to-pay'),
+            'statusText': status_text_mapping.get(status_name, 'Pending Payment'),
             'products': order_items,
             'total': float(order.total_amount),
             'deliveryDate': '',  # Add delivery date if you have it
-            'paymentMethod': order.payment_method
+            'paymentMethod': order.payment_method if hasattr(order, 'payment_method') else ''
         })
     return render_template('orders.html', orders=formatted_orders, user=current_user)
 
@@ -1051,12 +1053,12 @@ def trackorder(order_id):
             img = '/static/' + img.lstrip('/')
         image_path = img
         order_items.append({
-            'id': item.id,  # order item ID for linking
+            'id': item.item_id,  # order item ID for linking
             'product_id': product.product_id,  # product ID for reference
             'name': product.product_name,
             'variation': '',  # Add variation if you have it
             'quantity': item.quantity,
-            'price': float(item.price),
+            'price': float(item.price) if hasattr(item, 'price') else float(item.unit_price),
             'originalPrice': float(product.base_price),
             'image': image_path
         })
@@ -1114,25 +1116,6 @@ def mark_order_received(order_id):
     order.status = 'delivered'
     db.session.commit()
     return jsonify({'success': True, 'message': 'Order marked as received.'})
-
-@auth.route('/orders/<int:order_id>/item/<int:order_item_id>')
-@login_required
-def order_item_details(order_id, order_item_id):
-    order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first_or_404()
-    item = OrderItem.query.filter_by(id=order_item_id, order_id=order_id).first_or_404()
-    product = Product.query.get(item.product_id)
-    # Robust image path logic
-    img = None
-    if hasattr(product, 'images') and product.images and len(product.images) > 0:
-        img = product.images[0].image_url
-    if not img:
-        from .views import get_product_image_url
-        img = get_product_image_url(product.product_name)
-    # Ensure image URL starts with /static/
-    if img and not img.startswith('/static/'):
-        img = '/static/' + img.lstrip('/')
-    image_path = img
-    return render_template('order_item_details.html', order=order, item=item, product=product, image_path=image_path)
 
 @auth.route('/request-management')
 @login_required
@@ -1200,3 +1183,22 @@ def verify_email():
     session.pop('pending_signup', None)
     login_user(new_user, remember=True)
     return jsonify({'success': True, 'message': 'Account created successfully!'})
+
+@auth.route('/orders/<int:order_id>/item/<int:order_item_id>')
+@login_required
+def order_item_details(order_id, order_item_id):
+    order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first_or_404()
+    item = OrderItem.query.filter_by(item_id=order_item_id, order_id=order_id).first_or_404()
+    product = Product.query.get(item.product_id)
+    # Robust image path logic
+    img = None
+    if hasattr(product, 'images') and product.images and len(product.images) > 0:
+        img = product.images[0].image_url
+    if not img:
+        from .views import get_product_image_url
+        img = get_product_image_url(product.product_name)
+    # Ensure image URL starts with /static/
+    if img and not img.startswith('/static/'):
+        img = '/static/' + img.lstrip('/')
+    image_path = img
+    return render_template('order_item_details.html', order=order, item=item, product=product, image_path=image_path)

@@ -54,7 +54,7 @@
                         <a href="{{ url_for('auth.orders') }}" class="dropdown-item">Orders</a>
                         <a href="#" class="dropdown-item" id="logoutBtn">Logout</a>
                     </div>
-                </div>
+                </div> 
             </div> 
         </nav>
     </header>
@@ -201,14 +201,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
-    <script>
-      var current_user = {
-        username: "{{ user.username|escape }}",
-        profile_image: "{{ user.profile_image|escape }}"
-      };
-    </script>
-=======
     <div class="chat-modal" id="chatModal">
         <div class="chat-header">
             <h3>Customer Support</h3>
@@ -244,7 +236,15 @@
         <div id="filePreview" class="file-preview"></div>
     </div>
 
->>>>>>> 6ecedf0fe20729ae36b64299f181ac41185d548c
+    <script>
+      window.current_user = {
+        username: "{{ user.username|escape }}",
+        first_name: "{{ user.first_name|escape }}",
+        last_name: "{{ user.last_name|escape }}",
+        phone_number: "{{ user.phone_number|escape }}",
+        phone: "{{ user.phone|escape }}"
+      };
+    </script>
     <script src="{{ url_for('static', filename='js/addresses.js') }}" defer></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {

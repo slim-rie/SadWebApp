@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // First create the order
-        let payment_method = selectedOption.id === 'bankOption' ? 'Bank' : 'GCash';
+        let payment_method = selectedOption.id === 'bankOption' ? 'Bank Transfer' : 'GCash';
         
         fetch('/api/create-order', {
             method: 'POST',
@@ -142,7 +142,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const formData = new FormData();
                 formData.append('order_id', data.order_id);
                 formData.append('user_id', data.user_id);
-                formData.append('payment_method_id', payment_method);
+                // Map payment method to correct ID
+                const payment_method_id = selectedOption.id === 'bankOption' ? 2 : 3; // 2 for Bank Transfer, 3 for GCash
+                formData.append('payment_method_id', payment_method_id);
                 formData.append('reference_number', referenceInput.value);
                 formData.append('proof_of_payment', modalTransactionFile.files[0]);
 

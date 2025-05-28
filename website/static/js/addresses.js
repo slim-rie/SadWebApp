@@ -72,7 +72,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    setupLocationSelectionUI();
+    try {
+        setupLocationSelectionUI();
+    } catch (e) {
+        console.error("Error setting up location selection UI:", e);
+    }
     
     let addressIdToDelete = null;
 
@@ -123,6 +127,14 @@ function setupLocationSelectionUI() {
     const streetAddress = document.getElementById('streetAddress');
     const addressSuggestions = document.getElementById('addressSuggestions');
     
+    if (!dropdownToggle || !dropdownContent || !selectedLocation || !tabs.length || 
+        !locationLists.length || !regionList || !provinceList || !cityList || 
+        !barangayList || !homeLabel || !workLabel || !addressLabelInput || 
+        !streetAddress || !addressSuggestions) {
+        console.log('Some location selection UI elements are missing');
+        return;
+    }
+    
     const locationData = {
         provinces: {
                     northLuzon: ['Bataan', 'Bulacan', 'Nueva Ecija', 'Pampanga', 'Tarlac', 'Zambales', 'Pangasinan', 'La Union', 'Ilocos Norte', 'Ilocos Sur', 'Cagayan', 'Isabela'],
@@ -160,15 +172,17 @@ function setupLocationSelectionUI() {
         barangay: ''
     };
     
-    dropdownToggle.addEventListener('click', function() {
-        dropdownContent.classList.toggle('active');
-        const arrow = dropdownToggle.querySelector('.arrow');
-        if (dropdownContent.classList.contains('active')) {
-            arrow.textContent = '▲';
-        } else {
-            arrow.textContent = '▼';
-        }
-    });
+    if (dropdownToggle) {
+        dropdownToggle.addEventListener('click', function() {
+            dropdownContent.classList.toggle('active');
+            const arrow = dropdownToggle.querySelector('.arrow');
+            if (dropdownContent.classList.contains('active')) {
+                arrow.textContent = '▲';
+            } else {
+                arrow.textContent = '▼';
+            }
+        });
+    }
     
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
@@ -461,7 +475,6 @@ function openAddressModal(mode, addressId = null) {
     if (mode === 'edit' && addressId) {
         modalTitle.textContent = 'Edit Address';
         currentEditId = addressId;
-        
         // Fetch the address data from the server
         fetch(`/api/address/${addressId}`)
             .then(response => response.json())
@@ -474,7 +487,6 @@ function openAddressModal(mode, addressId = null) {
                     document.getElementById('postalCode').value = address.postalCode || '';
                     document.getElementById('streetAddress').value = address.streetAddress || '';
                     document.getElementById('completeAddress').value = address.completeAddress || '';
-                    
                     // Set the label
                     if (address.label === 'work') {
                         document.getElementById('workLabel').classList.add('active');
@@ -485,9 +497,9 @@ function openAddressModal(mode, addressId = null) {
                         document.getElementById('workLabel').classList.remove('active');
                         document.getElementById('addressLabel').value = 'home';
                     }
-                    
                     // Set default address checkbox
                     defaultAddressCheckbox.checked = address.isDefault;
+                    defaultAddressCheckbox.disabled = false;
                 } else {
                     console.error('Error loading address:', data.message);
                     const statusMessage = document.getElementById('statusMessage');
@@ -504,12 +516,32 @@ function openAddressModal(mode, addressId = null) {
     } else {
         modalTitle.textContent = 'Add New Address';
         currentEditId = null;
-        defaultAddressCheckbox.checked = false;
+        // Prefill with user info if available
+        if (window.current_user) {
+            const safe = v => (v && v !== 'None') ? v : '';
+            document.getElementById('firstName').value = safe(window.current_user.first_name);
+            document.getElementById('lastName').value = safe(window.current_user.last_name);
+            document.getElementById('phoneNumber').value = safe(window.current_user.phone_number) || safe(window.current_user.phone);
+        }
+        // Check if this is the first address
+        fetch('/api/addresses')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success || !data.addresses || data.addresses.length === 0) {
+                    defaultAddressCheckbox.checked = true;
+                    defaultAddressCheckbox.disabled = true;
+                } else {
+                    defaultAddressCheckbox.checked = false;
+                    defaultAddressCheckbox.disabled = false;
+                }
+            })
+            .catch(() => {
+                defaultAddressCheckbox.checked = false;
+                defaultAddressCheckbox.disabled = false;
+            });
     }
-    
     // Always hide the address dropdown panel when opening the modal
     document.getElementById('addressDropdownPanel').style.display = 'none';
-
     addressModal.classList.add('active');
 }
 
@@ -535,8 +567,31 @@ function saveAddress() {
     const streetAddress = document.getElementById('streetAddress').value.trim();
     const completeAddress = document.getElementById('completeAddress').value.trim();
     const addressLabel = document.getElementById('addressLabel').value;
-    const setAsDefault = document.getElementById('defaultAddress').checked;
+    let setAsDefault = document.getElementById('defaultAddress').checked;
+    // If this is the first address, force it to be the default
+    if (!currentEditId) {
+        fetch('/api/addresses')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success || !data.addresses || data.addresses.length === 0) {
+                    setAsDefault = true;
+                    document.getElementById('defaultAddress').checked = true;
+                }
+   // Continue with saving the address after checking
+                saveAddressWithData(firstName, lastName, phoneNumber, postalCode, streetAddress, completeAddress, addressLabel, setAsDefault);
+            })
+            .catch(error => {
+                console.error('Error checking addresses:', error);
+                // If there's an error checking addresses, proceed with saving
+                saveAddressWithData(firstName, lastName, phoneNumber, postalCode, streetAddress, completeAddress, addressLabel, setAsDefault);
+            });
+    } else {
+        // If editing existing address, proceed with saving
+        saveAddressWithData(firstName, lastName, phoneNumber, postalCode, streetAddress, completeAddress, addressLabel, setAsDefault);
+            }
+}
 
+function saveAddressWithData(firstName, lastName, phoneNumber, postalCode, streetAddress, completeAddress, addressLabel, setAsDefault) {
     // Phone number validation: PH (09XXXXXXXXX or +639XXXXXXXXX) or international (+XXXXXXXXXXX, 10-15 digits)
     const phonePattern = /^(09\d{9}|\+639\d{9}|\+\d{10,15})$/;
     const phoneNumberError = document.getElementById('phoneNumberError');
@@ -587,19 +642,26 @@ function saveAddress() {
     console.log('Sending addressData:', addressData);
 
     const method = currentEditId ? 'PUT' : 'POST';
-    const url = currentEditId ? `/api/address/${currentEditId}` : '/add-address';
+    let url = currentEditId ? `/api/address/${currentEditId}` : '/add-address';
+    // Append next param if present in the URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('next') && !currentEditId) {
+        url += '?next=' + encodeURIComponent(params.get('next'));
+    }
+
     fetch(url, {
         method: method,
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(addressData)
     })
     .then(response => response.json())
     .then(data => {
-        console.log('Backend response:', data);
-        const statusMessage = document.getElementById('statusMessage');
         if (data.success) {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = 'Address saved to database!';
             statusMessage.style.display = 'block';
             setTimeout(() => {
@@ -607,8 +669,8 @@ function saveAddress() {
             }, 5000);
             document.getElementById('addressModal').classList.remove('active');
             loadAddresses();
-            currentEditId = null;
         } else {
+            const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = 'Error: ' + data.message;
             statusMessage.style.display = 'block';
             // Scroll to the error message

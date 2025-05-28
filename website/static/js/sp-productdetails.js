@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async function () {
+    document.addEventListener('DOMContentLoaded', async function () {
     const urlParams = new URLSearchParams(window.location.search);
     let productId = urlParams.get('product_id');
     if (!productId) {
@@ -42,78 +42,133 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Render product details
     document.getElementById('productBreadcrumb').textContent = product.name;
     document.getElementById('productTitle').textContent = product.name;
+    document.getElementById('productPrice').textContent = '₱ ' + (product.price ? product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00');
+    document.getElementById('stockInfo').textContent = (product.total_stock || 0) + ' pieces available';
+    document.getElementById('productDescription').innerHTML = product.description || '';
 
-    // Update breadcrumb parent category
-    const breadcrumbParent = document.getElementById('breadcrumbParent');
-    if (breadcrumbParent && product.category_name) {
-        breadcrumbParent.textContent = product.category_name;
-        // Optionally, update the href if you want the link to go to the correct category page
-        if (product.category_name === 'Sewing Parts') {
-            breadcrumbParent.href = '/sewingparts';
-        } else if (product.category_name === 'Sewing Machines') {
-            breadcrumbParent.href = '/sewingmachines';
-        } else if (product.category_name === 'Fabrics') {
-            breadcrumbParent.href = '/fabrics';
+    // Render Material and Size as before (if present)
+    // ... (existing code for material/size) ...
+
+
+
+    fetch(`/admin/product_variant_list`).then(r => r.json()).then(allVariants => {
+        window.productVariants = allVariants.filter(v => v.product_id == product.product_id);
+        // Render main product's variants (if any) under Material/Size/Variants
+        const materialOptionsDiv = document.getElementById('materialOptions');
+        const sizeOptionsDiv = document.getElementById('sizeOptions');
+        const variantOptionsDiv = document.getElementById('variantOptions');
+        if (product.variants && product.variants.length > 0) {
+            let materialHTML = '';
+            let sizeHTML = '';
+            let variantsHTML = '';
+            product.variants.forEach(variant => {
+                const values = variant.value.split(',').map(v => v.trim());
+                let btns = '';
+                values.forEach(val => {
+                    // Find the matching ProductVariant for this value
+                    const matchingVariant = (window.productVariants || []).find(v => v.variant_name === variant.type && v.variant_value === val);
+                    const variantId = matchingVariant ? matchingVariant.variant_id : '';
+                    btns += `<button type="button" class="variant-choice" data-type="${variant.type}" data-value="${val}" data-variant-id="${variantId}" style="margin-right: 8px; margin-bottom: 8px;">${val}</button>`;
+                });
+                if (variant.type.toLowerCase() === 'material') {
+                    materialHTML += btns;
+                } else if (variant.type.toLowerCase() === 'size') {
+                    sizeHTML += btns;
+                } else {
+                    variantsHTML += btns;
+                    }
+            });
+            if (materialOptionsDiv) materialOptionsDiv.innerHTML = materialHTML;
+            if (sizeOptionsDiv) sizeOptionsDiv.innerHTML = sizeHTML;
+            // Remove/hide the Variants row entirely
+            const variantOptionRow = document.getElementById('variantOptionRow');
+            if (variantOptionRow) variantOptionRow.style.display = 'none';
+            // Hide the Size row if there are no size buttons
+            const sizeOptionRow = document.getElementById('sizeOptionRow');
+            if (sizeOptionRow) sizeOptionRow.style.display = sizeHTML.trim() === '' ? 'none' : '';
+            // Add click event listeners for variant buttons (one selectable per type)
+            document.querySelectorAll('.variant-choice').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Deselect all buttons of this type
+                    const type = btn.getAttribute('data-type');
+                        document.querySelectorAll(`.variant-choice[data-type='${type}']`).forEach(b => b.classList.remove('selected'));
+                    // Select this button
+                    btn.classList.add('selected');
+                });
+            });
+            // If only one variant, auto-select it
+            if (window.productVariants.length === 1) {
+                const onlyVariant = window.productVariants[0];
+                // Find the button and mark as selected
+                const btn = document.querySelector(`button[data-variant-id='${onlyVariant.variant_id}']`);
+                if (btn) btn.classList.add('selected');
+            }
         }
-    }
+    });
 
     // Gallery logic for multiple images
     const mainImage = document.getElementById('mainProductImage');
     const thumbnailGallery = document.getElementById('thumbnailGallery');
     if (Array.isArray(product.images) && product.images.length > 0) {
-        mainImage.src = product.images[0];
-        mainImage.alt = product.name;
+        function showImage(idx) {
+            mainImage.src = product.images[idx];
+            mainImage.alt = product.name;
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === idx);
+            });
+        }
         thumbnailGallery.innerHTML = '';
         product.images.forEach((imgUrl, idx) => {
             const thumb = document.createElement('div');
             thumb.className = 'thumbnail' + (idx === 0 ? ' active' : '');
             thumb.innerHTML = `<img src="${imgUrl}" alt="Thumbnail ${idx+1}" class="thumbnail-img">`;
             thumb.addEventListener('click', function() {
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-                thumb.classList.add('active');
-                mainImage.src = imgUrl;
+                showImage(idx);
             });
             thumbnailGallery.appendChild(thumb);
         });
+        showImage(0);
     } else {
         mainImage.src = product.image || '/static/pictures/default.jpg';
         mainImage.alt = product.name;
         thumbnailGallery.innerHTML = '';
     }
 
-    // Default rating and sold count
-    // const rating = 4.5;
-    // const sold = 0;
-    // const ratingContainer = document.getElementById('productRating');
-    // ratingContainer.innerHTML = '';
-    // for (let i = 1; i <= 5; i++) { ... }
-    // document.getElementById('ratingValue').textContent = rating.toFixed(1);
-    // document.getElementById('reviewCount').textContent = "100+ reviews";
-    document.getElementById('soldCount').textContent = (product.sold ? product.sold : 0) + ' sold';
-
-        document.getElementById('productPrice').textContent = '₱ ' + product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('stockInfo').textContent = product.stock + ' pieces available';
-        document.getElementById('productDescription').innerHTML = product.description;
+    // Ratings and reviews from API
+    const rating = product.rating || 0;
+    const reviewCount = product.review_count || 0;
+    const sold = product.sold || 0;
+    const ratingContainer = document.getElementById('productRating');
+    ratingContainer.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('i');
+        if (i <= Math.floor(rating)) {
+            star.className = 'fas fa-star';
+        } else if (i - 0.5 <= rating) {
+            star.className = 'fas fa-star-half-alt';
+        } else {
+            star.className = 'far fa-star';
+        }
+        ratingContainer.appendChild(star);
+    }
+    document.getElementById('ratingValue').textContent = rating.toFixed(1);
+    document.getElementById('reviewCount').textContent = `${reviewCount} review${reviewCount === 1 ? '' : 's'}`;
+    document.getElementById('soldCount').textContent = `${sold} sold`;
 
     // Specifications table (dynamic)
     const specsTableBody = document.getElementById('specsTableBody');
     specsTableBody.innerHTML = '';
-    if (product.brand) {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td class=\"spec-label\">Brand</td><td class=\"spec-value\">${product.brand}</td>`;
-        specsTableBody.appendChild(row);
-    }
     if (Array.isArray(product.specifications)) {
         product.specifications.forEach(spec => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td class=\"spec-label\">${spec.name}</td><td class=\"spec-value\">${spec.value}</td>`;
+            row.innerHTML = `<td class='spec-label'>${spec.name}</td><td class='spec-value'>${spec.value}</td>`;
             specsTableBody.appendChild(row);
         });
     }
 
     // Initialize quantity selector
-    initializeQuantitySelector(product.stock);
-        initializeTabs();
+    initializeQuantitySelector(product.total_stock);
+    initializeTabs();
 
     // Add to cart functionality
     const addToCartBtn = document.getElementById('addToCartBtn');
@@ -125,13 +180,26 @@ document.addEventListener('DOMContentLoaded', async function () {
         const productImage = document.getElementById('mainProductImage').src;
         const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        // Get selected variants
+        const selectedMaterialBtn = document.querySelector(".variant-choice[data-type='Material'].selected");
+        const selectedMaterial = selectedMaterialBtn ? selectedMaterialBtn.getAttribute('data-value') : null;
+        const selectedSizeBtn = document.querySelector(".variant-choice[data-type='Size'].selected");
+        const selectedSize = selectedSizeBtn ? selectedSizeBtn.getAttribute('data-value') : null;
+        const selectedVariantBtn = document.querySelector(".variant-choice[data-type]:not([data-type='Material']):not([data-type='Size']).selected");
+        const selectedVariant = selectedVariantBtn ? selectedVariantBtn.getAttribute('data-value') : null;
 
         if (isLoggedIn && product.product_id) {
             // Logged in: send to backend
             fetch('/api/cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ product_id: product.product_id, quantity: productQuantity })
+                body: JSON.stringify({
+                    product_id: product.product_id,
+                    quantity: productQuantity,
+                    material: selectedMaterial,
+                    size: selectedSize,
+                    variant: selectedVariant
+                })
             })
             .then(response => response.json())
             .then(data => {
@@ -145,11 +213,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         } else {
             // Guest: use localStorage
             const cartItem = {
-                id: productName,
+                id: productName + (selectedMaterial || '') + (selectedSize || '') + (selectedVariant || ''),
                 name: productName,
                 price: productPrice,
                 image: productImage,
-                quantity: productQuantity
+                quantity: productQuantity,
+                material: selectedMaterial,
+                size: selectedSize,
+                variant: selectedVariant
             };
             let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
             const existingItemIndex = cartItems.findIndex(item => item.id === cartItem.id);
@@ -168,18 +239,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         buyNowBtn.addEventListener('click', function () {
             const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const selectedMaterial = document.getElementById('materialSelect') ? document.getElementById('materialSelect').value : null;
-            const selectedModelBtn = document.querySelector('.model-choice.selected');
-            const selectedModel = selectedModelBtn ? selectedModelBtn.textContent.trim() : null;
+            const selectedVariantBtn = document.querySelector('.variant-choice.selected');
+            const selectedVariantId = selectedVariantBtn ? selectedVariantBtn.getAttribute('data-variant-id') : null;
+            if (!selectedVariantId) {
+                alert('Please select a variant before proceeding.');
+                return;
+            }
             if (isLoggedIn && product.product_id) {
                 fetch('/buy-now', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         product_id: product.product_id,
-                        quantity: productQuantity,
-                        material: selectedMaterial,
-                        model: selectedModel
+                        variant_id: selectedVariantId,
+                        quantity: productQuantity
                     })
                 })
                 .then(response => response.json())
@@ -194,9 +267,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                 // Guest: use sessionStorage
                 const buyNowItem = {
                     product_id: product.product_id,
-                    quantity: productQuantity,
-                    material: selectedMaterial,
-                    model: selectedModel
+                    variant_id: selectedVariantId,
+                    quantity: productQuantity
                 };
                 sessionStorage.setItem('buyNowItem', JSON.stringify(buyNowItem));
                 window.location.href = '/transaction?buy_now=1';
@@ -299,219 +371,53 @@ document.addEventListener('DOMContentLoaded', async function () {
                         </div>
                     `;
                 });
-                // Add click event for thumbnails
-                document.querySelectorAll('.review-media-thumb').forEach(el => {
-                    el.onclick = function() {
-                        const modal = document.getElementById('reviewMediaModal');
-                        const modalContent = document.getElementById('reviewMediaModalContent');
-                        if (el.tagName === 'IMG') {
-                            modalContent.innerHTML = `<img src='${el.src}' style='max-width:90vw;max-height:90vh;'>`;
-                        } else if (el.tagName === 'VIDEO') {
-                            modalContent.innerHTML = `<video src='${el.src}' style='max-width:90vw;max-height:90vh;' controls autoplay></video>`;
-                        }
-                        modal.style.display = 'flex';
-                    };
-                });
-            });
-    }
-    loadReviews();
-
-    // Review submission form (for logged-in users)
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (isLoggedIn) {
-        fetch(`/api/can-review?product_id=${product.product_id}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.can_review) {
-                    // Render review form
-                    const formHTML = `
-                        <form id="reviewForm" enctype="multipart/form-data" class="review-form">
-                            <h4>Leave a Review</h4>
-                            <div class="star-rating-input">
-                                <span>Rating:</span>
-                                <span id="starInput"></span>
-                            </div>
-                            <textarea id="reviewComment" placeholder="Write your review..." required></textarea>
-                            <input type="file" id="reviewMedia" accept="image/*,video/*">
-                            <button type="submit">Submit Review</button>
-                        </form>
-                    `;
-                    reviewTab.insertAdjacentHTML('afterbegin', formHTML);
-                    // Star input
-                    const starInput = document.getElementById('starInput');
-                    let selectedRating = 0;
-                    for (let i = 1; i <= 5; i++) {
-                        const star = document.createElement('i');
-                        star.className = 'far fa-star';
-                        star.dataset.value = i;
-                        star.addEventListener('click', function() {
-                            selectedRating = i;
-                            document.querySelectorAll('#starInput i').forEach((s, idx) => {
-                                s.className = idx < i ? 'fas fa-star' : 'far fa-star';
-                            });
-                        });
-                        starInput.appendChild(star);
-                    }
-                    // Submit handler
-                    document.getElementById('reviewForm').addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        if (!selectedRating) {
-                            alert('Please select a rating.');
-                            return;
-                        }
-                        const comment = document.getElementById('reviewComment').value.trim();
-                        const media = document.getElementById('reviewMedia').files[0];
-                        const formData = new FormData();
-                        formData.append('product_id', product.product_id);
-                        formData.append('rating', selectedRating);
-                        formData.append('comment', comment);
-                        if (media) formData.append('media', media);
-                        fetch('/api/reviews', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert('Review submitted!');
-                                loadReviews();
-                                document.getElementById('reviewForm').reset();
-                                document.querySelectorAll('#starInput i').forEach(s => s.className = 'far fa-star');
-                                selectedRating = 0;
-                            } else {
-                                alert(data.message || 'Failed to submit review.');
-                            }
-                        });
-                    });
-                } else {
-                    // Not eligible
-                }
             });
     }
 
-    // --- User Dropdown Logic ---
-    const userIcon = document.getElementById('user-icon');
-    const dropdownMenu = document.getElementById('dropdownMenu');
-    if (userIcon && dropdownMenu) {
-        userIcon.addEventListener('click', function (event) {
-            event.stopPropagation();
-            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    // Render related products from API (with variant boxes)
+    const relatedGrid = document.getElementById('relatedProductsGrid');
+    relatedGrid.innerHTML = '';
+    if (Array.isArray(product.related_products) && product.related_products.length > 0) {
+        product.related_products.forEach(rp => {
+            const card = document.createElement('a');
+            card.className = 'product-card';
+            card.href = `/sp-productdetails?product_id=${rp.product_id}`;
+            card.style.textDecoration = 'none';
+            // Remove variant boxes from related products
+            card.innerHTML = `
+                <img src="${rp.image || '/static/pictures/default.jpg'}" alt="${rp.name}">
+                <div class="product-info">
+                    <h3>${rp.name}</h3>
+                    <div class="product-price">₱ ${rp.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                    <div class="product-rating product-rating-sm"><div class="stars">${generateStarsHTML(rp.rating)}</div><span class="rating-value">${rp.rating.toFixed(1)}</span><span class="review-count">${rp.review_count} review${rp.review_count === 1 ? '' : 's'}</span><span class="sold-count">${rp.sold} sold</span></div>
+                </div>
+            `;
+            relatedGrid.appendChild(card);
         });
-        window.addEventListener('click', function (event) {
-            if (!event.target.closest('.user-dropdown')) {
-                dropdownMenu.style.display = 'none';
-            }
-        });
+    } else {
+        relatedGrid.innerHTML = '<div class="no-products">No related products found.</div>';
     }
 
-    // Fetch and render related products
-    fetch(`/api/related-products?product_id=${product.product_id}`)
-        .then(res => res.json())
-        .then(relatedProducts => {
-            const relatedGrid = document.getElementById('relatedProductsGrid');
-            relatedGrid.innerHTML = '';
-            if (Array.isArray(relatedProducts) && relatedProducts.length > 0) {
-                relatedProducts.forEach(rp => {
-                    const card = document.createElement('a');
-                    card.className = 'product-card';
-                    card.href = `/sp-productdetails?product_id=${rp.product_id}`;
-                    card.style.textDecoration = 'none';
-                    card.innerHTML = `
-                        <img src="${rp.image}" alt="${rp.name}">
-                        <div class="product-info">
-                            <h3>${rp.name}</h3>
-                            <div class="product-price">₱ ${rp.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                            <div class="product-rating">
-                                <div class="stars">${generateStarsHTML(rp.rating)}</div>
-                                <span class="rating-value">${rp.rating.toFixed(1)}</span>
-                                <span class="review-count">${rp.review_count} review${rp.review_count === 1 ? '' : 's'}</span>
-                                <span class="sold-count">${rp.sold ? rp.sold : 0} sold</span>
-                            </div>
-                        </div>
-                    `;
-                    relatedGrid.appendChild(card);
-                });
-            } else {
-                relatedGrid.innerHTML = '<div class="no-products">No related products found.</div>';
-            }
-        });
+    // Fetch all product variants for this product and expose to window.productVariants
+    fetch(`/admin/product_variant_list`).then(r => r.json()).then(allVariants => {
+        window.productVariants = allVariants.filter(v => v.product_id == product.product_id);
+        // ... existing code for rendering variant buttons ...
+        // If only one variant, auto-select it
+        if (window.productVariants.length === 1) {
+            const onlyVariant = window.productVariants[0];
+            // Find the button and mark as selected
+            const btn = document.querySelector(`button[data-variant-id='${onlyVariant.variant_id}']`);
+            if (btn) btn.classList.add('selected');
+        }
+    });
 
-    // Helper for stars
-    function generateStarsHTML(rating) {
-        const fullStars = Math.floor(rating);
-        const hasHalfStar = rating % 1 >= 0.5;
-        let starsHTML = '';
-        for (let i = 0; i < fullStars; i++) {
-            starsHTML += '<i class="fas fa-star"></i>';
+    // In Buy Now and Add to Cart, if no variant is selected but only one exists, use that variant_id
+    function getSelectedVariantId() {
+        const selectedBtn = document.querySelector('.variant-choice.selected');
+        if (selectedBtn) return selectedBtn.getAttribute('data-variant-id');
+        if (window.productVariants && window.productVariants.length === 1) {
+            return window.productVariants[0].variant_id;
         }
-        if (hasHalfStar) {
-            starsHTML += '<i class="fas fa-star-half-alt"></i>';
-        }
-        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-        for (let i = 0; i < emptyStars; i++) {
-            starsHTML += '<i class="far fa-star"></i>';
-        }
-        return starsHTML;
-    }
-
-    // --- Guest Buy-Now Session Sync ---
-    if (window.location.pathname === '/transaction' && window.location.search.includes('buy_now=1')) {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        if (!isLoggedIn && sessionStorage.getItem('buyNowItem')) {
-            fetch('/buy-now', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: sessionStorage.getItem('buyNowItem')
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    sessionStorage.removeItem('buyNowItem');
-                    window.location.reload();
-                } else {
-                    alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
-                }
-            });
-        }
+        return null;
     }
 });
-
-    function initializeQuantitySelector(maxStock) {
-        const quantityInput = document.getElementById('quantityInput');
-        const minusButton = document.querySelector('.quantity-btn.minus');
-        const plusButton = document.querySelector('.quantity-btn.plus');
-
-        quantityInput.value = 1; 
-        quantityInput.readOnly = true; 
-
-        minusButton.addEventListener('click', function () {
-            let currentValue = parseInt(quantityInput.value, 10);
-            if (currentValue > 1) {
-                quantityInput.value = currentValue - 1;
-            }
-        });
-
-        plusButton.addEventListener('click', function () {
-            let currentValue = parseInt(quantityInput.value, 10);
-            if (currentValue < maxStock) {
-                quantityInput.value = currentValue + 1;
-            }
-        });
-    }
-    
-    function initializeTabs() {
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        tabButtons.forEach(button => {
-        button.addEventListener('click', function () {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                this.classList.add('active');
-                
-                const tabId = this.getAttribute('data-tab');
-                document.getElementById(tabId + 'Tab').classList.add('active');
-            });
-        });
-    }

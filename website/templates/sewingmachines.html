@@ -222,6 +222,27 @@
 
             <div class="product-grid-container">
                 <div class="product-grid" id="productGrid">
+                    {% for product in products %}
+                    <a href="/sm-productdetails?product_id={{ product.product_id }}" class="product-card">
+                        <div class="product-image">
+                            {% if product.images and product.images|length > 0 %}
+                            <img src="{{ url_for('static', filename='product_images/' + product.images[0].image_url) }}" alt="{{ product.product_name }}">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='pictures/no-image.png') }}" alt="No image available">
+                            {% endif %}
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ product.product_name }}</h3>
+                            <p class="model-number">{{ product.model_number }}</p>
+                            <div class="product-price">
+                                <span class="price">₱{{ "%.2f"|format(product.base_price) }}</span>
+                            </div>
+                            <div class="product-sales">
+                                <span class="sales-count">Sold: {{ product_sales[product.product_id] }}</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
                 </div>
             </div>
         </div>

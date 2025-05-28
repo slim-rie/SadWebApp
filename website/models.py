@@ -133,7 +133,6 @@ class ProductVariant(db.Model):
     variant_name = db.Column(db.String(100), nullable=False)
     variant_value = db.Column(db.String(100), nullable=False)
     additional_price = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
-    stock_quantity = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     def __repr__(self):
@@ -249,7 +248,7 @@ class Review(db.Model):
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
+    user = db.relationship('User', backref='review_list', lazy=True)
 class ReviewMedia(db.Model):
     __tablename__ = 'review_media'
     media_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -328,7 +327,6 @@ class Inventory(db.Model):
     __tablename__ = 'inventory'
     inventory_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
-    order_id = db.Column(db.Integer, db.ForeignKey('orders.order_id'), nullable=False)
     stock_quantity = db.Column(db.Integer, nullable=False)
     stock_in = db.Column(db.Integer, nullable=False)
     stock_out = db.Column(db.Integer, nullable=False)
