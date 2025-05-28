@@ -317,7 +317,18 @@ def google_oauth_callback():
     name = userinfo.get("name")
     picture = userinfo.get("picture")
 
-    # Store user info in session for verification
+    # Check if user already exists
+    user = User.query.filter_by(email=email).first()
+    if user:
+        # Update profile image from Google
+        user.profile_image = picture
+        db.session.commit()
+        login_user(user)
+        send_login_notification(user.email)
+        flash("Logged in successfully with Google!", "success")
+        return redirect(url_for('views.home'))
+
+    # If user does not exist, proceed with verification flow
     session['pending_google_user'] = {
         'email': email,
         'name': name,
@@ -339,7 +350,7 @@ def google_oauth_callback():
     <p>Please verify your email address to complete your registration.</p>
     <p>Click the button below to verify your email and log in:</p>
     <div style="text-align: center; margin: 30px 0;">
-        <a href="{verification_url}" style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-size: 16px;">
+        <a href=\"{verification_url}\" style=\"background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-size: 16px;\">
             Verify Your Email
         </a>
     </div>
