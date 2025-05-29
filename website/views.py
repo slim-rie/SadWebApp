@@ -1836,6 +1836,30 @@ def get_supply_requests():
 
 # ================= ADMIN: CUSTOMER ORDERS LIST API =================
 
+@views.route('/admin/update_tracking/<int:order_id>', methods=['POST'])
+def admin_update_tracking(order_id):
+    from .models import Tracking, TrackingStatus
+    data = request.get_json()
+    courier = data.get('courier', '').strip()
+    reference_number = data.get('reference_number', '').strip()
+    tracking_status_id = data.get('tracking_status_id')
+    if not tracking_status_id:
+        return jsonify({'success': False, 'error': 'Missing tracking_status_id'}), 400
+    try:
+        tracking = Tracking.query.filter_by(order_id=order_id).first()
+        if not tracking:
+            tracking = Tracking(order_id=order_id)
+            db.session.add(tracking)
+        tracking.courier = courier
+        tracking.tracking_number = reference_number
+        tracking.status_id = tracking_status_id
+        tracking.updated_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @views.route('/admin/update_order_status/<int:order_id>', methods=['POST'])
 def admin_update_order_status(order_id):
     from .models import Order
@@ -1894,10 +1918,7 @@ from .models import Order, OrderItem, User
 
 @views.route('/admin/orders_list')
 def admin_orders_list():
-    from .models import OrderStatus
-    from .models import Address
-    from .models import Payment, PaymentMethod
-    from .models import OrderItem, Product
+    from .models import OrderStatus, Address, Payment, PaymentMethod, OrderItem, Product, Tracking, TrackingStatus
     orders = (
         db.session.query(
             Order,
@@ -1927,6 +1948,26 @@ def admin_orders_list():
         product_names = ', '.join([item.Product.product_name for item in order_items])
         quantities = ', '.join([str(item.OrderItem.quantity) for item in order_items])
         address_name = f"{first_name or ''} {last_name or ''}".strip() if first_name or last_name else ''
+
+        # --- Tracking Info ---
+        tracking = (
+            db.session.query(Tracking, TrackingStatus)
+            .outerjoin(TrackingStatus, Tracking.status_id == TrackingStatus.status_id)
+            .filter(Tracking.order_id == order.order_id)
+            .first()
+        )
+        if tracking:
+            tracking_obj, tracking_status_obj = tracking
+            courier = tracking_obj.courier
+            reference_number = tracking_obj.tracking_number
+            tracking_status_id = tracking_obj.status_id
+            tracking_status_name = tracking_status_obj.status_name if tracking_status_obj else ''
+        else:
+            courier = ''
+            reference_number = ''
+            tracking_status_id = None
+            tracking_status_name = ''
+
         data.append({
             "order_id": order.order_id,
             "username": username,
@@ -1938,6 +1979,10 @@ def admin_orders_list():
             "payment_method": method_name or '',
             "address_name": address_name,
             "status_name": status_name,
+            "courier": courier,
+            "reference_number": reference_number,
+            "tracking_status_id": tracking_status_id,
+            "tracking_status_name": tracking_status_name,
             "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
             "updated_at": order.updated_at.strftime("%Y-%m-%d %H:%M:%S") if order.updated_at else "",
         })

@@ -1416,7 +1416,7 @@ function renderCustomerOrdersTable(orders) {
     if (!tbody) return;
     tbody.innerHTML = '';
     if (!orders.length) {
-        tbody.innerHTML = '<tr><td colspan="10">No orders found.</td></tr>'; // Adjust colspan as needed
+        tbody.innerHTML = '<tr><td colspan="14">No orders found.</td></tr>'; // Adjust colspan as needed
         return;
     }
     orders.forEach(order => {
@@ -1430,7 +1430,6 @@ function renderCustomerOrdersTable(orders) {
             <td>${order.quantity || ''}</td>
             <td>${order.total_amount || ''}</td>
             <td>${order.payment_method || ''}</td>
-            <td>${order.address_name || ''}</td>
             <td>
                 <select class="order-status-dropdown" data-order-id="${order.order_id}">
                     <option value="1" ${order.status_name === 'To Pay' ? 'selected' : ''}>To Pay</option>
@@ -1442,12 +1441,60 @@ function renderCustomerOrdersTable(orders) {
                     <option value="7" ${order.status_name === 'Returned' ? 'selected' : ''}>Returned</option>
                 </select>
             </td>
+            <td><input type="text" class="courier-input" data-order-id="${order.order_id}" value="${order.courier || ''}" placeholder="Courier"></td>
+            <td><input type="text" class="reference-number-input" data-order-id="${order.order_id}" value="${order.reference_number || ''}" placeholder="Reference Number"></td>
+            <td>
+                <select class="tracking-status-dropdown" data-order-id="${order.order_id}">
+    <option value="1" ${order.tracking_status_id == 1 ? 'selected' : ''}>Order Placed</option>
+    <option value="2" ${order.tracking_status_id == 2 ? 'selected' : ''}>Processing</option>
+    <option value="3" ${order.tracking_status_id == 3 ? 'selected' : ''}>Ready to Ship</option>
+    <option value="4" ${order.tracking_status_id == 4 ? 'selected' : ''}>Shipped</option>
+    <option value="5" ${order.tracking_status_id == 5 ? 'selected' : ''}>In Transit</option>
+    <option value="6" ${order.tracking_status_id == 6 ? 'selected' : ''}>Out for Delivery</option>
+    <option value="7" ${order.tracking_status_id == 7 ? 'selected' : ''}>Delivered</option>
+    <option value="8" ${order.tracking_status_id == 8 ? 'selected' : ''}>Failed Delivery</option>
+    <option value="9" ${order.tracking_status_id == 9 ? 'selected' : ''}>Returned to Seller</option>
+    <option value="10" ${order.tracking_status_id == 10 ? 'selected' : ''}>Cancelled</option>
+    <option value="11" ${order.tracking_status_id == 11 ? 'selected' : ''}>Return/Refund in Progress</option>
+    <option value="12" ${order.tracking_status_id == 12 ? 'selected' : ''}>Return/Refund Completed</option>
+</select>
+            </td>
             <td>${order.created_at || ''}</td>
             <td>${order.updated_at || ''}</td>
         `;
         tbody.appendChild(tr);
     });
+
+    // Attach change listeners for tracking fields
+    tbody.querySelectorAll('.courier-input, .reference-number-input, .tracking-status-dropdown').forEach(input => {
+        input.addEventListener('change', function() {
+            const orderId = this.getAttribute('data-order-id');
+            const row = this.closest('tr');
+            const courier = row.querySelector('.courier-input').value;
+            const referenceNumber = row.querySelector('.reference-number-input').value;
+            const trackingStatusId = row.querySelector('.tracking-status-dropdown').value;
+            fetch(`/admin/update_tracking/${orderId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    courier: courier,
+                    reference_number: referenceNumber,
+                    tracking_status_id: trackingStatusId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('Failed to update tracking info: ' + (data.error || 'Unknown error'));
+                } else {
+                    fetchAndRenderCustomerOrders();
+                }
+            })
+            .catch(err => alert('Failed to update tracking info: ' + err));
+        });
+    });
 }
+
 
 
 // Handle status dropdown change
