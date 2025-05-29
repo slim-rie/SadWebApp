@@ -783,13 +783,13 @@ CREATE TABLE `cancellation_reason` (
 LOCK TABLES `cancellation_reason` WRITE;
 /*!40000 ALTER TABLE `cancellation_reason` DISABLE KEYS */;
 INSERT INTO `cancellation_reason` VALUES
-(1, 'Need to change delivery address', NULL),
-(2, 'Need to input/change voucher code', NULL),
-(3, 'Need to modify order (size, color, quantity, etc.)', NULL),
-(4, 'Payment procedure too troublesome', NULL),
-(5, 'Found cheaper elsewhere', NULL),
-(6, 'Don\'t want to buy anymore', NULL),
-(7, 'Other', '');
+(1, 'Need to change delivery address'),
+(2, 'Need to input/change voucher code'),
+(3, 'Need to modify order (size, color, quantity, etc.'),
+(4, 'Payment procedure too troublesome'),
+(5, 'Found cheaper elsewhere'),
+(6, 'Do not want to buy anymore'),
+(7, 'Other');
 /*!40000 ALTER TABLE `cancellation_reason` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1704,7 +1704,6 @@ INSERT INTO `sales` VALUES
 /*!40000 ALTER TABLE `sales` ENABLE KEYS */;
 UNLOCK TABLES;
 
--
 
 DROP TABLE IF EXISTS `reviews`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1981,6 +1980,7 @@ DROP TABLE IF EXISTS `inventory`;
 CREATE TABLE `inventory` (
   `inventory_id` INT NOT NULL AUTO_INCREMENT,
   `product_id` INT NOT NULL,
+  `order_id` INT NULL,
   `stock_quantity` INT NOT NULL,
   `stock_in` INT NOT NULL,
   `stock_out` INT NOT NULL,
@@ -1989,10 +1989,13 @@ CREATE TABLE `inventory` (
   `available_stock` INT NOT NULL,
   `stock_status` VARCHAR(50) NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE  CURRENT_TIMESTAMP,
-  PRIMARY KEY (inventory_id),
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`inventory_id`),
+  UNIQUE KEY `unique_product_id` (`product_id`),
   KEY `product_id` (`product_id`),
+  KEY `order_id` (`order_id`),
   CONSTRAINT `inventory_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `inventory_ibfk_2` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -2045,7 +2048,7 @@ DROP TABLE IF EXISTS `supply_requests`;
 CREATE TABLE `supply_requests` (
   `request_id` INT NOT NULL AUTO_INCREMENT,
   `product_id` INT NOT NULL,
-  `staff_id` INT NOT NULL,
+  `requested_by` INT NOT NULL,
   `quantity_requested` INT NOT NULL,
   `supply_status` VARCHAR(20) DEFAULT 'pending', -- approve, reject
   `notes` TEXT,
@@ -2053,10 +2056,10 @@ CREATE TABLE `supply_requests` (
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`request_id`),
   KEY `product_id` (`product_id`),
-  KEY `idx_supply_request_staff` (`staff_id`),
+  KEY `idx_supply_request_by` (`requested_by`),
   KEY `idx_supply_request_status` (`supply_status`),
   CONSTRAINT `supply_requests_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
-  CONSTRAINT `supply_requests_ibfk_2` FOREIGN KEY (`staff_id`) REFERENCES `users` (`user_id`)
+  CONSTRAINT `supply_requests_ibfk_2` FOREIGN KEY (`requested_by`) REFERENCES `users` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -2192,3 +2195,43 @@ INSERT INTO `payment_methods` VALUES
 (3, 'GCash');
 /*!40000 ALTER TABLE `payment_methods` ENABLE KEYS */;
 UNLOCK TABLES;
+
+DROP TABLE IF EXISTS `tracking_statuses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tracking_statuses` (
+  `status_id` int NOT NULL AUTO_INCREMENT,
+  `status_name` varchar(100) NOT NULL,
+  `description` text,
+  PRIMARY KEY (`status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+INSERT INTO tracking_statuses (status_name, description) VALUES
+('Order Placed', 'Buyer has placed the order, awaiting seller confirmation'),
+('Processing', 'Seller is preparing the order for shipment'),
+('Ready to Ship', 'Seller has packed the item and generated a shipping label'),
+('Shipped', 'Package has been handed over to logistics partner'),
+('In Transit', 'Package is moving through the logistics network'),
+('Out for Delivery', 'Package is with the courier for final delivery'),
+('Delivered', 'Package has been successfully delivered to buyer'),
+('Failed Delivery', 'Courier attempted delivery but failed (e.g., recipient not available)'),
+('Returned to Seller', 'Package was returned to seller after failed delivery attempts'),
+('Cancelled', 'Order was cancelled before delivery'),
+('Return/Refund in Progress', 'Buyer initiated return/refund process'),
+('Return/Refund Completed', 'Return/refund request has been processed'); 
+
+
+CREATE TABLE cart_items (
+    cart_item_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    variant_id INT NULL,
+    quantity INT,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id),
+    FOREIGN KEY (variant_id) REFERENCES product_variants(variant_id)
+);
+

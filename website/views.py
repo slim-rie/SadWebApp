@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales, Payment, PaymentMethod, Tracking
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales, Payment, PaymentMethod, Tracking, ProductSupplier, OrderStatus
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -1952,14 +1952,21 @@ def update_supply_request_status():
     db.session.commit()
 
     if new_status == 'Completed':
-        # Update inventory logic here
         inventory = Inventory.query.filter_by(product_id=req.product_id).first()
-        if inventory:
+        if not inventory:
+            inventory = Inventory(
+                product_id=req.product_id,
+                stock_in=req.quantity_requested,
+                available_stock=req.quantity_requested,
+                stock_status='In Stock'
+            )
+            db.session.add(inventory)
+        else:
             inventory.stock_in += req.quantity_requested
             inventory.available_stock += req.quantity_requested
             if inventory.available_stock >= inventory.min_stock:
                 inventory.stock_status = 'In Stock'
-            db.session.commit()
+        db.session.commit()
     return jsonify({'success': True})
 
 @views.route('/supplier/deliveries')
