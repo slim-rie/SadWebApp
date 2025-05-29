@@ -328,6 +328,7 @@ class Inventory(db.Model):
     __tablename__ = 'inventory'
     inventory_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
+    order_id = db.Column(db.Integer, nullable=True)  # Added to match MySQL schema
     stock_quantity = db.Column(db.Integer, nullable=False)
     stock_in = db.Column(db.Integer, nullable=False)
     stock_out = db.Column(db.Integer, nullable=False)

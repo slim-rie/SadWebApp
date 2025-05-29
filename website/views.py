@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales, ProductSupplier
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
