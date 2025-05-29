@@ -281,54 +281,43 @@ document.addEventListener('DOMContentLoaded', async function () {
         const buyNowBtn = document.getElementById('buyNowBtn');
         if (buyNowBtn) {
             buyNowBtn.addEventListener('click', function (e) {
-                if (!allVariantsSelected()) {
-                    e.preventDefault();
-                    alert('Please select an option for each variant before buying.');
-                    return false;
-                }
-                const variant_id = getSelectedVariantId();
-                if (!variant_id) {
-                    e.preventDefault();
-                    alert('No matching variant found.');
-                    return false;
-                }
                 const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
                 const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                // Get selected variant id if needed
+                let selectedVariantId = null;
+                const selectedBtn = document.querySelector('.variant-btn.selected');
+                if (selectedBtn) selectedVariantId = selectedBtn.getAttribute('data-variant-id');
                 if (isLoggedIn && product.product_id) {
-                    fetch('/buy-now', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            product_id: product.product_id,
-                            variant_id: variant_id,
-                            quantity: productQuantity
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Check if user has address (simulate by checking a global or via API)
-                            fetch('/api/addresses')
-                                .then(res => res.json())
-                                .then(addrData => {
-                                    if (!addrData.success || !addrData.addresses || addrData.addresses.length === 0) {
-                                        // Redirect to addresses with params
-                                        const redirectUrl = `/addresses?from=product&product_id=${product.product_id}&variant_id=${variant_id}&quantity=${productQuantity}`;
-                                        console.log('Redirecting to:', redirectUrl); // Debug log
-                                        window.location.href = redirectUrl;
-                                    } else {
+                    fetch('/api/addresses')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.success || !data.addresses || data.addresses.length === 0) {
+                                window.location.href = `/addresses?from=product&product_id=${product.product_id}&product_type=f${selectedVariantId ? `&variant_id=${selectedVariantId}` : ''}&quantity=${productQuantity}`;
+                            } else {
+                                fetch('/buy-now', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        product_id: product.product_id,
+                                        variant_id: selectedVariantId,
+                                        quantity: productQuantity
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
                                         window.location.href = '/transaction?buy_now=1';
+                                    } else {
+                                        alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
                                     }
                                 });
-                        } else {
-                            alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
-                        }
-                    });
+                            }
+                        });
                 } else {
                     // Guest: use sessionStorage
                     const buyNowItem = {
                         product_id: product.product_id,
-                        variant_id: variant_id,
+                        variant_id: selectedVariantId,
                         quantity: productQuantity
                     };
                     sessionStorage.setItem('buyNowItem', JSON.stringify(buyNowItem));

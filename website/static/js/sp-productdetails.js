@@ -180,13 +180,21 @@
         const productImage = document.getElementById('mainProductImage').src;
         const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
         const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        // Get selected variants
+        
+        // Get selected variants if they exist
         const selectedMaterialBtn = document.querySelector(".variant-choice[data-type='Material'].selected");
         const selectedMaterial = selectedMaterialBtn ? selectedMaterialBtn.getAttribute('data-value') : null;
         const selectedSizeBtn = document.querySelector(".variant-choice[data-type='Size'].selected");
         const selectedSize = selectedSizeBtn ? selectedSizeBtn.getAttribute('data-value') : null;
         const selectedVariantBtn = document.querySelector(".variant-choice[data-type]:not([data-type='Material']):not([data-type='Size']).selected");
         const selectedVariant = selectedVariantBtn ? selectedVariantBtn.getAttribute('data-value') : null;
+
+        // Check if variants exist and are required
+        const hasVariants = document.querySelectorAll('.variant-choice').length > 0;
+        if (hasVariants && !selectedMaterial && !selectedSize && !selectedVariant) {
+            alert('Please select a variant before adding to cart.');
+            return;
+        }
 
         if (isLoggedIn && product.product_id) {
             // Logged in: send to backend
@@ -246,23 +254,31 @@
                 return;
             }
             if (isLoggedIn && product.product_id) {
-                fetch('/buy-now', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        product_id: product.product_id,
-                        variant_id: selectedVariantId,
-                        quantity: productQuantity
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.href = '/transaction?buy_now=1';
-                    } else {
-                        alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
-                    }
-                });
+                fetch('/api/addresses')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success || !data.addresses || data.addresses.length === 0) {
+                            window.location.href = `/addresses?from=product&product_id=${product.product_id}&product_type=sp&variant_id=${selectedVariantId}&quantity=${productQuantity}`;
+                        } else {
+                            fetch('/buy-now', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    product_id: product.product_id,
+                                    variant_id: selectedVariantId,
+                                    quantity: productQuantity
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    window.location.href = '/transaction?buy_now=1';
+                                } else {
+                                    alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
+                                }
+                            });
+                        }
+                    });
             } else {
                 // Guest: use sessionStorage
                 const buyNowItem = {
@@ -419,5 +435,10 @@
             return window.productVariants[0].variant_id;
         }
         return null;
+    }
+
+    // When redirecting to /addresses, include product_type=sp
+    function redirectToAddressesForBuyNow(productId) {
+        window.location.href = `/addresses?from=product&product_id=${productId}&product_type=sp`;
     }
 });

@@ -653,12 +653,14 @@ function saveAddressWithData(firstName, lastName, phoneNumber, postalCode, stree
     const params = new URLSearchParams(window.location.search);
     const from = params.get('from');
     const productId = params.get('product_id');
+    const productType = params.get('product_type');
     const variantId = params.get('variant_id');
     const quantity = params.get('quantity');
     
     // Add URL parameters if they exist
     if (!currentEditId && from === 'product' && productId) {
         url += `?from=${from}&product_id=${productId}`;
+        if (productType) url += `&product_type=${productType}`;
         if (variantId) url += `&variant_id=${variantId}`;
         if (quantity) url += `&quantity=${quantity}`;
     }
@@ -670,13 +672,13 @@ function saveAddressWithData(firstName, lastName, phoneNumber, postalCode, stree
     })
     .then(response => response.json())
     .then(data => {
+        console.log('Response from /add-address:', data); // DEBUG LOG
         if (data.success) {
             if (data.redirect) {
-                console.log('Redirecting to:', data.redirect);
+                console.log('Redirecting to:', data.redirect); // DEBUG LOG
                 window.location.href = data.redirect;
                 return;
             }
-            
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = 'Address saved to database!';
             statusMessage.style.display = 'block';
@@ -689,7 +691,6 @@ function saveAddressWithData(firstName, lastName, phoneNumber, postalCode, stree
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = 'Error: ' + data.message;
             statusMessage.style.display = 'block';
-            // Scroll to the error message
             statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     })
@@ -698,7 +699,6 @@ function saveAddressWithData(firstName, lastName, phoneNumber, postalCode, stree
         const statusMessage = document.getElementById('statusMessage');
         statusMessage.textContent = 'Error: ' + error;
         statusMessage.style.display = 'block';
-        // Scroll to the error message
         statusMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 }

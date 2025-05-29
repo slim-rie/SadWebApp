@@ -197,32 +197,41 @@ document.addEventListener('DOMContentLoaded', async function () {
         buyNowBtn.addEventListener('click', function () {
             const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const selectedModelBtn = document.querySelector('.model-choice.selected');
-            const selectedModel = selectedModelBtn ? selectedModelBtn.textContent.trim() : null;
             if (isLoggedIn && product.product_id) {
-                fetch('/buy-now', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        product_id: product.product_id,
-                        quantity: productQuantity,
-                        model: selectedModel
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        window.location.href = '/transaction?buy_now=1';
-                    } else {
-                        alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
-                    }
-                });
+                // Check if user has address before proceeding
+                fetch('/api/addresses')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success || !data.addresses || data.addresses.length === 0) {
+                            // Redirect to addresses page with params
+                            window.location.href = `/addresses?from=product&product_id=${product.product_id}&product_type=sm`;
+                        } else {
+                            // Proceed with buy now as normal
+                            fetch('/buy-now', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    product_id: product.product_id,
+                                    quantity: productQuantity,
+                                    model: product.model_number
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    window.location.href = '/transaction?buy_now=1';
+                                } else {
+                                    alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
+                                }
+                            });
+                        }
+                    });
             } else {
                 // Guest: use sessionStorage
                 const buyNowItem = {
                     product_id: product.product_id,
                     quantity: productQuantity,
-                    model: selectedModel
+                    model: product.model_number
                 };
                 sessionStorage.setItem('buyNowItem', JSON.stringify(buyNowItem));
                 window.location.href = '/transaction?buy_now=1';
@@ -667,5 +676,10 @@ if (closeChatBtn) {
                 }
             });
         }
+    }
+
+    // When redirecting to /addresses, include product_type=sm
+    function redirectToAddressesForBuyNow(productId) {
+        window.location.href = `/addresses?from=product&product_id=${productId}&product_type=sm`;
     }
 });

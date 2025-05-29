@@ -982,3 +982,14 @@ footer {
     background: #fff0f0;
     color: #c9302c;
 }
+
+/* --- Review profile image fix --- */
+.review-profile-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    display: inline-block;
+    vertical-align: middle;
+}
