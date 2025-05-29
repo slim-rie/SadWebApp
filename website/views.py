@@ -109,7 +109,12 @@ def sewingmachines():
 
 @views.route('/sewingparts')
 def sewing_parts():
-    return render_template('sewingparts.html', user=current_user)
+    sewing_parts_categories = [
+        Category(category_name='Sewing Machine Components'),
+        Category(category_name='Sewing Machine Accessories'),
+        Category(category_name='Sewing Machine Needles')
+    ]
+    return render_template('sewingparts.html', user=current_user, categories=sewing_parts_categories, default_category='Sewing Machine Components')
 
 @views.route('/products-by-category/<category_name>')
 def products_by_category_new(category_name):
@@ -164,6 +169,7 @@ def get_product_image_url(product_name):
 @views.route('/api/cart', methods=['GET'])
 @login_required
 def get_cart():
+    from .models import Inventory
     cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
     return jsonify({
         'items': [{
@@ -173,7 +179,8 @@ def get_cart():
             'price': float(item.product.base_price),
             'quantity': item.quantity,
             'image_url': (('/static/' + item.product.images[0].image_url.lstrip('/')) if item.product.images and len(item.product.images) > 0 and not item.product.images[0].image_url.startswith('/static/') else (item.product.images[0].image_url if item.product.images and len(item.product.images) > 0 else get_product_image_url(item.product.product_name))),
-            'stock_quantity': item.product.stock_quantity,
+            # Fetch stock from Inventory
+            'stock_quantity': (Inventory.query.filter_by(product_id=item.product_id).first().available_stock if Inventory.query.filter_by(product_id=item.product_id).first() else 0),
             'variant': getattr(item, 'variant', None),
             'model': getattr(item, 'model', None)
         } for item in cart_items]
@@ -201,8 +208,9 @@ def add_to_cart():
         if category:
             category_name = category.category_name.lower()
 
-    # Only allow variant_id to be None for sewing machines
-    if not (category_name and 'sewing machine' in category_name) and variant_id is None:
+    # Only require variant_id if the product actually has variants
+    has_variants = ProductVariant.query.filter_by(product_id=product_id).count() > 0
+    if has_variants and variant_id is None:
         return jsonify({'success': False, 'message': 'Variant must be selected for this product.'}), 400
 
     cart_item = CartItem.query.filter_by(

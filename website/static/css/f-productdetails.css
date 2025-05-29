@@ -1028,3 +1028,14 @@ footer {
     font-size: 0.95em;
     padding: 0.45em 0.9em;
 }
+
+/* --- Review profile image fix --- */
+.review-profile-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    display: inline-block;
+    vertical-align: middle;
+}

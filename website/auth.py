@@ -784,15 +784,23 @@ def add_address():
         # Check if this is from product details
         from_param = request.args.get('from')
         product_id = request.args.get('product_id')
+        product_type = request.args.get('product_type')
         variant_id = request.args.get('variant_id')
         quantity = request.args.get('quantity')
         
         if from_param == 'product' and product_id:
-            redirect_url = f'/transaction?product_id={product_id}'
-            if variant_id:
-                redirect_url += f'&variant_id={variant_id}'
-            if quantity:
-                redirect_url += f'&quantity={quantity}'
+            if product_type:
+                redirect_url = f'/{product_type}-productdetails?product_id={product_id}'
+                if variant_id:
+                    redirect_url += f'&variant_id={variant_id}'
+                if quantity:
+                    redirect_url += f'&quantity={quantity}'
+            else:
+                redirect_url = f'/transaction?product_id={product_id}'
+                if variant_id:
+                    redirect_url += f'&variant_id={variant_id}'
+                if quantity:
+                    redirect_url += f'&quantity={quantity}'
             return jsonify({
                 'success': True, 
                 'message': 'Address saved successfully!',

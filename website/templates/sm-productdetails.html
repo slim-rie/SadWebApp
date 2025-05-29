@@ -293,6 +293,12 @@
                 const userInfo = document.createElement('div');
                 userInfo.className = 'review-user-info';
                 userInfo.innerHTML = `<strong>${review.username}</strong> <span class="review-date">${review.created_at}</span>`;
+                // Header (profile + user info)
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'review-header';
+                headerDiv.appendChild(profileImg);
+                headerDiv.appendChild(userInfo);
+                div.appendChild(headerDiv);
                 // Stars (at least 1)
                 const starsDiv = document.createElement('div');
                 starsDiv.className = 'review-stars';
@@ -302,10 +308,12 @@
                     star.className = i <= rating ? 'fas fa-star' : 'far fa-star';
                     starsDiv.appendChild(star);
                 }
+                div.appendChild(starsDiv);
                 // Review text
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'review-comment';
                 commentDiv.textContent = review.comment;
+                div.appendChild(commentDiv);
                 // Review image/media
                 let mediaDiv = '';
                 if (review.media_url) {
@@ -313,12 +321,8 @@
                     mediaDiv.className = 'review-media-img';
                     mediaDiv.src = review.media_url;
                     mediaDiv.alt = 'Review media';
+                    div.appendChild(mediaDiv);
                 }
-                div.appendChild(profileImg);
-                div.appendChild(userInfo);
-                div.appendChild(starsDiv);
-                div.appendChild(commentDiv);
-                if (mediaDiv) div.appendChild(mediaDiv);
                 reviewsContainer.appendChild(div);
             });
         } else {
