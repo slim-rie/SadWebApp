@@ -755,15 +755,18 @@
 
 .cancel-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     width: 100vw;
     height: 100vh;
     background: rgba(0,0,0,0.5);
-    display: none;
+    display: none; /* Show with JS: display: flex */
     align-items: center;
     justify-content: center;
     z-index: 2000;
+}
+
+.cancel-modal-overlay.active {
+    display: flex;
 }
 
 .cancel-modal {
@@ -771,9 +774,12 @@
     border-radius: 12px;
     padding: 32px 24px;
     max-width: 400px;
-    width: 100%;
+    width: 90vw;
+    max-height: 90vh;
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     text-align: center;
+    overflow-y: auto;
+    position: relative;
 }
 
 .cancel-modal h2 {
@@ -841,7 +847,7 @@
 @media (max-width: 500px) {
     .cancel-modal {
         padding: 18px 6px;
-        max-width: 95vw;
+        max-width: 98vw;
     }
 }
 

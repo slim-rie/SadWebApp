@@ -764,6 +764,56 @@ INSERT INTO `orders_statuses` VALUES
 UNLOCK TABLES;
 
 --
+-- Table structure for table `cancellation_reason`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cancellation_reason` (
+  `cancellation_reason_id` int NOT NULL AUTO_INCREMENT,
+  `cancellation_reason_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`cancellation_reason_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cancellation_reason`
+--
+
+LOCK TABLES `cancellation_reason` WRITE;
+/*!40000 ALTER TABLE `cancellation_reason` DISABLE KEYS */;
+INSERT INTO `cancellation_reason` VALUES
+(1, 'Need to change delivery address', NULL),
+(2, 'Need to input/change voucher code', NULL),
+(3, 'Need to modify order (size, color, quantity, etc.)', NULL),
+(4, 'Payment procedure too troublesome', NULL),
+(5, 'Found cheaper elsewhere', NULL),
+(6, 'Don\'t want to buy anymore', NULL),
+(7, 'Other', '');
+/*!40000 ALTER TABLE `cancellation_reason` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `order_cancellation`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `order_cancellation` (
+  `cancellation_id` int NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `cancellation_reason_id` int NOT NULL,
+  `cancelled_at` datetime DEFAULT NULL,
+  `other_reason` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`cancellation_id`),
+  KEY `order_id` (`order_id`),
+  KEY `cancellation_reason_id` (`cancellation_reason_id`),
+  CONSTRAINT `order_cancellation_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
+  CONSTRAINT `order_cancellation_ibfk_2` FOREIGN KEY (`cancellation_reason_id`) REFERENCES `cancellation_reason` (`cancellation_reason_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `orders`
 --
 
@@ -1631,6 +1681,9 @@ INSERT INTO `sales` VALUES
 -- Continue pattern for remaining users (3-20)
 /*!40000 ALTER TABLE `sales` ENABLE KEYS */;
 UNLOCK TABLES;
+
+-
+
 DROP TABLE IF EXISTS `reviews`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;

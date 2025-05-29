@@ -4,7 +4,7 @@ from flask_mail import Message
 auth = Blueprint('auth', __name__)
 
 from flask import render_template, request, flash, redirect, url_for, session, current_app, jsonify
-from .models import User, CartItem, Product, Address, Order, OrderItem, Role, ProductSpecification, Inventory, Review, OrderStatus
+from .models import User, CartItem, Product, Address, Order, OrderItem, Role, ProductSpecification, Inventory, Review, OrderStatus, Payment, PaymentMethod, CancellationReason, OrderCancellation, ProductImage
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -677,6 +677,23 @@ def orders():
         }
         status_obj = OrderStatus.query.get(order.status_id)
         status_name = status_obj.status_name.lower() if status_obj and hasattr(status_obj, 'status_name') else 'pending'
+        # Fetch payment method name
+        payment_method_name = ''
+        payment = Payment.query.filter_by(order_id=order.order_id).first()
+        if payment:
+            method = PaymentMethod.query.get(payment.payment_method_id)
+            if method:
+                payment_method_name = method.method_name
+        # Set image_path for each item using product_images
+        for item in order.items:
+            img = None
+            if hasattr(item.product, 'images') and item.product.images and len(item.product.images) > 0:
+                img = item.product.images[0].image_url
+            if not img:
+                img = 'pictures/default.png'
+            if img and not img.startswith('/static/'):
+                img = '/static/' + img.lstrip('/')
+            item.image_path = img
         formatted_orders.append({
             'id': order.order_id,
             'status': status_mapping.get(status_name, 'to-pay'),
@@ -684,9 +701,10 @@ def orders():
             'products': order_items,
             'total': float(order.total_amount),
             'deliveryDate': '',  # Add delivery date if you have it
-            'paymentMethod': order.payment_method if hasattr(order, 'payment_method') else ''
+            'paymentMethod': payment_method_name
         })
-    return render_template('orders.html', orders=formatted_orders, user=current_user)
+    cancellation_reasons = CancellationReason.query.all()
+    return render_template('orders.html', orders=formatted_orders, user=current_user, cancellation_reasons=cancellation_reasons)
 
 @auth.route('/chat')
 @login_required
@@ -913,52 +931,69 @@ def set_default_address(address_id):
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
 
-@auth.route('/cancel-order-details')
+@auth.route('/api/cancel-order', methods=['GET', 'POST'])
 @login_required
-def cancel_order_details():
-    import os
-    order_id = request.args.get('order_id')
-    order = None
-    if order_id:
-        from .models import Order, Product
+def cancel_order():
+    if request.method == 'GET':
+        order_id = request.args.get('order_id')
+        if not order_id:
+            return redirect(url_for('auth.orders'))
         order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
-        if order:
-            for item in order.items:
-                # Get the product image path
-                jpg_path = f"pictures/{item.product.product_name}.jpg"
-                png_path = f"pictures/{item.product.product_name}.png"
-                static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
-                jpg_full = os.path.join(static_dir, jpg_path)
-                png_full = os.path.join(static_dir, png_path)
-                
-                if os.path.exists(jpg_full):
-                    item.image_path = jpg_path
-                elif os.path.exists(png_full):
-                    item.image_path = png_path
-                else:
-                    item.image_path = 'pictures/default.png'
-    
-    return render_template('cancel_order_details.html', order=order)
-
-@auth.route('/api/cancel_order', methods=['POST'])
-@login_required
-def api_cancel_order():
+        if not order:
+            flash('Order not found', 'error')
+            return redirect(url_for('auth.orders'))
+        # Fetch all cancellation reasons
+        cancellation_reasons = CancellationReason.query.all()
+        return render_template('cancel_order_details.html', order=order, cancellation_reasons=cancellation_reasons)
+    # POST request for cancellation
     data = request.get_json()
     order_id = data.get('order_id')
-    reason = data.get('reason')
-    if not order_id or not reason:
-        return jsonify({'success': False, 'message': 'Order ID and reason are required.'}), 400
-    from .models import Order
+    cancellation_id = data.get('cancellation_id')
+    other_reason = data.get('other_reason', '').strip()
+    if not order_id or not cancellation_id:
+        return jsonify({'success': False, 'message': 'Order ID and cancellation reason are required.'}), 400
     order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
     if not order:
         return jsonify({'success': False, 'message': 'Order not found.'}), 404
-    if order.status == 'cancelled':
+    # Check if already cancelled by status_id
+    status_obj = OrderStatus.query.get(order.status_id)
+    if status_obj and status_obj.status_name.lower() == 'cancelled':
         return jsonify({'success': False, 'message': 'Order is already cancelled.'}), 400
-    order.status = 'cancelled'
-    order.cancellation_reason = reason
-    order.cancellation_requested_by = 'buyer' if getattr(current_user, 'role', None) == 'buyer' else 'admin'
-    db.session.commit()
-    return jsonify({'success': True, 'message': 'Order cancelled successfully.'})
+    try:
+        # 1. Create a new OrderCancellation record, storing other_reason if provided
+        order_cancellation = OrderCancellation(
+            order_id=order.order_id,
+            cancellation_reason_id=cancellation_id,
+            cancelled_at=datetime.utcnow(),
+            other_reason=other_reason if other_reason else None
+        )
+        db.session.add(order_cancellation)
+        db.session.flush()  # get the new cancellation_id
+        # 2. Update the order
+        cancelled_status = OrderStatus.query.filter_by(status_name='Cancelled').first()
+        if cancelled_status:
+            order.status_id = cancelled_status.status_id
+        order.cancellation_id = order_cancellation.cancellation_id
+        # Only store standard reason in orders.cancellation_reason
+        if not other_reason:
+            reason_obj = CancellationReason.query.get(cancellation_id)
+            order.cancellation_reason = reason_obj.cancellation_reason_name if reason_obj else ''
+        else:
+            order.cancellation_reason = ''
+        order.cancellation_requested_by = 'buyer'
+        order.updated_at = datetime.utcnow()
+        # Restore inventory for each cancelled item
+        for item in order.items:
+            inventory = Inventory.query.filter_by(product_id=item.product_id).first()
+            if inventory:
+                inventory.available_stock += item.quantity
+                if hasattr(inventory, 'stock_in') and inventory.stock_in is not None:
+                    inventory.stock_in += item.quantity
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Order cancelled successfully.'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @auth.route('/trackorder/<int:order_id>')
 @login_required
@@ -1213,3 +1248,49 @@ def order_item_details(order_id, order_item_id):
         img = '/static/' + img.lstrip('/')
     image_path = img
     return render_template('order_item_details.html', order=order, item=item, product=product, image_path=image_path)
+
+@auth.route('/cancel-order-details')
+@login_required
+def cancel_order_details():
+    order_id = request.args.get('order_id')
+    order = None
+    order_cancellation = None
+    cancellation_reason = None
+    payment = None
+    payment_method = None
+    user = None
+    if order_id:
+        order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+        if order and order.cancellation_id:
+            from .models import OrderCancellation, CancellationReason, Payment, PaymentMethod, ProductImage
+            order_cancellation = OrderCancellation.query.get(order.cancellation_id)
+            if order_cancellation:
+                cancellation_reason = CancellationReason.query.get(order_cancellation.cancellation_reason_id)
+        # Fetch payment and payment method
+        if order:
+            payment = Payment.query.filter_by(order_id=order.order_id).first()
+            if payment:
+                payment_method = PaymentMethod.query.get(payment.payment_method_id)
+            # Set image_path for each item using product_images table
+            for item in order.items:
+                product_image = ProductImage.query.filter_by(product_id=item.product_id).first()
+                if product_image and product_image.image_url:
+                    image_path = product_image.image_url
+                    if image_path.startswith('/static/'):
+                        image_path = image_path[len('/static/'):]
+                    if not image_path.startswith('pictures/'):
+                        image_path = 'pictures/' + image_path.lstrip('/')
+                    item.image_path = image_path
+                else:
+                    item.image_path = 'pictures/default.png'
+    # Always fetch user from database
+    user = User.query.get(current_user.user_id)
+    return render_template(
+        'cancel_order_details.html',
+        order=order,
+        order_cancellation=order_cancellation,
+        cancellation_reason=cancellation_reason,
+        payment=payment,
+        payment_method=payment_method,
+        user=user
+    )

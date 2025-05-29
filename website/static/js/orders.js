@@ -559,76 +559,70 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    let cancelOrderId = null;
-
     // Show modal when Cancel Order is clicked
-    // Use event delegation for dynamically loaded buttons
-    // Place this inside DOMContentLoaded
-
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('cancel-order-btn')) {
             const orderCard = e.target.closest('.order-card');
-            cancelOrderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
-            if (!cancelOrderId) {
+            const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
+            if (!orderId) {
                 alert('Order ID not found.');
                 return;
             }
             document.getElementById('cancelModalOverlay').style.display = 'flex';
+            document.getElementById('cancelForm').dataset.orderId = orderId;
         }
     });
 
-    // Hide modal on Not Now
-    const cancelModalNotNowBtn = document.getElementById('cancelModalNotNowBtn');
-    if (cancelModalNotNowBtn) {
-        cancelModalNotNowBtn.addEventListener('click', function() {
-            document.getElementById('cancelModalOverlay').style.display = 'none';
-            cancelOrderId = null;
-            document.getElementById('cancelForm').reset();
-            document.getElementById('confirmCancelBtn').disabled = true;
-            document.getElementById('otherText').style.display = 'none';
-        });
-    }
-
-    // Enable/disable Cancel Order button and show/hide Other text
+    // Handle cancellation form submission
     const cancelForm = document.getElementById('cancelForm');
     const confirmCancelBtn = document.getElementById('confirmCancelBtn');
     const otherRadio = document.getElementById('otherRadio');
     const otherText = document.getElementById('otherText');
-
-    if (cancelForm) {
+    if (cancelForm && confirmCancelBtn) {
         cancelForm.addEventListener('change', function() {
             const checked = cancelForm.querySelector('input[name="cancel_reason"]:checked');
             confirmCancelBtn.disabled = !checked;
-            if (checked && checked.value === 'Other') {
-                otherText.style.display = 'inline-block';
-                otherText.required = true;
+            if (checked) {
+                confirmCancelBtn.classList.add('modal-btn-danger');
             } else {
-                otherText.style.display = 'none';
-                otherText.required = false;
+                confirmCancelBtn.classList.remove('modal-btn-danger');
+            }
+            // Show/hide otherText
+            if (otherRadio && otherText) {
+                if (otherRadio.checked) {
+                    otherText.style.display = 'inline-block';
+                    otherText.required = true;
+                } else {
+                    otherText.style.display = 'none';
+                    otherText.required = false;
+                }
             }
         });
     }
 
-    // Confirm cancellation
-    if (confirmCancelBtn) {
+    // Handle cancel order button click
+    if (confirmCancelBtn && cancelForm) {
         confirmCancelBtn.addEventListener('click', function() {
+            const orderId = cancelForm.dataset.orderId;
             const reasonInput = cancelForm.querySelector('input[name="cancel_reason"]:checked');
-            let reason = reasonInput ? reasonInput.value : '';
-            if (reason === 'Other') {
-                reason = otherText.value.trim();
-                if (!reason) {
+            const cancellation_id = reasonInput ? reasonInput.value : '';
+            let other_reason = '';
+            if (otherRadio && otherRadio.checked && otherText) {
+                other_reason = otherText.value.trim();
+                if (!other_reason) {
                     otherText.focus();
+                    alert('Please specify the reason for cancellation.');
                     return;
                 }
             }
-            if (!reason) {
+            if (!cancellation_id) {
                 alert('Please select a cancellation reason.');
                 return;
             }
-            fetch('/api/cancel_order', {
+            fetch('/api/cancel-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_id: cancelOrderId, reason: reason })
+                body: JSON.stringify({ order_id: orderId, cancellation_id: cancellation_id, other_reason: other_reason })
             })
             .then(response => response.json())
             .then(data => {
@@ -636,14 +630,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     showSuccessMessage('Order cancelled successfully');
                     setTimeout(() => location.reload(), 1000);
                 } else {
-                    alert(data.message);
+                    alert(data.message || 'Failed to cancel order');
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while cancelling the order');
+            })
+            .finally(() => {
+                document.getElementById('cancelModalOverlay').style.display = 'none';
+                cancelForm.reset();
+                if (otherText) otherText.style.display = 'none';
             });
+        });
+    }
+
+    // Handle Not Now button click
+    const cancelModalNotNowBtn = document.getElementById('cancelModalNotNowBtn');
+    if (cancelModalNotNowBtn) {
+        cancelModalNotNowBtn.addEventListener('click', function() {
             document.getElementById('cancelModalOverlay').style.display = 'none';
-            cancelOrderId = null;
             cancelForm.reset();
-            confirmCancelBtn.disabled = true;
-            otherText.style.display = 'none';
+            if (otherText) otherText.style.display = 'none';
         });
     }
 
