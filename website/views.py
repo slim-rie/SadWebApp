@@ -1,7 +1,11 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
+<<<<<<< HEAD
 from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales, Payment, PaymentMethod, Tracking
+=======
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales
+>>>>>>> 241d20d1fadffc657b38b10cdb8259649f2b468f
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -261,53 +265,6 @@ def remove_cart_item(item_id):
 def cart():
     return render_template('cart.html', user=current_user)
 
-# Supply Request Routes
-@views.route('/api/supply-requests', methods=['GET'])
-@login_required
-def get_supply_requests():
-    if current_user.role != 'staff':
-        return jsonify({'success': False, 'message': 'Access denied. Staff members only.'}), 403
-    
-    supply_requests = SupplyRequest.query.filter_by(staff_id=current_user.user_id).order_by(SupplyRequest.request_date.desc()).all()
-    return jsonify({
-        'requests': [{
-            'id': req.id,
-            'product_id': req.product_id,
-            'product_name': req.product.name,
-            'quantity_requested': req.quantity_requested,
-            'status': req.status,
-            'request_date': req.request_date.isoformat(),
-            'notes': req.notes
-        } for req in supply_requests]
-    })
-
-@views.route('/api/supply-requests', methods=['POST'])
-@login_required
-def create_supply_request():
-    if current_user.role != 'staff':
-        return jsonify({'success': False, 'message': 'Access denied. Staff members only.'}), 403
-    
-    data = request.get_json()
-    product_id = data.get('product_id')
-    quantity = data.get('quantity')
-    notes = data.get('notes')
-    
-    if not product_id or not quantity:
-        return jsonify({'success': False, 'message': 'Please fill in all required fields.'}), 400
-    
-    try:
-        new_request = SupplyRequest(
-            product_id=product_id,
-            staff_id=current_user.user_id,
-            quantity_requested=int(quantity),
-            notes=notes
-        )
-        db.session.add(new_request)
-        db.session.commit()
-        return jsonify({'success': True, 'message': 'Supply request submitted successfully!'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
 
 # Payment Routes
 @views.route('/transaction')
@@ -1103,6 +1060,35 @@ def buy_now():
 
 #ari
 
+@views.route('/admin/critical_stock')
+def critical_stock():
+    results = (
+        db.session.query(
+            Product.product_id,
+            Product.product_name,
+            Supplier.supplier_name,
+            Inventory.available_stock,
+            Inventory.min_stock.label('alert_level'),
+            (Inventory.available_stock - Inventory.min_stock).label('below_minimum')
+        )
+        .join(Inventory, Inventory.product_id == Product.product_id)
+        .join(ProductSupplier, Product.product_id == ProductSupplier.product_id)
+        .join(Supplier, ProductSupplier.supplier_id == Supplier.supplier_id)
+        .filter(Inventory.stock_status == 'Low Stock')
+        .all()
+    )
+    critical = []
+    for row in results:
+        critical.append({
+            "product_id": row.product_id,
+            "product_name": row.product_name,
+            "supplier_name": row.supplier_name,
+            "available_stock": row.available_stock,
+            "alert_level": row.alert_level,
+            "below_minimum": row.below_minimum
+        })
+    return jsonify(critical)
+
 @views.route('/admin/update_profile', methods=['PUT', 'POST'])
 @login_required
 def update_profile():
@@ -1264,35 +1250,57 @@ def product_spec_list():
 
 @views.route('/admin/inventory_list')
 def inventory_list():
-    items = Inventory.query.order_by(Inventory.id.desc()).all()
+    from .models import Product, Supplier, ProductSupplier
+    inventory_items = (
+        db.session.query(
+            Inventory.inventory_id,
+            Inventory.product_id,
+            Inventory.order_id,
+            Product.product_name,
+            Supplier.supplier_name,
+            ProductSupplier.supplier_price,
+            Inventory.stock_quantity,
+            Inventory.stock_in,
+            Inventory.stock_out,
+            Inventory.min_stock,
+            Inventory.max_stock,
+            Inventory.available_stock,
+            Inventory.stock_status,
+            Inventory.created_at,
+            Inventory.updated_at
+        )
+        .join(Product, Inventory.product_id == Product.product_id)
+        .join(ProductSupplier, Inventory.product_id == ProductSupplier.product_id)
+        .join(Supplier, ProductSupplier.supplier_id == Supplier.supplier_id)
+        .order_by(Inventory.inventory_id.desc())
+        .all()
+    )
     result = []
-    for i in items:
+    for i in inventory_items:
         result.append({
-            'id': i.id,
+            'inventory_id': i.inventory_id,
+            'product_id': i.product_id,
+            'order_id': i.order_id,
             'product_name': i.product_name,
-            'product_code': i.product_code,
-            'category_name': i.category_name,
-            'selling_price': i.selling_price,
-            'min_stock': i.min_stock,
-            'max_stock': i.max_stock,
-            'last_updated': i.last_updated.strftime('%Y-%m-%d %H:%M:%S') if i.last_updated else '',
             'supplier_name': i.supplier_name,
             'supplier_price': i.supplier_price,
+            'stock_quantity': i.stock_quantity,
+            'stock_in': i.stock_in,
+            'stock_out': i.stock_out,
+            'min_stock': i.min_stock,
+            'max_stock': i.max_stock,
             'available_stock': i.available_stock,
             'stock_status': i.stock_status,
-            'product_status': i.product_status,
-            'memo': i.memo or ''
+            'created_at': i.created_at.strftime('%Y-%m-%d %H:%M:%S') if i.created_at else '',
+            'updated_at': i.updated_at.strftime('%Y-%m-%d %H:%M:%S') if i.updated_at else '',
         })
     return jsonify(result)
 
 @views.route('/admin/add_inventory', methods=['POST'])
 def add_inventory():
-
     data = request.get_json()
     required_fields = [
-        'product_name', 'product_code', 'category_name', 'selling_price', 'min_stock',
-        'max_stock', 'supplier_name', 'supplier_price', 'available_stock',
-        'stock_status', 'product_status'
+        'product_id', 'order_id', 'stock_quantity', 'stock_in', 'stock_out', 'min_stock', 'max_stock', 'available_stock', 'stock_status'
     ]
     missing = [f for f in required_fields if f not in data or data[f] in (None, '')]
     if missing:
@@ -1308,23 +1316,61 @@ def add_inventory():
         else:
             last_updated_dt = datetime.utcnow()
         inventory = Inventory(
-            product_name=data.get('product_name'),
-            product_code=data.get('product_code'),
-            category_name=data.get('category_name'),
-            selling_price=data.get('selling_price'),
+            product_id=data.get('product_id'),
+            order_id=data.get('order_id'),
+            stock_quantity=data.get('stock_quantity'),
+            stock_in=data.get('stock_in'),
+            stock_out=data.get('stock_out'),
             min_stock=data.get('min_stock'),
             max_stock=data.get('max_stock'),
             last_updated=last_updated_dt,
-            supplier_name=data.get('supplier_name'),
-            supplier_price=data.get('supplier_price'),
             available_stock=data.get('available_stock'),
             stock_status=data.get('stock_status'),
-            product_status=data.get('product_status'),
-            memo=data.get('memo')
         )
         db.session.add(inventory)
         db.session.commit()
-        return jsonify({'success': True, 'id': inventory.id})
+        # Fetch the joined row for this inventory
+        joined = db.session.query(
+            Inventory.inventory_id,
+            Inventory.product_id,
+            Inventory.order_id,
+            Product.product_name,
+            Supplier.supplier_name,
+            ProductSupplier.supplier_price,
+            Inventory.stock_quantity,
+            Inventory.stock_in,
+            Inventory.stock_out,
+            Inventory.min_stock,
+            Inventory.max_stock,
+            Inventory.available_stock,
+            Inventory.stock_status,
+            Inventory.created_at,
+            Inventory.updated_at
+        ).join(Product, Inventory.product_id == Product.product_id
+        ).join(ProductSupplier, Inventory.product_id == ProductSupplier.product_id
+        ).join(Supplier, ProductSupplier.supplier_id == Supplier.supplier_id
+        ).filter(Inventory.inventory_id == inventory.inventory_id).first()
+        if joined:
+            result = {
+                'inventory_id': joined.inventory_id,
+                'product_id': joined.product_id,
+                'order_id': joined.order_id,
+                'product_name': joined.product_name,
+                'supplier_name': joined.supplier_name,
+                'supplier_price': joined.supplier_price,
+                'stock_quantity': joined.stock_quantity,
+                'stock_in': joined.stock_in,
+                'stock_out': joined.stock_out,
+                'min_stock': joined.min_stock,
+                'max_stock': joined.max_stock,
+                'available_stock': joined.available_stock,
+                'stock_status': joined.stock_status,
+                'created_at': joined.created_at.strftime('%Y-%m-%d %H:%M:%S') if joined.created_at else '',
+                'updated_at': joined.updated_at.strftime('%Y-%m-%d %H:%M:%S') if joined.updated_at else '',
+            }
+            return jsonify({'success': True, 'inventory': result})
+        else:
+            return jsonify({'success': True, 'inventory_id': inventory.inventory_id})
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
@@ -1334,19 +1380,13 @@ def update_inventory(inventory_id):
     data = request.get_json()
     inventory = Inventory.query.get_or_404(inventory_id)
     try:
-        inventory.product_name = data.get('product_name', inventory.product_name)
-        inventory.product_code = data.get('product_code', inventory.product_code)
-        inventory.category_name = data.get('category_name', inventory.category_name)
-        inventory.selling_price = data.get('selling_price', inventory.selling_price)
+        inventory.stock_quantity = data.get('stock_quantity', inventory.stock_quantity)
+        inventory.stock_in = data.get('stock_in', inventory.stock_in)
+        inventory.stock_out = data.get('stock_out', inventory.stock_out)
         inventory.min_stock = data.get('min_stock', inventory.min_stock)
         inventory.max_stock = data.get('max_stock', inventory.max_stock)
-        inventory.supplier_name = data.get('supplier_name', inventory.supplier_name)
-        inventory.supplier_price = data.get('supplier_price', inventory.supplier_price)
         inventory.available_stock = data.get('available_stock', inventory.available_stock)
         inventory.stock_status = data.get('stock_status', inventory.stock_status)
-        inventory.product_status = data.get('product_status', inventory.product_status)
-        inventory.memo = data.get('memo', inventory.memo)
-        # Handle last_updated if provided
         from datetime import datetime
         last_updated = data.get('last_updated')
         if last_updated:
@@ -1354,8 +1394,55 @@ def update_inventory(inventory_id):
                 inventory.last_updated = datetime.strptime(last_updated, '%Y-%m-%dT%H:%M')
             except Exception:
                 pass
+        created_at = data.get('created_at')
+        if created_at:
+            try:
+                inventory.created_at = datetime.strptime(created_at, '%Y-%m-%dT%H:%M')
+            except Exception:
+                pass
         db.session.commit()
-        return jsonify({'success': True})
+        # Fetch joined row
+        joined = db.session.query(
+            Inventory.inventory_id,
+            Inventory.product_id,
+            Inventory.order_id,
+            Product.product_name,
+            Supplier.supplier_name,
+            ProductSupplier.supplier_price,
+            Inventory.stock_quantity,
+            Inventory.stock_in,
+            Inventory.stock_out,
+            Inventory.min_stock,
+            Inventory.max_stock,
+            Inventory.available_stock,
+            Inventory.stock_status,
+            Inventory.created_at,
+            Inventory.updated_at
+        ).join(Product, Inventory.product_id == Product.product_id
+        ).join(ProductSupplier, Inventory.product_id == ProductSupplier.product_id
+        ).join(Supplier, ProductSupplier.supplier_id == Supplier.supplier_id
+        ).filter(Inventory.inventory_id == inventory.inventory_id).first()
+        if joined:
+            result = {
+                'inventory_id': joined.inventory_id,
+                'product_id': joined.product_id,
+                'order_id': joined.order_id,
+                'product_name': joined.product_name,
+                'supplier_name': joined.supplier_name,
+                'supplier_price': joined.supplier_price,
+                'stock_quantity': joined.stock_quantity,
+                'stock_in': joined.stock_in,
+                'stock_out': joined.stock_out,
+                'min_stock': joined.min_stock,
+                'max_stock': joined.max_stock,
+                'available_stock': joined.available_stock,
+                'stock_status': joined.stock_status,
+                'created_at': joined.created_at.strftime('%Y-%m-%d %H:%M:%S') if joined.created_at else '',
+                'updated_at': joined.updated_at.strftime('%Y-%m-%d %H:%M:%S') if joined.updated_at else '',
+            }
+            return jsonify({'success': True, 'inventory': result})
+        else:
+            return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
@@ -1402,21 +1489,62 @@ def delete_supplier(supplier_id):
 
 @views.route('/admin/supplier_list')
 def supplier_list():
-    suppliers = Supplier.query.order_by(Supplier.id.desc()).all()
+    suppliers = Supplier.query.order_by(Supplier.supplier_id.desc()).all()
     result = []
     for s in suppliers:
         result.append({
-            'id': s.id,
-            'product_category': s.product_category,
-            'product_name': s.product_name,
+            'id': s.supplier_id,
             'supplier_name': s.supplier_name,
             'contact_person': s.contact_person,
             'phone_number': s.phone_number,
+            'email': s.email,
             'address': s.address,
-            'status': s.status,
+            'supplier_status': s.supplier_status,
             'registration_date': s.registration_date.strftime('%Y-%m-%d %H:%M:%S') if s.registration_date else ''
         })
     return jsonify(result)
+
+@views.route('/admin/sales_list')
+def sales_list():
+    sales = Sales.query.order_by(Sales.sale_date.desc()).all()
+    result = []
+    for s in sales:
+        result.append({
+            "sales_id": s.sales_id,
+            "order_id": s.order_id,
+            "product_id": s.product_id,
+            "user_id": s.user_id,
+            "sale_date": s.sale_date.strftime('%Y-%m-%d %H:%M:%S') if s.sale_date else "",
+            "total_amount": s.total_amount,
+            "payment_id": s.payment_id
+        })
+    return jsonify(result)
+
+@views.route('/api/product_suppliers', methods=['GET'])
+def get_supplier_products():
+    results = (
+        db.session.query(
+            ProductSupplier.product_supplier_id,
+            ProductSupplier.product_id,
+            Product.product_name,
+            ProductSupplier.supplier_id,
+            ProductSupplier.supplier_price,
+            ProductSupplier.is_primary
+        )
+        .join(Product, ProductSupplier.product_id == Product.product_id)
+        .all()
+    )
+    data = []
+    for row in results:
+        data.append({
+            'product_supplier_id': row[0],
+            'product_id': row[1],
+            'product_name': row[2],
+            'supplier_id': row[3],
+            'supplier_price': row[4],
+            'is_primary': row[5]
+        })
+    return jsonify(data)
 
 @views.route('/admin/add_product', methods=['POST'])
 def add_product():
@@ -1639,43 +1767,105 @@ def add_product_spec():
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 400
 
+@views.route('/admin/notify_supplier', methods=['POST'])
+@login_required
+def notify_supplier():
+    data = request.get_json()
+    product_id = int(data.get('product_id'))
+    quantity_requested = int(data.get('quantity_requested'))
+    notes = data.get('notes', '')
+    user_id = current_user.user_id  # admin or staff
+
+    # Get the right supplier_price from product_suppliers
+    ps = ProductSupplier.query.filter_by(product_id=product_id).first()
+    supplier_price = ps.supplier_price if ps else 0
+
+    # Create the supply request
+    new_request = SupplyRequest(
+        product_id=product_id,
+        requested_by=user_id,
+        quantity_requested=quantity_requested,
+        supply_status='Pending',
+        notes=notes,
+        request_date=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+    db.session.add(new_request)
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Supply request sent to supplier.'})
+
+@views.route('/admin/supply_requests')
+@login_required
+def get_supply_requests():
+    requests = (
+        db.session.query(SupplyRequest, Product, ProductSupplier, User)
+        .join(Product, SupplyRequest.product_id == Product.product_id)
+        .join(ProductSupplier, SupplyRequest.product_id == ProductSupplier.product_id)
+        .join(User, SupplyRequest.requested_by == User.user_id)
+        .all()
+    )
+    result = []
+    for req, prod, ps, user in requests:
+        result.append({
+            'request_id': req.request_id,
+            'product_id': req.product_id,
+            'product_name': prod.product_name,
+            'supplier_price': ps.supplier_price,
+            'requested_by': user.username,  # Show username, not id
+            'quantity_requested': req.quantity_requested,
+            'status': req.supply_status,
+            'notes': req.notes,
+            'request_date': req.request_date.strftime('%Y-%m-%d %H:%M'),
+            'updated_at': req.updated_at.strftime('%Y-%m-%d %H:%M'),
+        })
+    return jsonify(result)
+
 # ================= ADMIN: CUSTOMER ORDERS LIST API =================
+from .models import Order, OrderItem, User
+
 @views.route('/admin/orders_list')
 def admin_orders_list():
-    """
-    Returns all customer orders (with items) for admin panel. All statuses included.
-    """
-    from .models import Order, OrderItem, User
     orders = Order.query.order_by(Order.created_at.desc()).all()
     data = []
     for order in orders:
-        user = User.query.get(order.user_id)
-        items = []
-        for item in order.items:
-            items.append({
-                "order_item_id": item.id,
-                "product_id": item.product_id,
-                "quantity": item.quantity,
-                "price": float(item.price),
-                "created_at": item.created_at.strftime("%Y-%m-%d %H:%M:%S") if item.created_at else ""
-            })
         data.append({
             "order_id": order.order_id,
             "user_id": order.user_id,
-            "customer_name": f"{user.first_name} {user.last_name}" if user else "",
-            "total_amount": float(order.total_amount) if order.total_amount is not None else 0,
-            "status": order.status,
-            "payment_method": order.payment_method,
-            "payment_status": order.payment_status,
-            "shipping_address": order.shipping_address,
-            "order_status": order.order_status,
-            "order_date": order.order_date.strftime("%Y-%m-%d %H:%M:%S") if order.order_date else "",
-            "customer_issue": order.customer_issue,
-            "message": order.message,
-            "feedback": order.feedback,
-            "rate": order.rate,
-            "cancellation_reason": order.cancellation_reason,
-            "items": items
+            "cancellation_id": order.cancellation_id,
+            "order_date": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
+            "total_amount": order.total_amount,
+            "address_id": order.address_id,
+            "status_id": order.status_id,
+            "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
+            "updated_at": order.updated_at.strftime("%Y-%m-%d %H:%M:%S") if order.updated_at else "",
+        })
+    return jsonify(data)
+
+@views.route('/admin/order_items_list')
+def admin_order_items_list():
+    order_items = OrderItem.query.order_by(OrderItem.order_id.desc()).all()
+    data = []
+    for item in order_items:
+        data.append({
+            "item_id": getattr(item, "item_id", getattr(item, "id", None)),
+            "order_id": item.order_id,
+            "product_id": item.product_id,
+            "variant_id": item.variant_id,
+            "quantity": item.quantity,
+            "unit_price": float(item.unit_price),
+            "discount_amount": float(item.discount_amount),
+        })
+    return jsonify(data)
+
+@views.route('/admin/order_statuses_list')
+def admin_order_statuses_list():
+    statuses = OrderStatus.query.order_by(OrderStatus.status_id.asc()).all()
+    data = []
+    for status in statuses:
+        data.append({
+            "status_id": status.status_id,
+            "status_name": status.status_name,
+            "description": status.description,
         })
     return jsonify(data)
 
@@ -1752,3 +1942,66 @@ def delete_promotion(promotion_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)})
+
+@views.route('/supplier/update_supply_request_status', methods=['POST'])
+@login_required
+def update_supply_request_status():
+    data = request.get_json()
+    request_id = data.get('request_id')
+    new_status = data.get('status')
+    req = SupplyRequest.query.get(request_id)
+    if not req:
+        return jsonify({'success': False, 'message': 'Request not found'}), 404
+    req.supply_status = new_status
+    db.session.commit()
+
+    if new_status == 'Completed':
+        # Update inventory logic here
+        inventory = Inventory.query.filter_by(product_id=req.product_id).first()
+        if inventory:
+            inventory.stock_in += req.quantity_requested
+            inventory.available_stock += req.quantity_requested
+            if inventory.available_stock >= inventory.min_stock:
+                inventory.stock_status = 'In Stock'
+            db.session.commit()
+    return jsonify({'success': True})
+
+@views.route('/supplier/deliveries')
+@login_required
+def get_deliveries():
+    # Define which statuses count as delivery-related
+    delivery_statuses = [
+        'To Ship', 'To Deliver', 'In Transit', 'Delivered', 'Completed'
+    ]
+    # Join SupplyRequest, Product, ProductSupplier, Supplier, User
+    deliveries = (
+        db.session.query(
+            SupplyRequest.request_id,
+            Product.product_name,
+            SupplyRequest.quantity_requested,
+            User.username.label('requested_by_username'),
+            Supplier.supplier_name,
+            SupplyRequest.request_date,
+            SupplyRequest.updated_at.label('delivery_date'),
+            SupplyRequest.supply_status
+        )
+        .join(Product, SupplyRequest.product_id == Product.product_id)
+        .join(ProductSupplier, SupplyRequest.product_id == ProductSupplier.product_id)
+        .join(Supplier, ProductSupplier.supplier_id == Supplier.supplier_id)
+        .join(User, SupplyRequest.requested_by == User.user_id)
+        .filter(SupplyRequest.supply_status.in_(delivery_statuses))
+        .all()
+    )
+    result = []
+    for d in deliveries:
+        result.append({
+            "delivery_id": d.request_id,  # using request_id as delivery_id
+            "request_id": d.request_id,
+            "products": [{"name": d.product_name, "quantity": d.quantity_requested}],
+            "requested_by": d.requested_by_username,  # Show username, not id
+            "supplier_name": d.supplier_name,
+            "request_date": d.request_date.strftime('%Y-%m-%d'),
+            "delivery_date": d.delivery_date.strftime('%Y-%m-%d'),
+            "status": d.supply_status
+        })
+    return jsonify(result)

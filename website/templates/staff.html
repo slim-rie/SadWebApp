@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/admin.css') }}">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/BACKUP_RESTORE.CSS') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/staff.css') }}">
 
   <div class="row no-gutters dashboard">
     <!-- Sidebar -->
@@ -327,6 +328,38 @@
   </div>
 </div>
 
+<!-- Add this to your admin.html -->
+<div id="notifySupplierModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-modal" id="closeNotifyModal">&times;</span>
+    <h2>Notify Supplier</h2>
+    <form id="notifySupplierForm">
+      <input type="hidden" id="modalProductId">
+      <div>
+        <label>Product Name:</label>
+        <span id="modalProductName"></span>
+      </div>
+      <div>
+        <label>Supplier:</label>
+        <span id="modalSupplierName"></span>
+      </div>
+      <div>
+        <label>Supplier Price:</label>
+        <span id="modalSupplierPrice"></span>
+      </div>
+      <div>
+        <label>Quantity Requested:</label>
+        <input type="number" id="modalQuantityRequested" min="1" required>
+      </div>
+      <div>
+        <label>Notes:</label>
+        <textarea id="modalNotes"></textarea>
+      </div>
+      <button type="submit">Send Request</button>
+    </form>
+  </div>
+</div>
+
     <!-- Main Content (ADMIN MAIN CONTENT) -->
     <div class="main-content">
         <!-- Dashboard Section (ADMIN DASHBOARD SECTION) -->
@@ -344,66 +377,20 @@
                             Total of Critical Stocks
                         </div>
                     </h2>
-                    <table class="table table-sm">
+                    <table class="table table-sm critical-stock-table">
                         <thead>
                             <tr>
                                 <th>PRODUCT ID</th>
                                 <th>PRODUCT NAME</th>
                                 <th>SUPPLIER</th>
-                                <th>CURRENT STOCK</th>
+                                <th>AVAILABLE STOCK</th>
                                 <th>ALERT LEVEL</th>
+                                <th>BELOW MINIMUM</th>
                                 <th>NOTIFY SUPPLIER</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>15</td>
-                                <td>Portable sewing machine</td>
-                                <td>Shunfa</td>
-                                <td>3</td>
-                                <td class="alert-level">⚠ 10</td>
-                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
-                            </tr>
-                            <tr>
-                              <td>29</td>
-                                <td>Bobbin case</td>
-                                <td>Shunfa</td>
-                                <td>5</td>
-                                <td class="alert-level">⚠ 15</td>
-                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
-                            </tr>
-                            <tr>
-                              <td>44</td>
-                                <td>China Cotton 165 GSM</td>
-                                <td>Guifang Manufacturing</td>
-                                <td>3</td>
-                                <td class="alert-level">⚠ 8</td>
-                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
-                            </tr>
-                            <tr>
-                              <td>59</td>
-                                <td>Series Edger Machine</td>
-                                <td>Tai-Sing Industrial</td>
-                                <td>2</td>
-                                <td class="alert-level">⚠ 10</td>
-                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
-                            </tr>
-                            <tr>
-                              <td>65</td>
-                                <td>Piping Machine</td>
-                                <td>Tai-Sing Industrial</td>
-                                <td>5</td>
-                                <td class="alert-level">⚠ 15</td>
-                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
-                            </tr>
-                            <tr>
-                              <td>78</td>
-                                <td>Presser foot</td>
-                                <td>Shunfa</td>
-                                <td>3</td>
-                                <td class="alert-level">⚠ 8</td>
-                                <td><a href="#" class="notify-btn">Notify Supplier</a></td>
-                            </tr>
+                            
                         </tbody>
                     </table>
                 </div>
@@ -417,7 +404,7 @@
                             Total of New Orders
                         </div>
                     </h2>
-                    <table class="table table-sm">
+                    <table class="table table-sm new-orders-table">
                         <thead>
                             <tr>
                                 <th>ORDER ID</th>
@@ -546,6 +533,7 @@
             </div>
         </div>
 
+
         <!-- Supplier Section -->
         <div id="supplier-section" class="content-section">
             <div class="header">
@@ -583,19 +571,20 @@
 
                 <!-- Supplier List Card -->
                 <div class="card">
-                    <table class="table table-sm supplier-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Product Category</th>
-                                <th>Product Name</th>
-                                <th>Supplier Name</th>
-                                <th>Contact Person</th>
-                                <th>Phone Number</th>
-                                <th>Address</th>
-                                <th>Status</th>
-                                <th>Registration Date</th>
-                                
+                  <table class="supply-request-table">
+                    <h3>SUPPLY REQUEST</h3>
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th>Supplier Price</th>
+                            <th>Requested By</th>
+                            <th>Quantity Requested</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                            <th>Request Date</th>
+                            <th>Updated At</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -603,6 +592,46 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="card">
+                  <table class="table table-sm supplier-table">
+                     <h3>SUPPLIERS INFO</h3>
+                       <thead>
+                           <tr>
+                               <th>Supplier ID</th>
+                               <th>Supplier Name</th>
+                               <th>Contact Person</th>
+                               <th>Phone Number</th>
+                               <th>Email</th>
+                               <th>Address</th>
+                               <th>Supplier Status</th>
+                               <th>Registration Date</th>
+                               <th>Actions</th>
+                         </tr>
+                     </thead>
+                     <tbody>
+                         <!-- JS will populate rows here -->
+                     </tbody>
+                 </table>
+               </div>
+                <div class="card">
+                  <table class="supplier-products-table-body">
+                    <h3>SUPPLIERS PRODUCTS MANAGEMENT</h3>
+                      <thead>
+                          <tr>
+                              <th>Product Supplier ID</th>
+                              <th>Product ID</th>
+                              <th>Product Name</th>
+                              <th>Supplier ID</th>
+                              <th>Supplier Price</th>
+                              <th>Is Primary</th> 
+                              <th>Actions</th>
+                          </tr>
+                      </thead>
+                      <tbody id="supplier-products-table-body">
+                          <!-- Supplier rows will be dynamically rendered by JavaScript -->
+                      </tbody>
+                  </table>
+              </div>
             </div>
         </div>
 
@@ -655,21 +684,22 @@
                     <table class="table inventory-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>Inventory ID</th>
+                                <th>Product ID</th>
+                                <th>Order ID</th>
                                 <th>Product Name</th>
-                                <th>Product Code</th>
-                                <th>Category Name</th>
-                                <th>Selling Price</th>
-                                <th>Min Stock</th>
-                                <th>Max Stock</th>
-                                <th>Last Updated</th>
                                 <th>Supplier Name</th>
                                 <th>Supplier Price</th>
+                                <th>Stock Quantity</th>
+                                <th>Stock In</th>
+                                <th>Stock Out</th>
+                                <th>Min Stock</th>
+                                <th>Max Stock</th>
                                 <th>Available Stock</th>
                                 <th>Stock Status</th>
-                                <th>Product Status</th>
-                                <th>Memo</th>
-                                
+                                <th>Created At</th>
+                                <th>Last Updated</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -730,18 +760,15 @@
                         <thead>
                             <tr>
                                 <th>Picture</th>
-                                <th>ID</th>
+                                <th>Product ID</th>
                                 <th>Product Name</th>
                                 <th>Model Number</th>
-                                
+                                <th>Description</th>
                                 <th>Category ID</th>
                                 <th>Base Price</th>
-                                <th>Discount Percentage</th>
-                                <th>Stock Quantity</th>
-                                <th>Created At</th>
                                 <th>Updated At</th>
-                                
-                                
+                                <th>Created At</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -902,93 +929,18 @@
                   <thead>
                     <tr>
                       <th>Sale ID</th>
-                      <th>Customer</th>
-                      <th>Item</th>
-                      <th>Quantity</th>
+                      <th>Order ID</th>
+                      <th>Product ID</th>
+                      <th>User ID</th>
+                      <th>Sale Date</th>
                       <th>Total Amount</th>
-                      <th>Payment Method</th>
-                      <th>Payment Ref #</th>
-                      <th>Delivery Ref #</th>
-                      <th>Order Status</th>
-                      <th>Date</th>
+                      <th>Payment ID</th>
+                      <th>Actions</th>
                       
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>1</td>
-                      <td>Sunghoon Park</td>
-                      <td>• BI835-012-000-Positioning finger</td>
-                      <td>1</td>
-                      <td>₱850.00</td>
-                      <td>GCash</td>
-                      <td>GC123456</td>
-                      <td>Pending</td>
-                      <td>Pending</td>
-                      <td>2025-03-08 16:00:00</td>
-                      <td>
-                        <button class="accept-btn">Accept</button>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tbody>
-                    <tr>
-                      <td>2</td>
-                      <td>Minji Kim</td>
-                      <td>• SF-747-4 threads overlock machine</td>
-                      <td>4</td>
-                      <td>₱475.00</td>
-                      <td>Bank</td>
-                      <td>BN847561</td>
-                      <td>Pending</td>
-                      <td>Pending</td>
-                      <td>2025-03-07 09:00:00</td>
-                      <td>
-                        <button class="accept-btn">Accept</button>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tbody>
-                    <tr>
-                      <td>3</td>
-                      <td>Lee Jihoon</td>
-                      <td>• SF-372 Buttonsew machine</td>
-                      <td>3</td>
-                      <td>₱440.00</td>
-                      <td>GCash</td>
-                      <td>GC675432</td>
-                      <td>DL789003</td>
-                      <td>To Ship</td>
-                      <td>2025-03-05 14:30:00</td>
-                      <td>
-                        <button class="accept-btn">Accept</button>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tbody>
-                    <tr>
-                      <td>4</td>
-                      <td>Sunghoon Park</td>
-                      <td>• B1917-012-000-Bobbin case <br>• BI837-012-000-Bobbin </br> </td>
-                      <td>5</td>
-                      <td>₱1,180.00</td>
-                      <td>Bank</td>
-                      <td>BN284931</td>
-                      <td>DL789004</td>
-                      <td>Cancelled</td>
-                      <td>2025-03-04 11:00:00</td>
-                      <td>
-                        <button class="accept-btn">Accept</button>
-                        <button class="edit-btn">Edit</button>
-                        <button class="delete-btn">Delete</button>
-                      </td>
-                    </tr>
+
                   </tbody>
                 </table>
               </div>
@@ -1030,84 +982,53 @@
               </div>
               <div class="card">
                 <table class="table table-sm" id="customer-orders-table">
+                  <h3>ORDERS</h3>
                   <thead>
                     <tr>
                       <th>Order ID</th>
-                      <th>Product ID(s)</th>
                       <th>User ID</th>
-                      <th>Total Amount</th>
-                      <th>Status</th>
-                      <th>Payment Method</th>
-                      <th>Payment Status</th>
-                      <th>Shipping Address</th>
-                      <th>Order Status</th>
+                      <th>Cancellation ID</th>
                       <th>Order Date</th>
-                      <th>Customer Issue</th>
-                      <th>Message</th>
-                      <th>Feedback</th>
-                      <th>Rate</th>
-                      <th>Cancellation Reason</th>
-                      
+                      <th>Total Amount</th>
+                      <th>Address ID</th>
+                      <th>Status ID</th>
+                      <th>Created At</th>
+                      <th>Updated At</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                   </tbody>
                 </table>
               </div>
-            </div>
-          </div>
-          
-          <!-- Personnel Section -->
-          <div id="personnel-section" class="content-section">
-            <div class="header">
-              <h1>PERSONNEL MANAGEMENT</h1>
-            </div>
-
-            <div class="personnel-actions">
-              <a href="#" class="personnel-add-btn">Add Personnel</a>
-              <a href="#" class="personnel-edit-btn">Edit Personnel</a>
-              <a href="#" class="personnel-delete-btn">Delete Personnel</a>
-            </div>
-            
-            <div class="personnel-cards">
               <div class="card">
-                <div class="filter-section">
-                  <div class="filter-group">
-                    <label>Role</label>
-                    <select class="filter-select" id="filter-category">
-                      <option>All Roles</option>
-                      <option>Admin</option>
-                      <option>Staff</option>
-                    </select>
-                  </div>
-                  <div class="filter-group">
-                    <label>Status</label>
-                    <select class="filter-select" id="filter-category">
-                      <option>All Status</option>
-                      <option>Active</option>
-                      <option>Inactive</option>
-                    </select>
-                  </div>
-                  <div class="filter-buttons">
-                    <button class="personnel-filter-btn">Apply Filters</button>
-                    <button class="personnel-reset-btn">Reset</button>
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <table class="personnel-table">
+                <table class="table table-sm" id="order-statuses-table">
+                  <h3>ORDER STATUSES</h3>
                   <thead>
                     <tr>
-                      <th>User ID</th>
-                      <th>Username</th> <!-- generate username -->
-                      <th>Email</th>
-                      <th>Password</th>
-                      <th>First Name</th>
-                      <th>Middle Name</th>
-                      <th>Last Name</th>
-                      <th>Role</th>
-                      <th>Last Login</th>
-                      
+                      <th>Status ID</th>
+                      <th>Status Name</th>
+                      <th>Description</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+              <div class="card">
+                <table class="table table-sm" id="order-items-table">
+                  <h3>ORDER ITEMS</h3>
+                  <thead>
+                    <tr>
+                      <th>Item ID</th>
+                      <th>Order ID</th>
+                      <th>Product ID</th>
+                      <th>Variant ID</th>
+                      <th>Quantity</th>
+                      <th>Unit Price</th>
+                      <th>Discount Amount</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1250,46 +1171,7 @@
           </div>
 
 
-          <div id="backup-section" class="content-section">
-            <div class="header">
-              <h1>BACKUP & RESTORE</h1>
-            </div>
-          
-            <div class="backup-box">
-              <button type="button" class="btn btn-primary btn-lg" id="backup-btn">⬆️ Backup</button>
-              <button type="button" class="btn btn-primary btn-lg" id="restore-btn">⬇️ Restore</button>
-              <input type="file" id="restore-file-input" style="display:none" accept=".bak,.sql,.csv" />
-              <script>
-                document.getElementById('backup-btn').onclick = function() {
-                  window.location.href = '/admin/backup';
-                };
-                document.getElementById('restore-btn').onclick = function() {
-                  document.getElementById('restore-file-input').click();
-                };
-                document.getElementById('restore-file-input').onchange = function(e) {
-                  var file = e.target.files[0];
-                  if (!file) return;
-                  var formData = new FormData();
-                  formData.append('file', file);
-                  fetch('/admin/restore', {
-                    method: 'POST',
-                    body: formData
-                  }).then(res => res.json()).then(data => {
-                    if (data.success) {
-                      alert('Database restored successfully!');
-                    } else {
-                      alert('Restore failed: ' + (data.error || 'Unknown error'));
-                    }
-                  }).catch(err => alert('Restore failed: ' + err));
-                };
-              </script>
-          
-              <div class="backup-guide" style="margin-top: 18px; font-size: 1.3rem; color: #333;">
-                <p>Click <b>Backup</b> to save a copy of your database data.<br>
-                To <b>Restore</b>, you need to export a database file.</p>
-              </div>
-            </div>
-          </div>
+        
 
           
           
@@ -1449,6 +1331,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return null;
     };
   }
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 <script src="{{ url_for('static', filename='js/chat_modal.js') }}"></script>

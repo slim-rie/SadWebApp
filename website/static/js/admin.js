@@ -1,6 +1,11 @@
 // Supplier Section Functionality
 
 document.addEventListener('DOMContentLoaded', function() {
+    // On page load, if supplier section is visible, fetch suppliers
+    const supplierSection = document.getElementById('supplier-section');
+    if (supplierSection && supplierSection.classList.contains('active')) {
+        fetchAndRenderSuppliers();
+    }
     // Add Supplier Button
     const supplierAddBtn = document.getElementById('supplier-add-btn');
     if(supplierAddBtn) {
@@ -50,6 +55,51 @@ function showSection(sectionName) {
     if (sectionName === 'customer-orders') fetchAndRenderCustomerOrders();
 }
 
+function fetchAndRenderSupplierProducts() {
+    fetch('/api/product_suppliers')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('supplier-products-table-body');
+            tableBody.innerHTML = ''; // Clear previous rows
+
+            if (data.length === 0) {
+                // Optionally show a message if no data
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="7" style="text-align:center;">No records found.</td>`;
+                tableBody.appendChild(row);
+                return;
+            }
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.product_supplier_id}</td>
+                    <td>${item.product_id}</td>
+                    <td>${item.product_name}</td>
+                    <td>${item.supplier_id}</td>
+                    <td>${item.supplier_price}</td>
+                    <td>${item.is_primary ? 'Yes' : 'No'}</td>
+                    <td>
+                        <button class="update-supplier-product-btn" data-id="${item.product_supplier_id}">Update</button>
+                        <button class="delete-supplier-product-btn" data-id="${item.product_supplier_id}">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching supplier products:', error);
+        });
+}
+
+// Call this function when the page loads or when you need to refresh the table
+document.addEventListener('DOMContentLoaded', function() {
+    fetchAndRenderSupplierProducts();
+});
+
+// Call this function on page load or after updating supplier products
+fetchAndRenderSupplierProducts();
+
 // === UNIFIED INITIALIZATION AND SIDEBAR NAVIGATION ===
 document.addEventListener('DOMContentLoaded', function() {
     // Sidebar navigation
@@ -71,7 +121,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof fetchAndRenderProductImages === 'function') fetchAndRenderProductImages();
     if (typeof fetchAndRenderProductSpecs === 'function') fetchAndRenderProductSpecs();
     if (typeof fetchAndRenderProductVariants === 'function') fetchAndRenderProductVariants();
-    if (typeof fetchAndRenderBrands === 'function') fetchAndRenderBrands();
     if (typeof fetchAndRenderCategories === 'function') fetchAndRenderCategories();
     // --- CUSTOMER ORDERS TABLE ---
     if (document.getElementById('customer-orders-table') && typeof fetchAndRenderCustomerOrders === 'function') {
@@ -94,11 +143,10 @@ function renderSupplierTable(suppliers) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${s.id}</td>
-            <td>${s.product_category || ''}</td>
-            <td>${s.product_name || ''}</td>
             <td>${s.supplier_name || ''}</td>
             <td>${s.contact_person || ''}</td>
             <td>${s.phone_number || ''}</td>
+            <td>${s.email || ''}</td>
             <td>${s.address || ''}</td>
             <td>${s.status || ''}</td>
             <td>${s.registration_date || ''}</td>
@@ -163,28 +211,20 @@ function showAddSupplierModal() {
             <h2>Add Supplier</h2>
             <form id="add-supplier-form">
               <div class="form-group">
-                <label for="supplier-product-category">Product Category</label>
-                <select id="supplier-product-category" name="product_category">
-                  <option value="Sewing Machine">Sewing Machine</option>
-                  <option value="Sewing Parts">Sewing Parts</option>
-                  <option value="Fabrics">Fabrics</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="supplier-product-name">Product Name</label>
-                <input type="text" id="supplier-product-name" name="product_name" required>
-              </div>
-              <div class="form-group">
-                <label for="supplier-supplier-name">Supplier Name</label>
-                <input type="text" id="supplier-supplier-name" name="supplier_name" required>
+                <label for="supplier-name">Supplier Name</label>
+                <input type="text" id="supplier-name" name="supplier_name" required>
               </div>
               <div class="form-group">
                 <label for="supplier-contact-person">Contact Person</label>
-                <input type="text" id="supplier-contact-person" name="contact_person">
+                <input type="text" id="supplier-contact-person" name="contact_person" required>
               </div>
               <div class="form-group">
                 <label for="supplier-phone-number">Phone Number</label>
-                <input type="text" id="supplier-phone-number" name="phone_number">
+                <input type="text" id="supplier-phone-number" name="phone_number" required>
+              </div>
+              <div class="form-group">
+                <label for="supplier-email">Email</label>
+                <input type="text" id="supplier-email" name="email">
               </div>
               <div class="form-group">
                 <label for="supplier-address">Address</label>
@@ -196,6 +236,10 @@ function showAddSupplierModal() {
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
+              </div>
+              <div class="form-group">
+                <label for="supplier-registration-date">Registration Date</label>
+                <input type="text" id="supplier-registration-date" name="registration_date">
               </div>
               <div style="text-align:right;">
                 <button type="button" id="cancel-add-supplier-btn">Cancel</button>
@@ -215,13 +259,13 @@ function showAddSupplierModal() {
             if (event.target === modal) modal.style.display = 'none';
         });
         // Reset form fields
-        document.getElementById('supplier-product-category').value = "";
-        document.getElementById('supplier-product-name').value = "";
-        document.getElementById('supplier-supplier-name').value = "";
+        document.getElementById('supplier-name').value = "";
         document.getElementById('supplier-contact-person').value = "";
         document.getElementById('supplier-phone-number').value = "";
+        document.getElementById('supplier-email').value = "";
         document.getElementById('supplier-address').value = "";
         document.getElementById('supplier-status').value = "Active";
+        document.getElementById('supplier-registration-date').value = "";
 
         // Change modal title for clarity
         modal.querySelector('h2').textContent = "Add Supplier";
@@ -231,13 +275,13 @@ function showAddSupplierModal() {
         form.onsubmit = function(e) {
             e.preventDefault();
             const supplier = {
-                product_category: document.getElementById('supplier-product-category').value,
-                product_name: document.getElementById('supplier-product-name').value,
-                supplier_name: document.getElementById('supplier-supplier-name').value,
+                name: document.getElementById('supplier-name').value,
                 contact_person: document.getElementById('supplier-contact-person').value,
                 phone_number: document.getElementById('supplier-phone-number').value,
+                email: document.getElementById('supplier-email').value,
                 address: document.getElementById('supplier-address').value,
-                status: document.getElementById('supplier-status').value
+                status: document.getElementById('supplier-status').value,
+                registration_date: document.getElementById('supplier-registration-date').value
             };
             addSupplier(supplier);
             modal.style.display = 'none';
@@ -255,26 +299,26 @@ function showUpdateSupplierModal(supplier) {
     }
     modal.querySelector('h2').textContent = "Update Supplier";
     // Pre-fill the form fields
-    document.getElementById('supplier-product-category').value = supplier.product_category;
-    document.getElementById('supplier-product-name').value = supplier.product_name;
-    document.getElementById('supplier-supplier-name').value = supplier.supplier_name;
+    document.getElementById('supplier-name').value = supplier.name;
     document.getElementById('supplier-contact-person').value = supplier.contact_person;
     document.getElementById('supplier-phone-number').value = supplier.phone_number;
+    document.getElementById('supplier-email').value = supplier.email;
     document.getElementById('supplier-address').value = supplier.address;
     document.getElementById('supplier-status').value = supplier.status;
+    document.getElementById('supplier-registration-date').value = supplier.registration_date;
 
     // Change the form submission logic
     const form = modal.querySelector('#add-supplier-form');
     form.onsubmit = function(e) {
         e.preventDefault();
         const updatedSupplier = {
-            product_category: document.getElementById('supplier-product-category').value,
-            product_name: document.getElementById('supplier-product-name').value,
-            supplier_name: document.getElementById('supplier-supplier-name').value,
+            name: document.getElementById('supplier-name').value,
             contact_person: document.getElementById('supplier-contact-person').value,
             phone_number: document.getElementById('supplier-phone-number').value,
+            email: document.getElementById('supplier-email').value,
             address: document.getElementById('supplier-address').value,
-            status: document.getElementById('supplier-status').value
+            status: document.getElementById('supplier-status').value,
+            registration_date: document.getElementById('supplier-registration-date').value
         };
         updateSupplier(supplier.id, updatedSupplier);
         modal.style.display = 'none';
@@ -343,6 +387,8 @@ function contactSupplier(id) {
 
 
 // Inventory Section Functionality
+// Inventory Section Functionality
+
 function fetchAndRenderInventory() {
     fetch('/admin/inventory_list')
         .then(res => res.json())
@@ -357,232 +403,174 @@ function renderInventoryTable(items) {
     items.forEach(i => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${i.id}</td>
+            <td>${i.inventory_id}</td>
+            <td>${i.product_id}</td>
+            <td>${i.order_id}</td>
             <td>${i.product_name}</td>
-            <td>${i.product_code}</td>
-            <td>${i.category_name}</td>
-            <td>${i.selling_price}</td>
-            <td>${i.min_stock}</td>
-            <td>${i.max_stock}</td>
-            <td>${i.last_updated}</td>
             <td>${i.supplier_name}</td>
             <td>${i.supplier_price}</td>
+            <td>${i.stock_quantity}</td>
+            <td>${i.stock_in}</td>
+            <td>${i.stock_out}</td>
+            <td>${i.min_stock}</td>
+            <td>${i.max_stock}</td>
             <td>${i.available_stock}</td>
             <td>${i.stock_status}</td>
-            <td>${i.product_status}</td>
-            <td>${i.memo}</td>
+            <td>${i.created_at}</td>
+            <td>${i.updated_at}</td>
             <td>
-                <button class="update-inventory-btn" data-id="${i.id}">Update</button>
-                <button class="delete-inventory-btn" data-id="${i.id}">Delete</button>
+                <button class="update-inventory-btn" data-id="${i.inventory_id}">Update</button>
+                <button class="delete-inventory-btn" data-id="${i.inventory_id}">Delete</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 
     document.querySelectorAll('.update-inventory-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        const item = items.find(i => i.id == id); // Make sure you have access to the items array
-        showUpdateInventoryModal(item);
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const item = items.find(i => i.inventory_id == id);
+            showUpdateInventoryModal(item);
+        });
     });
-});
 
     document.querySelectorAll('.delete-inventory-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        deleteInventory(id);
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            deleteInventory(id);
+        });
     });
-});
-
 }
 
 function showAddInventoryModal() {
-    let modal = document.getElementById('add-inventory-modal');
+    // ... (modal setup code, see below for minimal version)
+    showInventoryModal('Add Inventory', {}, addInventory);
+}
+
+function showUpdateInventoryModal(item) {
+    showInventoryModal('Update Inventory', item, function(updatedItem) {
+        updateInventory(item.inventory_id, updatedItem);
+    });
+}
+
+function showInventoryModal(title, item, onSave) {
+    let modal = document.getElementById('inventory-modal');
     if (!modal) {
-        // Inject modal CSS if not present
-        if (!document.getElementById('add-inventory-modal-style')) {
-            const style = document.createElement('style');
-            style.id = 'add-inventory-modal-style';
-            style.textContent = `
-                .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh; overflow: auto; background: rgba(0,0,0,0.4); }
-                .modal-content { background: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; position: relative; }
-                .modal .close { position: absolute; right: 16px; top: 8px; color: #aaa; font-size: 24px; cursor: pointer; }
-                .modal .close:hover { color: #333; }
-                .form-group { margin-bottom: 1em; }
-                .form-group label { display: block; margin-bottom: 0.3em; }
-                .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.5em; border: 1px solid #ccc; border-radius: 4px; }
-            `;
-            document.head.appendChild(style);
-        }
-        // Create modal HTML
         modal = document.createElement('div');
-        modal.id = 'add-inventory-modal';
+        modal.id = 'inventory-modal';
         modal.className = 'modal';
         modal.innerHTML = `
           <div class="modal-content">
-            <span class="close" id="close-add-inventory-modal">&times;</span>
-            <h2>Add Inventory Item</h2>
-            <form id="add-inventory-form">
+            <span class="close" id="close-inventory-modal">&times;</span>
+            <h2 id="inventory-modal-title"></h2>
+            <form id="inventory-form">
               <div class="form-group">
-                <label for="inventory-product-name">Product Name</label>
-                <input type="text" id="inventory-product-name" name="product_name" required>
+                <label>Product ID</label>
+                <input type="text" id="inventory-product-id" required>
               </div>
               <div class="form-group">
-                <label for="inventory-product-code">Product Code</label>
-                <input type="text" id="inventory-product-code" name="product_code" required>
+                <label>Order ID</label>
+                <input type="text" id="inventory-order-id" required>
               </div>
               <div class="form-group">
-                <label for="inventory-category-name">Category Name</label>
-                <select id="inventory-category-name" name="category_name" required>
-                  <option value="">Select a category</option>
-                  <option value="Sewing Machines">Sewing Machines</option>
-                  <option value="Machine Parts">Sewing Machine Parts</option>
-                  <option value="Fabric">Fabric</option>
-                </select>
+                <label>Stock Quantity</label>
+                <input type="number" id="inventory-stock-quantity" required>
               </div>
               <div class="form-group">
-                <label for="inventory-selling-price">Selling Price</label>
-                <input type="number" step="0.01" id="inventory-selling-price" name="selling_price" required>
+                <label>Stock In</label>
+                <input type="number" id="inventory-stock-in" required>
               </div>
               <div class="form-group">
-                <label for="inventory-min-stock">Min Stock</label>
-                <input type="number" id="inventory-min-stock" name="min_stock" required>
+                <label>Stock Out</label>
+                <input type="number" id="inventory-stock-out" required>
               </div>
               <div class="form-group">
-                <label for="inventory-max-stock">Max Stock</label>
-                <input type="number" id="inventory-max-stock" name="max_stock" required>
+                <label>Min Stock</label>
+                <input type="number" id="inventory-min-stock" required>
               </div>
               <div class="form-group">
-                <label for="inventory-supplier-name">Supplier Name</label>
-                <input type="text" id="inventory-supplier-name" name="supplier_name" required>
+                <label>Max Stock</label>
+                <input type="number" id="inventory-max-stock" required>
               </div>
               <div class="form-group">
-                <label for="inventory-supplier-price">Supplier Price</label>
-                <input type="number" step="0.01" id="inventory-supplier-price" name="supplier_price" required>
+                <label>Available Stock</label>
+                <input type="number" id="inventory-available-stock" required>
               </div>
               <div class="form-group">
-                <label for="inventory-available-stock">Available Stock</label>
-                <input type="number" id="inventory-available-stock" name="available_stock" required>
-              </div>
-              <div class="form-group">
-                <label for="inventory-stock-status">Stock Status</label>
-                <input type="text" id="inventory-stock-status" name="stock_status" required>
-              </div>
-              <div class="form-group">
-                <label for="inventory-product-status">Product Status</label>
-                <select id="inventory-product-status" name="product_status" required>
-                  <option value="Good">Good</option>
-                  <option value="Defective">Defective</option>
-                  <option value="Return">Return</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="inventory-memo">Memo</label>
-                <textarea id="inventory-memo" name="memo"></textarea>
+                <label>Stock Status</label>
+                <input type="text" id="inventory-stock-status" required>
               </div>
               <div style="text-align:right;">
-                <button type="button" id="cancel-add-inventory-btn">Cancel</button>
+                <button type="button" id="cancel-inventory-btn">Cancel</button>
                 <button type="submit">Save</button>
               </div>
             </form>
           </div>
         `;
         document.body.appendChild(modal);
-        // Modal open/close logic
-        const closeBtn = modal.querySelector('#close-add-inventory-modal');
-        const cancelBtn = modal.querySelector('#cancel-add-inventory-btn');
-        closeBtn.onclick = () => { modal.style.display = 'none'; };
-        cancelBtn.onclick = () => { modal.style.display = 'none'; };
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) modal.style.display = 'none';
-        });
-
-         // Reset form fields
-         document.getElementById('inventory-product-name').value = "";
-         document.getElementById('inventory-product-code').value = "";
-         document.getElementById('inventory-category-name').value = "";
-         document.getElementById('inventory-selling-price').value = "";
-         document.getElementById('inventory-min-stock').value = "";
-         document.getElementById('inventory-max-stock').value = "";
-         document.getElementById('inventory-supplier-name').value = "";
-         document.getElementById('inventory-supplier-price').value = "";
-         document.getElementById('inventory-available-stock').value = "";
-         document.getElementById('inventory-stock-status').value = "";
-         document.getElementById('inventory-product-status').value = "";
-         document.getElementById('inventory-memo').value = "";
- 
-         // Change modal title for clarity
-         modal.querySelector('h2').textContent = "Add Inventory";
-        // Handle form submission
-        const form = modal.querySelector('#add-inventory-form');
-        form.onsubmit = function(e) {
-            e.preventDefault();
-            const inventory = {
-                product_name: document.getElementById('inventory-product-name').value,
-                product_code: document.getElementById('inventory-product-code').value,
-                category_name: document.getElementById('inventory-category-name').value,
-                selling_price: parseFloat(document.getElementById('inventory-selling-price').value),
-                min_stock: parseInt(document.getElementById('inventory-min-stock').value),
-                max_stock: parseInt(document.getElementById('inventory-max-stock').value),
-                supplier_name: document.getElementById('inventory-supplier-name').value,
-                supplier_price: parseFloat(document.getElementById('inventory-supplier-price').value),
-                available_stock: parseInt(document.getElementById('inventory-available-stock').value),
-                stock_status: document.getElementById('inventory-stock-status').value,
-                product_status: document.getElementById('inventory-product-status').value,
-                memo: document.getElementById('inventory-memo').value
-            };
-            addInventory(inventory);
-            modal.style.display = 'none';
-            form.reset();
-        };
     }
+
+    // Set modal title and values
+    document.getElementById('inventory-modal-title').textContent = title;
+    document.getElementById('inventory-product-id').value = item.product_id || '';
+    document.getElementById('inventory-order-id').value = item.order_id || '';
+    document.getElementById('inventory-stock-quantity').value = item.stock_quantity || '';
+    document.getElementById('inventory-stock-in').value = item.stock_in || '';
+    document.getElementById('inventory-stock-out').value = item.stock_out || '';
+    document.getElementById('inventory-min-stock').value = item.min_stock || '';
+    document.getElementById('inventory-max-stock').value = item.max_stock || '';
+    document.getElementById('inventory-available-stock').value = item.available_stock || '';
+    document.getElementById('inventory-stock-status').value = item.stock_status || '';
+
     modal.style.display = 'block';
-}
 
-function showUpdateInventoryModal(item) {
-    let modal = document.getElementById('add-inventory-modal');
-    if (!modal) {
-        showAddInventoryModal(); 
-        modal = document.getElementById('add-inventory-modal');
-    }
-    modal.querySelector('h2').textContent = "Update Inventory";
-    // Pre-fill the form fields using correct keys and IDs
-    document.getElementById('inventory-product-name').value = item.product_name || "";
-    document.getElementById('inventory-product-code').value = item.product_code || "";
-    document.getElementById('inventory-category-name').value = item.category_name || "";
-    document.getElementById('inventory-selling-price').value = item.selling_price || "";
-    document.getElementById('inventory-min-stock').value = item.min_stock || "";
-    document.getElementById('inventory-max-stock').value = item.max_stock || "";
-    document.getElementById('inventory-supplier-name').value = item.supplier_name || "";
-    document.getElementById('inventory-supplier-price').value = item.supplier_price || "";
-    document.getElementById('inventory-available-stock').value = item.available_stock || "";
-    document.getElementById('inventory-stock-status').value = item.stock_status || "";
-    document.getElementById('inventory-product-status').value = item.product_status || "";
-    document.getElementById('inventory-memo').value = item.memo || "";
+    document.getElementById('close-inventory-modal').onclick =
+    document.getElementById('cancel-inventory-btn').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(event) {
+        if (event.target === modal) modal.style.display = 'none';
+    };
 
-    // Change the form submission logic
-    const form = modal.querySelector('#add-inventory-form');
+    const form = document.getElementById('inventory-form');
     form.onsubmit = function(e) {
         e.preventDefault();
-        const updatedItem = {
-            product_name: document.getElementById('inventory-product-name').value,
-            product_code: document.getElementById('inventory-product-code').value,
-            category_name: document.getElementById('inventory-category-name').value,
-            selling_price: parseFloat(document.getElementById('inventory-selling-price').value),
+        const inventory = {
+            product_id: document.getElementById('inventory-product-id').value,
+            order_id: document.getElementById('inventory-order-id').value,
+            stock_quantity: parseInt(document.getElementById('inventory-stock-quantity').value),
+            stock_in: parseInt(document.getElementById('inventory-stock-in').value),
+            stock_out: parseInt(document.getElementById('inventory-stock-out').value),
             min_stock: parseInt(document.getElementById('inventory-min-stock').value),
             max_stock: parseInt(document.getElementById('inventory-max-stock').value),
-            supplier_name: document.getElementById('inventory-supplier-name').value,
-            supplier_price: parseFloat(document.getElementById('inventory-supplier-price').value),
             available_stock: parseInt(document.getElementById('inventory-available-stock').value),
-            stock_status: document.getElementById('inventory-stock-status').value,
-            product_status: document.getElementById('inventory-product-status').value,
-            memo: document.getElementById('inventory-memo').value
+            stock_status: document.getElementById('inventory-stock-status').value
         };
-        updateInventory(item.id, updatedItem);
+        onSave(inventory);
         modal.style.display = 'none';
         form.reset();
     };
-    modal.style.display = 'block';
+}
+
+function addInventory(inventory) {
+    fetch('/admin/add_inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(inventory)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            fetchAndRenderInventory();
+            alert('Inventory item added!');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error adding inventory item: ' + error);
+        console.error('Error:', error);
+    });
 }
 
 function updateInventory(id, updatedItem) {
@@ -603,39 +591,6 @@ function updateInventory(id, updatedItem) {
     .catch(err => alert('Error updating inventory: ' + err));
 }
 
-
-function closeAddInventoryModal() {
-    const modal = document.getElementById('add-inventory-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-function addInventory(inventory) {
-    fetch('/admin/add_inventory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(inventory)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            closeAddInventoryModal();
-            // Wait for modal to close, then refresh table
-            setTimeout(() => {
-                fetchAndRenderInventory();
-                alert('Inventory item added!');
-            }, 300); // Adjust delay as needed
-        } else {
-            alert('Error: ' + data.error);
-        }
-    })
-    .catch(error => {
-        alert('Error adding inventory item: ' + error);
-        console.error('Error:', error);
-    });
-}
-
 function deleteInventory(inventoryId) {
     if(!confirm('Are you sure you want to delete this inventory item?')) return;
     fetch(`/admin/delete_inventory/${inventoryId}`, {
@@ -653,14 +608,8 @@ function deleteInventory(inventoryId) {
     .catch(err => alert('Error deleting inventory: ' + err));
 }
 
-function contactInventory(id) {
-    alert("Contact Inventory functionality for ID: " + id + " is not yet implemented.");
-    // You can implement your actual contact logic here (e.g., open a modal, send an email, etc.)
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    fetchAndRenderProducts();
-    fetchAndRenderProductImages();
+    fetchAndRenderInventory();
     // Add Inventory Button
     const inventoryAddBtn = document.getElementById('inventory-add-btn');
     if (inventoryAddBtn) {
@@ -669,6 +618,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
 
 //admin log out drop down
 document.addEventListener('DOMContentLoaded', function() {
@@ -1187,10 +1138,8 @@ function renderProductTable(products) {
             <td>${product.description || ''}</td>
             <td>${product.category_id || ''}</td>
             <td>${product.price !== undefined ? product.price : ''}</td>
-            <td>${product.discount !== undefined && product.discount !== null ? product.discount : ''}</td>
-            <td>${product.stock_quantity !== undefined ? product.stock_quantity : ''}</td>
-            <td>${product.created_at || ''}</td>
             <td>${product.updated_at || ''}</td>
+            <td>${product.created_at || ''}</td>
             <td>
     <button class="update-product-btn" data-id="${product.product_id}">Update</button>
     <button class="delete-product-btn" data-id="${product.product_id}">Delete</button>
@@ -1237,8 +1186,6 @@ function showUpdateProductModal(product) {
                     <div class="form-group"><label>Description</label><textarea name="description" id="update-product-description"></textarea></div>
                     <div class="form-group"><label>Category ID</label><input type="number" name="category_id" id="update-product-category-id" required></div>
                     <div class="form-group"><label>Price</label><input type="number" name="price" id="update-product-price" step="0.01" required></div>
-                    <div class="form-group"><label>Discount</label><input type="number" name="discount" id="update-product-discount" step="0.01"></div>
-                    <div class="form-group"><label>Stock Quantity</label><input type="number" name="stock_quantity" id="update-product-stock-quantity"></div>
                     <button type="submit">Save</button>
                 </form>
             </div>
@@ -1253,8 +1200,6 @@ function showUpdateProductModal(product) {
     document.getElementById('update-product-description').value = product.description || '';
     document.getElementById('update-product-category-id').value = product.category_id || '';
     document.getElementById('update-product-price').value = product.price || '';
-    document.getElementById('update-product-discount').value = product.discount || '';
-    document.getElementById('update-product-stock-quantity').value = product.stock_quantity || '';
     modal.style.display = 'block';
 
     document.getElementById('update-product-form').onsubmit = function(e) {
@@ -1265,9 +1210,7 @@ function showUpdateProductModal(product) {
             description: document.getElementById('update-product-description').value,
             category_id: document.getElementById('update-product-category-id').value,
             price: document.getElementById('update-product-price').value,
-            discount: document.getElementById('update-product-discount').value,
-            stock_quantity: document.getElementById('update-product-stock-quantity').value,
-        };
+            };
         updateProduct(product.product_id, updated);
         modal.style.display = 'none';
     };
@@ -1406,51 +1349,6 @@ document.getElementById('modal-product-spec-form').onsubmit = function(e) {
         }).catch(err => alert('Error adding product variant: ' + err));
     };
 
-    // --- 7. BRAND FORM SUBMIT ---
-    document.getElementById('modal-brand-form').onsubmit = function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('/admin/add_brand', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                $('#brandModal').modal('hide');
-                this.reset();
-                if (typeof fetchAndRenderBrands === 'function') fetchAndRenderBrands();
-                alert('Brand added!');
-            } else {
-                alert('Failed to add brand: ' + (data.error || 'Unknown error'));
-            }
-        }).catch(err => alert('Error adding brand: ' + err));
-    };
-
-    // --- BRAND TABLE RENDERING ---
-    function fetchAndRenderBrands() {
-        fetch('/admin/brand_list')
-            .then(res => res.json())
-            .then(brands => renderBrandTable(brands))
-            .catch(err => {
-                console.error('Failed to fetch brands:', err);
-                const tbody = document.querySelector('.brand-table tbody');
-                if (tbody) tbody.innerHTML = '<tr><td colspan="4">Failed to load brands.</td></tr>';
-            });
-    }
-    function renderBrandTable(brands) {
-        const tbody = document.querySelector('.brand-table tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        if (!Array.isArray(brands) || brands.length === 0 || brands.error) {
-            tbody.innerHTML = '<tr><td colspan="4">No brands found.</td></tr>';
-            return;
-        }
-        brands.forEach(brand => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <!-- Brand columns removed -->
-            `;
-            tbody.appendChild(tr);
-        });
-    }
 
     // --- CATEGORY TABLE RENDERING ---
     function fetchAndRenderCategories() {
@@ -1502,19 +1400,6 @@ document.getElementById('modal-product-spec-form').onsubmit = function(e) {
     };
 
 // ================= CUSTOMER ORDER MANAGEMENT =================
-function fetchAndRenderCustomerOrders() {}
-
-// Ensure customer orders are fetched and rendered on page load
-// if the table is present
-
-document.addEventListener('DOMContentLoaded', function() {
-    // If the customer orders table is present, fetch and render on load
-    if (document.getElementById('customer-orders-table')) {
-        fetchAndRenderCustomerOrders();
-    }
-});
-
-
 
 function fetchAndRenderCustomerOrders() {
     fetch('/admin/orders_list')
@@ -1531,27 +1416,21 @@ function renderCustomerOrdersTable(orders) {
     if (!tbody) return;
     tbody.innerHTML = '';
     if (!orders.length) {
-        tbody.innerHTML = '<tr><td colspan="16">No orders found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10">No orders found.</td></tr>'; // Adjust colspan as needed
         return;
     }
     orders.forEach(order => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${order.order_id}</td>
-            <td>${order.items.map(i => i.product_id).join(', ')}</td>
             <td>${order.user_id}</td>
-            <td>${order.total_amount}</td>
-            <td>${order.status || 'N/A'}</td>
-            <td>${order.payment_method || 'N/A'}</td>
-            <td>${order.payment_status || 'N/A'}</td>
-            <td>${order.shipping_address || 'N/A'}</td>
-            <td>${order.order_status || 'N/A'}</td>
-            <td>${order.order_date || 'N/A'}</td>
-            <td>${order.customer_issue || 'N/A'}</td>
-            <td>${order.message || 'N/A'}</td>
-            <td>${order.feedback || 'N/A'}</td>
-            <td>${order.rate || 'N/A'}</td>
-            <td>${order.cancellation_reason || 'N/A'}</td>
+            <td>${order.cancellation_id || ''}</td>
+            <td>${order.order_date || ''}</td>
+            <td>${order.total_amount || ''}</td>
+            <td>${order.address_id || ''}</td>
+            <td>${order.status_id || ''}</td>
+            <td>${order.created_at || ''}</td>
+            <td>${order.updated_at || ''}</td>
             <td>
                 <button class="approve-order-btn" data-id="${order.order_id}">Approve</button>
                 <button class="reject-order-btn" data-id="${order.order_id}">Reject</button>
@@ -1561,4 +1440,352 @@ function renderCustomerOrdersTable(orders) {
         tbody.appendChild(tr);
     });
 }
-    
+
+// Ensure customer orders are fetched and rendered on page load if the table is present
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('customer-orders-table')) {
+        fetchAndRenderCustomerOrders();
+    }
+});
+
+function fetchAndRenderOrderItems() {
+    fetch('/admin/order_items_list')
+        .then(res => res.json())
+        .then(items => renderOrderItemsTable(items))
+        .catch(err => {
+            console.error('Failed to fetch order items:', err);
+            renderOrderItemsTable([]);
+        });
+}
+
+function renderOrderItemsTable(items) {
+    const tbody = document.querySelector('#order-items-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="8">No order items found.</td></tr>';
+        return;
+    }
+    items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.item_id}</td>
+            <td>${item.order_id}</td>
+            <td>${item.product_id}</td>
+            <td>${item.variant_id || ''}</td>
+            <td>${item.quantity}</td>
+            <td>${item.unit_price}</td>
+            <td>${item.discount_amount}</td>
+            <td>
+                <!-- Actions if needed -->
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Ensure order items are fetched and rendered on page load if the table is present
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('order-items-table')) {
+        fetchAndRenderOrderItems();
+    }
+});
+
+function fetchAndRenderOrderStatuses() {
+    fetch('/admin/order_statuses_list')
+        .then(res => res.json())
+        .then(statuses => renderOrderStatusesTable(statuses))
+        .catch(err => {
+            console.error('Failed to fetch order statuses:', err);
+            renderOrderStatusesTable([]);
+        });
+}
+
+function renderOrderStatusesTable(statuses) {
+    const tbody = document.querySelector('#order-statuses-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!statuses.length) {
+        tbody.innerHTML = '<tr><td colspan="4">No statuses found.</td></tr>';
+        return;
+    }
+    statuses.forEach(status => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${status.status_id}</td>
+            <td>${status.status_name}</td>
+            <td>${status.description || ''}</td>
+            <td>
+                <!-- Actions if needed -->
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Ensure order statuses are fetched and rendered on page load if the table is present
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('order-statuses-table')) {
+        fetchAndRenderOrderStatuses();
+    }
+});
+
+// SALES
+function fetchAndRenderSales() {
+    fetch('/admin/sales_list')
+        .then(res => res.json())
+        .then(data => renderSalesTable(data))
+        .catch(err => console.error('Failed to fetch sales:', err));
+}
+
+function renderSalesTable(items) {
+    const tbody = document.querySelector('.sales-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="7">No sales found.</td></tr>';
+        return;
+    }
+    items.forEach(sale => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${sale.sales_id}</td>
+            <td>${sale.order_id}</td>
+            <td>${sale.product_id}</td>
+            <td>${sale.user_id}</td>
+            <td>${sale.sale_date}</td>
+            <td>${sale.total_amount}</td>
+            <td>${sale.payment_id}</td>
+            <td>
+                <button class="edit-sale-btn" data-id="${sale.sales_id}">Edit</button>
+                <button class="delete-sale-btn" data-id="${sale.sales_id}">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchAndRenderSales();
+});
+
+// CRITICAL STOCK
+function fetchAndRenderCriticalStock() {
+    fetch('/admin/critical_stock')
+        .then(res => res.json())
+        .then(data => renderCriticalStockTable(data))
+        .catch(err => console.error('Failed to fetch critical stock:', err));
+}
+
+function renderCriticalStockTable(items) {
+    const tbody = document.querySelector('.critical-stock-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="7">No critical stock found.</td></tr>';
+        return;
+    }
+    items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.product_id}</td>
+            <td>${item.product_name}</td>
+            <td>${item.supplier_name}</td>
+            <td>${item.available_stock}</td>
+            <td style="color:red;">&#9888; ${item.alert_level}</td>
+            <td>${item.below_minimum}</td>
+            <td><a href="#" class="notify-btn" data-id="${item.product_id}">Notify Supplier</a></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Optional: Add click event listeners for the notify buttons
+    // Use event delegation for dynamically created rows
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('notify-btn')) {
+            e.preventDefault();
+            // Get product details from the row
+            const row = e.target.closest('tr');
+            const productId = row.children[0].textContent;
+            const productName = row.children[1].textContent;
+            const supplierName = row.children[2].textContent;
+            // Try to get supplier price from a data attribute, fallback to blank
+            let supplierPrice = e.target.getAttribute('data-supplier-price') || '';
+            if (!supplierPrice && row.children[3]) {
+                supplierPrice = row.children[3].textContent;
+            }
+            const belowMinimum = row.children[5].textContent;
+
+            // Fill modal
+            document.getElementById('modalProductId').value = productId;
+            document.getElementById('modalProductName').textContent = productName;
+            document.getElementById('modalSupplierName').textContent = supplierName;
+            document.getElementById('modalSupplierPrice').textContent = supplierPrice;
+            document.getElementById('modalQuantityRequested').value = belowMinimum.replace(/[^\d]/g, ''); // default quantity = below minimum
+
+            document.getElementById('notifySupplierModal').style.display = 'block';
+        }
+    });
+
+    // Close modal
+    document.getElementById('closeNotifyModal').onclick = function() {
+        document.getElementById('notifySupplierModal').style.display = 'none';
+    };
+
+    // Submit notify supplier form
+    document.getElementById('notifySupplierForm').onsubmit = function(e) {
+        e.preventDefault();
+        const productId = document.getElementById('modalProductId').value;
+        const quantityRequested = document.getElementById('modalQuantityRequested').value;
+        const notes = document.getElementById('modalNotes').value;
+
+        fetch('/admin/notify_supplier', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                product_id: productId,
+                quantity_requested: quantityRequested,
+                notes: notes
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            document.getElementById('notifySupplierModal').style.display = 'none';
+        });
+    };
+}
+
+// Call this function on page load or when dashboard is shown
+document.addEventListener('DOMContentLoaded', function() {
+    fetchAndRenderCriticalStock();
+});
+
+// CRITICAL STOCK
+function fetchAndRenderCriticalStock() {
+    fetch('/admin/critical_stock')
+        .then(res => res.json())
+        .then(data => renderCriticalStockTable(data))
+        .catch(err => console.error('Failed to fetch critical stock:', err));
+}
+
+function renderCriticalStockTable(items) {
+    const tbody = document.querySelector('.critical-stock-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="7">No critical stock found.</td></tr>';
+        return;
+    }
+    items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.product_id}</td>
+            <td>${item.product_name}</td>
+            <td>${item.supplier_name}</td>
+            <td>${item.available_stock}</td>
+            <td style="color:red;">&#9888; ${item.alert_level}</td>
+            <td>${item.below_minimum}</td>
+            <td>
+                <a href="#" class="notify-btn"
+                   data-id="${item.product_id}"
+                   data-product-name="${item.product_name}"
+                   data-supplier-name="${item.supplier_name}"
+                   data-supplier-price="${item.supplier_price || ''}"
+                   data-below-minimum="${item.below_minimum}">
+                   Notify Supplier
+                </a>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    // Update the total-stocks-number span
+    const totalStocksSpan = document.querySelector('.total-stocks-number');
+    if (totalStocksSpan) {
+        totalStocksSpan.textContent = items.length;
+    }
+}
+
+// Set up event listeners ONCE after DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    fetchAndRenderCriticalStock();
+
+    // Event delegation for Notify Supplier button
+    document.body.addEventListener('click', function(e) {
+        if (e.target.classList.contains('notify-btn')) {
+            e.preventDefault();
+            // Use data attributes for reliability
+            const btn = e.target;
+            document.getElementById('modalProductId').value = btn.getAttribute('data-id');
+            document.getElementById('modalProductName').textContent = btn.getAttribute('data-product-name');
+            document.getElementById('modalSupplierName').textContent = btn.getAttribute('data-supplier-name');
+            document.getElementById('modalSupplierPrice').textContent = btn.getAttribute('data-supplier-price') || '';
+            document.getElementById('modalQuantityRequested').value = btn.getAttribute('data-below-minimum').replace(/[^\d]/g, '');
+            document.getElementById('notifySupplierModal').style.display = 'block';
+        }
+    });
+
+    // Close modal
+    document.getElementById('closeNotifyModal').onclick = function() {
+        document.getElementById('notifySupplierModal').style.display = 'none';
+    };
+
+    // Submit notify supplier form
+    document.getElementById('notifySupplierForm').onsubmit = function(e) {
+        e.preventDefault();
+        const productId = document.getElementById('modalProductId').value;
+        const quantityRequested = document.getElementById('modalQuantityRequested').value;
+        const notes = document.getElementById('modalNotes').value;
+
+        fetch('/admin/notify_supplier', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                product_id: productId,
+                quantity_requested: quantityRequested,
+                notes: notes
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            document.getElementById('notifySupplierModal').style.display = 'none';
+        });
+    };
+});
+
+// SUPPLY REQUEST
+function fetchAndRenderSupplyRequests() {
+    fetch('/admin/supply_requests')
+        .then(res => res.json())
+        .then(data => renderSupplyRequestTable(data));
+}
+
+function renderSupplyRequestTable(requests) {
+    const tbody = document.querySelector('.supply-request-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!requests.length) {
+        tbody.innerHTML = '<tr><td colspan="10">No supply requests found.</td></tr>';
+        return;
+    }
+    requests.forEach(req => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${req.request_id}</td>
+            <td>${req.product_id}</td>
+            <td>${req.product_name}</td>
+            <td>${req.supplier_price}</td>
+            <td>${req.requested_by}</td>
+            <td>${req.quantity_requested}</td>
+            <td>${req.status}</td>
+            <td>${req.notes}</td>
+            <td>${req.request_date}</td>
+            <td>${req.updated_at}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// Call this on DOMContentLoaded so the table is filled when the admin page loads
+document.addEventListener('DOMContentLoaded', fetchAndRenderSupplyRequests);
