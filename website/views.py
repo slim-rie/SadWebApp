@@ -858,8 +858,16 @@ def create_order():
         session.pop('buy_now_item', None)
         db.session.commit()
         
-        # Look up the payment method ID
-        payment_method_obj = PaymentMethod.query.filter(func.lower(PaymentMethod.method_name) == payment_method.lower()).first()
+        # Map frontend payment method value to database value
+        if payment_method.lower() in ['cash on delivery', 'cod']:
+            payment_method_db = 'COD'
+        elif payment_method.lower() == 'bank transfer':
+            payment_method_db = 'Bank Transfer'
+        elif payment_method.lower() == 'gcash':
+            payment_method_db = 'GCash'
+        else:
+            payment_method_db = payment_method  # fallback
+        payment_method_obj = PaymentMethod.query.filter(PaymentMethod.method_name == payment_method_db).first()
         payment_method_id = payment_method_obj.payment_method_id if payment_method_obj else None
         payment = Payment(
             order_id=order.order_id,
@@ -880,11 +888,13 @@ def create_order():
     out_of_stock_items = []
     for item in cart_items:
         product = Product.query.get(item.product_id)
-        if product.stock_quantity < item.quantity:
+        inventory = Inventory.query.filter_by(product_id=product.product_id).first()
+        available_stock = inventory.available_stock if inventory else 0
+        if available_stock < item.quantity:
             out_of_stock_items.append({
                 'product_name': product.product_name,
                 'requested': item.quantity,
-                'available': product.stock_quantity
+                'available': available_stock
             })
     
     if out_of_stock_items:
@@ -1825,21 +1835,109 @@ def get_supply_requests():
     return jsonify(result)
 
 # ================= ADMIN: CUSTOMER ORDERS LIST API =================
+
+@views.route('/admin/update_order_status/<int:order_id>', methods=['POST'])
+def admin_update_order_status(order_id):
+    from .models import Order
+    order = Order.query.get(order_id)
+    if not order:
+        return {'success': False, 'error': 'Order not found'}, 404
+    status_id = request.json.get('status_id')
+    if not status_id:
+        return {'success': False, 'error': 'Missing status_id'}, 400
+    try:
+        order.status_id = status_id
+        db.session.commit()
+
+        # If status is Completed (status_id == 4), update inventory and insert into Sales
+        if str(status_id) == '4':
+            from .models import OrderItem, Inventory, Sales, Payment
+            from datetime import datetime
+            order_items = OrderItem.query.filter_by(order_id=order_id).all()
+            for item in order_items:
+                inventory = Inventory.query.filter_by(product_id=item.product_id).first()
+                if inventory:
+                    inventory.stock_out += item.quantity
+                    inventory.available_stock -= item.quantity
+                    # Update stock status
+                    if inventory.available_stock <= inventory.min_stock:
+                        inventory.stock_status = 'Low Stock'
+                    else:
+                        inventory.stock_status = 'In Stock'
+                    inventory.updated_at = datetime.utcnow()
+
+                # Insert into Sales if not already present
+                existing_sale = Sales.query.filter_by(order_id=order_id, product_id=item.product_id).first()
+                if not existing_sale:
+                    payment = Payment.query.filter_by(order_id=order_id).first()
+                    if payment:
+                        sale = Sales(
+                            order_id=order_id,
+                            product_id=item.product_id,
+                            user_id=order.user_id,
+                            sale_date=datetime.utcnow(),
+                            total_amount=order.total_amount,
+                            payment_id=payment.payment_id
+                        )
+                        db.session.add(sale)
+                    else:
+                        print(f"[WARNING] No payment found for order_id={order_id}. Skipping Sales insert.")
+            db.session.commit()
+        return {'success': True}
+    except Exception as e:
+        db.session.rollback()
+        return {'success': False, 'error': str(e)}, 500
+
+
+
 from .models import Order, OrderItem, User
 
 @views.route('/admin/orders_list')
 def admin_orders_list():
-    orders = Order.query.order_by(Order.created_at.desc()).all()
+    from .models import OrderStatus
+    from .models import Address
+    from .models import Payment, PaymentMethod
+    from .models import OrderItem, Product
+    orders = (
+        db.session.query(
+            Order,
+            User.username,
+            OrderStatus.status_name,
+            Address.first_name,
+            Address.last_name,
+            PaymentMethod.method_name
+        )
+        .outerjoin(User, Order.user_id == User.user_id)
+        .outerjoin(OrderStatus, Order.status_id == OrderStatus.status_id)
+        .outerjoin(Address, Order.address_id == Address.address_id)
+        .outerjoin(Payment, Payment.order_id == Order.order_id)
+        .outerjoin(PaymentMethod, Payment.payment_method_id == PaymentMethod.payment_method_id)
+        .order_by(Order.created_at.desc())
+        .all()
+    )
     data = []
-    for order in orders:
+    for order, username, status_name, first_name, last_name, method_name in orders:
+        # Get all order items for this order
+        order_items = (
+            db.session.query(OrderItem, Product)
+            .join(Product, OrderItem.product_id == Product.product_id)
+            .filter(OrderItem.order_id == order.order_id)
+            .all()
+        )
+        product_names = ', '.join([item.Product.product_name for item in order_items])
+        quantities = ', '.join([str(item.OrderItem.quantity) for item in order_items])
+        address_name = f"{first_name or ''} {last_name or ''}".strip() if first_name or last_name else ''
         data.append({
             "order_id": order.order_id,
-            "user_id": order.user_id,
+            "username": username,
             "cancellation_id": order.cancellation_id,
             "order_date": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
+            "product_name": product_names,
+            "quantity": quantities,
             "total_amount": order.total_amount,
-            "address_id": order.address_id,
-            "status_id": order.status_id,
+            "payment_method": method_name or '',
+            "address_name": address_name,
+            "status_name": status_name,
             "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
             "updated_at": order.updated_at.strftime("%Y-%m-%d %H:%M:%S") if order.updated_at else "",
         })
@@ -1861,17 +1959,6 @@ def admin_order_items_list():
         })
     return jsonify(data)
 
-@views.route('/admin/order_statuses_list')
-def admin_order_statuses_list():
-    statuses = OrderStatus.query.order_by(OrderStatus.status_id.asc()).all()
-    data = []
-    for status in statuses:
-        data.append({
-            "status_id": status.status_id,
-            "status_name": status.status_name,
-            "description": status.description,
-        })
-    return jsonify(data)
 
 @views.route('/admin/promotion_list')
 def promotion_list():
