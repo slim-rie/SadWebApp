@@ -44,15 +44,19 @@
 
                 <div class="user-dropdown">
                     <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
-                    <span class="username"></span> 
+                    {% if current_user.is_authenticated %}
+                        <span class="username">{{ current_user.username }}</span>
+                    {% else %}
+                        <span class="username"></span>
+                    {% endif %}
                     <div class="dropdown-container" id="dropdownMenu">
                     </div>
-                </div>
+                </div> 
             </div> 
         </nav>
     </header>
 
-    <div class="breadcrumb container" id="breadcrumbNav">
+    <div class="breadcrumb container" id="breadcrumbNav" style="margin-left: 32px;">
         <a href="{{ url_for('views.home') }}">Home</a> &gt;
         <a id="breadcrumbParent" href="#">Sewing Parts</a> &gt;
         <span id="productBreadcrumb">Product</span>
@@ -94,19 +98,6 @@
                 </div>
 
                 <div class="product-options">
-                    <!-- Product Variants List -->
-                    {% if variants %}
-                        <div class="option-row">
-                            <span class="option-label">Variants</span>
-                            <div class="option-value">
-                                <ul class="variant-list">
-                                {% for variant in variants %}
-                                    <li><strong>{{ variant.variant_name }}:</strong> {{ variant.variant_value }}</li>
-                                {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                    {% endif %}
                     <div class="product-options">
                     <div class="option-row" id="materialOptionRow" style="margin-top: 1em;">
                         <span class="option-label">Material</span>
@@ -119,6 +110,13 @@
                         <span class="option-label">Size</span>
                         <div class="option-value size-options" id="sizeOptions">
                             <!-- Width buttons will be rendered by JS -->
+                        </div>
+                    </div>
+                    <!-- Variant options row -->
+                    <div class="option-row" id="variantOptionRow" style="margin-top: 1em;">
+                        <span class="option-label">Variants</span>
+                        <div class="option-value" id="variantOptions">
+                            <!-- Variant buttons will be rendered by JS -->
                         </div>
                     </div>
                     <div class="option-row">
@@ -185,7 +183,7 @@
                 <h3>Quick Links</h3>
                 <ul>
                     <li><a href="{{ url_for('views.home') }}">Home</a></li>
-                    <li><a href="{{ url_for('views.sewing_parts') }}">Shop</a></li>
+                    <li><a href="{{ url_for('views.sewingmachines') }}">Shop</a></li>
                     <li><a href="{{ url_for('views.about') }}">About</a></li>
                     <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
                 </ul>
@@ -239,6 +237,7 @@
         </div>
     </div>
 
+    
     <script src="{{ url_for('static', filename='js/sp-productdetails.js') }}"></script>
 </body>
 </html>

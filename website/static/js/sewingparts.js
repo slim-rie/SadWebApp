@@ -1,11 +1,43 @@
 document.addEventListener('DOMContentLoaded', async function () {
     let products = [];
-    try {
-        const response = await fetch('/api/products?category=Sewing Parts');
-        products = await response.json();
-    } catch (error) {
-        console.error('Error loading products:', error);
+    let currentFilters = {
+        category: window.DEFAULT_CATEGORY || 'Sewing Machine Components',
+        rating: 0,
+        minPrice: 0,
+        maxPrice: Infinity,
+        sort: 'popular'
+    };
+
+    async function fetchProducts(category) {
+        try {
+            const response = await fetch(`/api/products?category=${encodeURIComponent(category)}`);
+            products = await response.json();
+            renderProducts();
+        } catch (error) {
+            console.error('Error loading products:', error);
+        }
     }
+
+    async function selectCategory(categoryName) {
+        currentFilters.category = categoryName;
+        await fetchProducts(categoryName);
+
+        // Highlight the selected category
+        document.querySelectorAll('.category-list li').forEach(li => li.classList.remove('active'));
+        const link = document.querySelector(`.category-list li a[data-category="${categoryName}"]`);
+        if (link) {
+            link.parentElement.classList.add('active');
+        }
+
+        // Update breadcrumb
+        const breadcrumbCategory = document.getElementById('selectedCategory');
+        if (breadcrumbCategory) {
+            breadcrumbCategory.textContent = categoryName;
+        }
+    }
+
+    // On page load, select the default category
+    await selectCategory(window.DEFAULT_CATEGORY || 'Sewing Machine Components');
 
     // DOM elements
     const productGrid = document.getElementById('productGrid');
@@ -21,15 +53,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     const allCategoriesBtn = document.getElementById('allCategoriesBtn');
     const categoriesModal = document.getElementById('categoriesModal');
     const closeCategories = document.getElementById('closeCategories');
-    const breadcrumbCategory = document.getElementById('selectedCategory');
 
-    let currentFilters = {
-        category: 'SewingMachineComponents',
-        rating: 0,
-        minPrice: 0,
-        maxPrice: Infinity,
-        sort: 'popular'
-    };
+    // Category click handler
+    categoryLinks.forEach(link => {
+        link.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const category = this.getAttribute('data-category');
+            await selectCategory(category);
+            categoriesModal.classList.remove('show-modal');
+        });
+    });
 
     function renderProducts() {
         productGrid.innerHTML = '';
@@ -136,26 +169,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
         });
     }
-
-    const defaultCategoryLink = document.querySelector(`.category-list li a[data-category="${currentFilters.category}"]`);
-    if (defaultCategoryLink) {
-        defaultCategoryLink.parentElement.classList.add('active');
-    }
-    renderProducts();
-
-    categoryLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const category = this.getAttribute('data-category');
-            
-            currentFilters.category = category;
-            renderProducts();
-            
-            categoriesModal.classList.remove('show-modal');
-            const categoryName = this.textContent.trim();
-            breadcrumbCategory.textContent = categoryName;
-        });
-    });
 
     ratingItems.forEach(item => {
         item.addEventListener('click', function() {

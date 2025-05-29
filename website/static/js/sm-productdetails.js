@@ -88,37 +88,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         thumbnailGallery.innerHTML = '';
     }
 
-    // Specifications table (dynamic)
-    const specsTableBody = document.getElementById('specsTableBody');
-    specsTableBody.innerHTML = '';
-    if (Array.isArray(product.specifications)) {
-        product.specifications.forEach(spec => {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td class='spec-label'>${spec.name}</td><td class='spec-value'>${spec.value}</td>`;
-            specsTableBody.appendChild(row);
-        });
-    }
-        
-    // Default rating and sold count
-    const rating = 4.5;
-    const sold = 0;
-
-        const ratingContainer = document.getElementById('productRating');
-        ratingContainer.innerHTML = '';
-        for (let i = 1; i <= 5; i++) {
-            const star = document.createElement('i');
-        if (i <= Math.floor(rating)) {
-                star.className = 'fas fa-star';
-        } else if (i - 0.5 <= rating) {
-                star.className = 'fas fa-star-half-alt';
-            } else {
-                star.className = 'far fa-star';
-            }
-            ratingContainer.appendChild(star);
-        }
-    document.getElementById('ratingValue').textContent = rating.toFixed(1);
-        document.getElementById('reviewCount').textContent = "100+ reviews"; 
-    document.getElementById('soldCount').textContent = (product.sold ? product.sold : 0) + ' sold';
+    
 
     // Option row for model
         const optionRow = document.querySelector('.option-row');

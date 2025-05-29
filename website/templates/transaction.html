@@ -126,7 +126,7 @@
                 <span>Payment Method:</span>
                 <span>
                     {% if payment_method == 'Cash on Delivery' %}Cash on Delivery
-                    {% elif payment_method == 'Bank' %}Bank Account
+                    {% elif payment_method == 'Bank' %}Bank Transfer
                     {% elif payment_method == 'GCash' %}GCash
                     {% else %}{{ payment_method }}{% endif %}
                 </span>
@@ -140,7 +140,7 @@
                     Cash on Delivery
                 </div>
                 <div class="payment-option" id="bankOption" data-qr="{{ qr_codes.bank.qr_url }}">
-                    Bank Account
+                    Bank Transfer
                 </div>
                 <div class="payment-option" id="gcashOption" data-qr="{{ qr_codes.gcash.qr_url }}">
                     GCash

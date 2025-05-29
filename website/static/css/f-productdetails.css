@@ -976,3 +976,55 @@ footer {
     color: #ff6f61;
     border: 2px solid #ff6f61;
 }
+
+/* Related Products Section - Clean Card Style */
+.product-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+.product-link:visited, .product-link:active {
+    color: inherit;
+}
+.product-info h3.product-name {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #333;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.product-link:hover .product-name {
+    color: #ff6666;
+}
+.product-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #888;
+    margin-top: 5px;
+}
+.product-meta .rating {
+    color: #ffb400;
+    font-size: 15px;
+    letter-spacing: 1px;
+}
+.product-meta .review-count,
+.product-meta .sold {
+    color: #888;
+    font-size: 13px;
+    margin-left: 2px;
+}
+.product-meta .review-count {
+    margin-left: 8px;
+}
+.product-meta .sold {
+    margin-left: 8px;
+}
+
+.variant-btn,
+.color-btn {
+    font-size: 0.95em;
+    padding: 0.45em 0.9em;
+}

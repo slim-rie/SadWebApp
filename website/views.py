@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, OrderStatus, OrderCancellation, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, ProductSupplier,Product, ProductPromotion, Sales
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -93,7 +93,19 @@ def product_detail(product_id):
 @views.route('/sewingmachines')
 def sewingmachines():
     sewing_categories = Category.query.filter_by(parent_category_id=1).all()
-    return render_template('sewingmachines.html', user=current_user, categories=sewing_categories)
+    products = Product.query.filter(Product.category_id.in_([cat.category_id for cat in sewing_categories])).all()
+    
+    # Get sales data for each product
+    product_sales = {}
+    for product in products:
+        sales_count = Sales.query.filter_by(product_id=product.product_id).count()
+        product_sales[product.product_id] = sales_count
+    
+    return render_template('sewingmachines.html', 
+                         user=current_user, 
+                         categories=sewing_categories,
+                         products=products,
+                         product_sales=product_sales)
 
 @views.route('/sewingparts')
 def sewing_parts():
@@ -139,12 +151,15 @@ def f_productdetails():
 # Cart Routes
 def get_product_image_url(product_name):
     base_path = os.path.join('SadWebApp', 'website', 'static', 'pictures')
-    for ext in ['.jpg', '.png']:
-        filename = f"{product_name}{ext}"
+    # Try to find the image with spaces replaced by underscores
+    safe_name = product_name.replace(' ', '_')
+    for ext in ['.jpg', '.png', '.jpeg']:
+        filename = f"{safe_name}{ext}"
         file_path = os.path.join(base_path, filename)
         if os.path.exists(file_path):
             return f"/static/pictures/{filename}"
-    return "/static/pictures/default.jpg"
+    # If no image found, return default image
+    return "/static/pictures/no-image.png"
 
 @views.route('/api/cart', methods=['GET'])
 @login_required
@@ -480,7 +495,6 @@ def products():
     print(f"[DEBUG] Number of products found: {len(products)}")
     if not products:
         return jsonify({'error': 'No products found'}), 404
-
     # Fetch real average rating and review count for each product
     product_list = []
     for product in products:
@@ -488,10 +502,6 @@ def products():
         reviews = Review.query.filter_by(product_id=product.product_id).all()
         avg_rating = sum(review.rating for review in reviews) / len(reviews) if reviews else 0
         review_count = len(reviews)
-        
-        # Count sales for this product
-        sales_count = Sales.query.filter_by(product_id=product.product_id).count()
-        
         # Always use ProductImage from DB if available
         img = None
         if product.images and len(product.images) > 0:
@@ -517,7 +527,7 @@ def products():
             'image': img,
             'discount': None,
             'refurbished': product.refurbished if hasattr(product, 'refurbished') else None,
-            'sold': sales_count,  # Use actual sales count from Sales table
+            'sold': product.sold if hasattr(product, 'sold') else None,
             'rating': avg_rating,
             'review_count': review_count
         })
@@ -539,22 +549,59 @@ def get_product_details():
         product = Product.query.filter(func.lower(func.trim(Product.product_name)) == product_name.strip().lower()).first()
     if not product:
         return jsonify({'error': 'Product not found'}), 404
-    # Fetch brand name
-    brand_name = product.brand_obj.brand_name if product.brand_obj else None
-    # Fetch category name
+
+    # Get stock from Inventory by product_id
+    inventory = Inventory.query.filter_by(product_id=product.product_id).first()
+    stock_quantity = inventory.available_stock if inventory and hasattr(inventory, 'available_stock') else 0
+
+    # Get images (use ProductImage relationship)
+    images = [img.image_url for img in sorted(product.images, key=lambda i: getattr(i, 'display_order', 0))] if product.images else []
+
+    # Get reviews for this product
+    reviews = []
+    for r in Review.query.filter_by(product_id=product.product_id).order_by(Review.created_at.desc()).all():
+        username = None
+        if r.user_id:
+            user_obj = User.query.get(r.user_id)
+            username = user_obj.username if user_obj else 'Unknown'
+        else:
+            username = 'Unknown'
+        reviews.append({
+            'review_id': r.review_id,
+            'user_id': r.user_id,
+            'username': username,
+            'rating': r.rating,
+            'comment': r.comment,
+            'created_at': r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '',
+            'media_url': getattr(r, 'media_url', None),
+            'media_type': getattr(r, 'media_type', None)
+        })
+
+    # Get related products (same category, exclude current)
+    related_products = []
+    for p in Product.query.filter(Product.category_id == product.category_id, Product.product_id != product.product_id).limit(8).all():
+        related_products.append({
+            'product_id': p.product_id,
+            'name': p.product_name,
+            'model_number': p.model_number,
+            'price': float(p.base_price),
+            'image': get_product_image_url(p.product_name)
+        })
+
+    # Get category name
     category_name = product.category.category_name if product.category else None
-    # Fetch all specifications, ordered by display_order, excluding 'Category ID'
+
+    # Get all specifications, ordered by display_order, excluding 'Category ID'
     specs = [
         {'name': spec.spec_name, 'value': spec.spec_value, 'order': spec.display_order}
         for spec in sorted(product.specifications, key=lambda s: s.display_order or 0)
         if spec.spec_name.lower() != 'category id'
-    ]
-    # Insert category name as the first spec
+    ] if product.specifications else []
     if category_name:
         specs.insert(0, {'name': 'Category', 'value': category_name, 'order': 0})
-    # Fetch all models in the same family (same brand and type)
+
+    # Get all models in the same category
     model_family = Product.query.filter(
-        Product.brand_id == product.brand_id,
         Product.category_id == product.category_id
     ).all()
     model_options = [
@@ -564,20 +611,22 @@ def get_product_details():
             'model_number': m.model_number
         } for m in model_family
     ]
+
     return jsonify({
         'product_id': product.product_id,
         'name': product.product_name,
         'model_number': product.model_number,
         'description': product.description,
         'price': float(product.base_price),
-        'stock': product.stock_quantity,
-        'image': get_product_image_url(product.product_name),
-        'images': [img.image_url for img in sorted(product.images, key=lambda i: i.display_order)],
+        'stock': stock_quantity,
+        'image': images[0] if images else get_product_image_url(product.product_name),
+        'images': images,
         'category_id': product.category_id,
         'category_name': category_name,
-
         'specifications': specs,
-        'model_options': model_options
+        'model_options': model_options,
+        'reviews': reviews,
+        'related_products': related_products
     })
 
 ALLOWED_REVIEW_MEDIA = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
@@ -598,11 +647,9 @@ def api_payments():
     order_id = request.form.get('order_id')
     user_id = request.form.get('user_id')
     payment_method_id = request.form.get('payment_method_id')
-    reference_number = request.form.get('reference_number')  # This should be the OCR result
+    reference_number = request.form.get('reference_number')
     vision_api_result = request.form.get('vision_api_result')
-    file = request.files.get('proof_of_payment')  # Field name updated
-
-    print(f"[api_payments] order_id={order_id}, user_id={user_id}, payment_method_id={payment_method_id}, reference_number={reference_number}")
+    file = request.files.get('proof_of_payment')
 
     # Validate required fields
     missing_fields = []
@@ -617,10 +664,10 @@ def api_payments():
     if missing_fields:
         return jsonify({'success': False, 'message': f"Missing required fields: {', '.join(missing_fields)}"}), 400
 
-    # Find the order
-    order = Order.query.filter_by(order_id=order_id, user_id=user_id).first()
-    if not order:
-        return jsonify({'success': False, 'message': 'Order not found'}), 404
+    # Find the payment record
+    payment = Payment.query.filter_by(order_id=order_id, user_id=user_id).first()
+    if not payment:
+        return jsonify({'success': False, 'message': 'Payment record not found'}), 404
 
     # Save file to static/proof_of_payment
     proof_of_payment_url = None
@@ -632,17 +679,15 @@ def api_payments():
         ext = file.filename.rsplit('.', 1)[-1].lower()
         unique_filename = f'{uuid.uuid4().hex}.{ext}'
         file_path = os.path.join(upload_folder, unique_filename)
-        print(f"Saving file to: {file_path}")  # Debug
         file.save(file_path)
         proof_of_payment_url = f'/static/proof_of_payment/{unique_filename}'
-        order.proof_of_payment_url = proof_of_payment_url
+        payment.payment_proof_url = proof_of_payment_url
     else:
-        order.proof_of_payment_url = None
+        payment.payment_proof_url = None
 
-    # Store the OCR result as reference_number
-    order.reference_number = reference_number
-    order.payment_method = payment_method_id  # Changed from payment_method_id to payment_method
-    order.payment_status = 'pending'  # Add payment status
+    payment.reference_number = reference_number
+    payment.payment_method_id = payment_method_id
+    payment.payment_status = 'pending'
     db.session.commit()
     return jsonify({'success': True})
 
@@ -711,14 +756,12 @@ def get_average_rating():
 @login_required
 def create_order():
     data = request.get_json()
-    payment_method = data.get('payment_method')
-    reference_number = data.get('reference_number')
-    proof_of_payment_url = data.get('proof_of_payment_url')
-
-    # Validate payment method
-    allowed_methods = ['Cash on Delivery', 'Bank', 'GCash', 'Maya']
+    payment_method = (data.get('payment_method') or '').strip().lower()
+    allowed_methods = ['cash on delivery', 'bank', 'bank transfer', 'gcash', 'maya']
     if payment_method not in allowed_methods:
         return {'success': False, 'message': 'Invalid payment method.'}, 400
+    reference_number = data.get('reference_number')
+    proof_of_payment_url = data.get('proof_of_payment_url')
 
     # Get user's default address
     address = Address.query.filter_by(user_id=current_user.user_id, is_default=True).first()
@@ -742,15 +785,18 @@ def create_order():
         product = Product.query.get(buy_now_item['product_id'])
         if not product:
             return {'success': False, 'message': 'Product not found.'}, 400
-            
-        if product.stock_quantity < buy_now_item['quantity']:
+        
+        # FIX: Get stock from Inventory
+        inventory = Inventory.query.filter_by(product_id=product.product_id).first()
+        available_stock = inventory.available_stock if inventory else 0
+        if available_stock < buy_now_item['quantity']:
             return {
                 'success': False,
                 'message': 'Item is out of stock',
                 'out_of_stock_items': [{
                     'product_name': product.product_name,
                     'requested': buy_now_item['quantity'],
-                    'available': product.stock_quantity
+                    'available': available_stock
                 }]
             }, 400
             
@@ -763,28 +809,43 @@ def create_order():
         order = Order(
              user_id=current_user.user_id,
              total_amount=total,
-             status='pending',
-             payment_method=payment_method,
-             payment_status='pending',
-             shipping_address=address.complete_address,
+             address_id=address.address_id,
              order_date=datetime.utcnow(),
-             order_status='To Pay'
+             status_id=1  # <-- Use the correct status_id for 'To Pay' or your default status
         )
         db.session.add(order)
         db.session.flush()  # Get order_id
 
         # Add order item and update stock
-        product.stock_quantity -= buy_now_item['quantity']  # Reduce stock
+        inventory = Inventory.query.filter_by(product_id=product.product_id).first()
+        if inventory:
+            inventory.available_stock -= buy_now_item['quantity']
+            db.session.add(inventory)
         order_item = OrderItem(
             order_id=order.order_id,
             product_id=product.product_id,
             quantity=buy_now_item['quantity'],
-            price=float(product.base_price)
+            unit_price=float(product.base_price)
         )
         db.session.add(order_item)
         
         # Clear buy-now session
         session.pop('buy_now_item', None)
+        db.session.commit()
+        
+        # Look up the payment method ID
+        payment_method_obj = PaymentMethod.query.filter(func.lower(PaymentMethod.method_name) == payment_method.lower()).first()
+        payment_method_id = payment_method_obj.payment_method_id if payment_method_obj else None
+        payment = Payment(
+            order_id=order.order_id,
+            user_id=current_user.user_id,
+            payment_method_id=payment_method_id,
+            payment_date=datetime.utcnow(),
+            payment_proof_url=data.get('proof_of_payment_url'),
+            payment_status='pending',
+            reference_number=data.get('reference_number')
+        )
+        db.session.add(payment)
         db.session.commit()
         
         return {'success': True, 'order_id': order.order_id, 'user_id': current_user.user_id}
@@ -817,12 +878,9 @@ def create_order():
     order = Order(
         user_id=current_user.user_id,
         total_amount=total,
-        status='pending',
-        payment_method=payment_method,
-        reference_number=reference_number,
-        proof_of_payment_url=proof_of_payment_url,
-        payment_status='pending',
-        shipping_address=address.complete_address
+        address_id=address.address_id,
+        order_date=datetime.utcnow(),
+        status_id=1  # <-- Use the correct status_id for 'To Pay' or your default status
     )
     db.session.add(order)
     db.session.flush()  # Get order_id
@@ -830,18 +888,36 @@ def create_order():
     # Add order items and update stock
     for item in cart_items:
         product = Product.query.get(item.product_id)
-        product.stock_quantity -= item.quantity  # Reduce stock
+        inventory = Inventory.query.filter_by(product_id=product.product_id).first()
+        if inventory:
+            inventory.available_stock -= item.quantity
+            db.session.add(inventory)
         db.session.add(OrderItem(
             order_id=order.order_id,
             product_id=item.product_id,
             quantity=item.quantity,
-            price=float(item.product.base_price)
+            unit_price=float(product.base_price)
         ))
 
     # Clear cart
     for item in cart_items:
         db.session.delete(item)
     
+    db.session.commit()
+    
+    # Look up the payment method ID
+    payment_method_obj = PaymentMethod.query.filter(func.lower(PaymentMethod.method_name) == payment_method.lower()).first()
+    payment_method_id = payment_method_obj.payment_method_id if payment_method_obj else None
+    payment = Payment(
+        order_id=order.order_id,
+        user_id=current_user.user_id,
+        payment_method_id=payment_method_id,
+        payment_date=datetime.utcnow(),
+        payment_proof_url=data.get('proof_of_payment_url'),
+        payment_status='pending',
+        reference_number=data.get('reference_number')
+    )
+    db.session.add(payment)
     db.session.commit()
     
     return {'success': True, 'order_id': order.order_id, 'user_id': current_user.user_id}
