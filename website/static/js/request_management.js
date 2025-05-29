@@ -218,3 +218,99 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 }); 
+
+function fetchAndRenderSupplyRequests() {
+    fetch('/admin/supply_requests')
+        .then(res => res.json())
+        .then(data => renderSupplyRequestTable(data));
+}
+
+function renderSupplyRequestTable(requests) {
+    const tbody = document.querySelector('.supply-request-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!requests.length) {
+        tbody.innerHTML = '<tr><td colspan="10">No supply requests found.</td></tr>';
+        return;
+    }
+    requests.forEach(req => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${req.request_id}</td>
+            <td>${req.product_id}</td>
+            <td>${req.product_name}</td>
+            <td>${req.supplier_price}</td>
+            <td>${req.requested_by}</td>
+            <td>${req.quantity_requested}</td>
+            <td>${req.status}</td>
+            <td>${req.notes}</td>
+            <td>${req.request_date}</td>
+            <td>${req.updated_at}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', fetchAndRenderSupplyRequests);
+
+function renderSupplyRequestTable(requests) {
+    const tbody = document.querySelector('.supply-request-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!requests.length) {
+        tbody.innerHTML = '<tr><td colspan="10">No supply requests found.</td></tr>';
+        return;
+    }
+    requests.forEach(req => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${req.request_id}</td>
+            <td>${req.product_id}</td>
+            <td>${req.product_name}</td>
+            <td>${req.supplier_price}</td>
+            <td>${req.requested_by}</td>
+            <td>${req.quantity_requested}</td>
+            <td>
+                <select class="status-dropdown" data-request-id="${req.request_id}">
+                    ${['Pending','Approved','Rejected','In progress','To Ship','To Deliver','Cancelled','Completed'].map(
+                        status => `<option value="${status}" ${req.status === status ? 'selected' : ''}>${status}</option>`
+                    ).join('')}
+                </select>
+            </td>
+            <td>${req.notes}</td>
+            <td>${req.request_date}</td>
+            <td>${req.updated_at}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Add event listeners for dropdowns
+    tbody.querySelectorAll('.status-dropdown').forEach(select => {
+        select.addEventListener('change', function() {
+            const requestId = this.getAttribute('data-request-id');
+            const newStatus = this.value;
+            updateSupplyRequestStatus(requestId, newStatus);
+        });
+    });
+}
+
+function updateSupplyRequestStatus(requestId, newStatus) {
+    fetch(`/supplier/update_supply_request_status`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({request_id: requestId, status: newStatus})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Status updated!');
+            // If completed, maybe refresh inventory or show modal for stock-in logic
+            if (newStatus === 'Completed') {
+                // Optionally, trigger inventory update logic or refresh inventory table
+                // fetchAndRenderInventory(); // if you have this function
+            }
+        } else {
+            alert('Failed to update status: ' + data.message);
+        }
+    });
+}

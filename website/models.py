@@ -343,14 +343,14 @@ class SupplyRequest(db.Model):
     __tablename__ = 'supply_requests'
     request_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
-    staff_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
+    requested_by = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     quantity_requested = db.Column(db.Integer, nullable=False)
     supply_status = db.Column(db.String(20), nullable=False, default='pending')
     notes = db.Column(db.Text, nullable=True)
     request_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     __table_args__ = (
-        db.Index('idx_supply_request_staff', 'staff_id'),
+        db.Index('idx_supply_request_requested_by', 'requested_by'),
         db.Index('idx_supply_request_status', 'supply_status'),
     )
 

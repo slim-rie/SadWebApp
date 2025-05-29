@@ -774,9 +774,31 @@ INSERT INTO `payment` VALUES
 UNLOCK TABLES;
 
 --
+-- Table structure for table `sales`
+--
+DROP TABLE IF EXISTS `sales`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sales` (
+  `sales_id` INT NOT NULL AUTO_INCREMENT,
+  `order_id` INT NOT NULL,
+  `product_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `sale_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `total_amount` DECIMAL(10,2) NOT NULL,
+  `payment_id` INT NOT NULL,
+  PRIMARY KEY (`sales_id`),
+  KEY `product_id` (`product_id`),
+  KEY `idx_sale_user` (`user_id`),
+  KEY `idx_sale_payment` (`payment_id`),
+  CONSTRAINT `sales_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
+  CONSTRAINT `sales_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `sales_ibfk_3` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 -- Dumping data for table `sales`
 --
-
 LOCK TABLES `sales` WRITE;
 /*!40000 ALTER TABLE `sales` DISABLE KEYS */;
 INSERT INTO `sales` VALUES 
@@ -1143,39 +1165,6 @@ CREATE TABLE `supply_requests` (
 LOCK TABLES `supply_requests` WRITE;
 /*!40000 ALTER TABLE `supply_requests` DISABLE KEYS */;
 /*!40000 ALTER TABLE `supply_requests` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `sales`
---
-DROP TABLE IF EXISTS `sales`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `sales` (
-  `sales_id` INT NOT NULL AUTO_INCREMENT,
-  `order_id` INT NOT NULL,
-  `product_id` INT NOT NULL,
-  `user_id` INT NOT NULL,
-  `sale_date` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `total_amount` DECIMAL(10,2) NOT NULL,
-  `payment_id` INT NOT NULL,
-
-  PRIMARY KEY (`sales_id`),
-  KEY `product_id` (`product_id`),
-  KEY `idx_sale_user` (`user_id`),
-  KEY `idx_sale_payment` (`payment_id`),
-  CONSTRAINT `sales_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
-  CONSTRAINT `sales_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `sales_ibfk_3` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sales`
---
-LOCK TABLES `sales` WRITE;
-/*!40000 ALTER TABLE `sales` DISABLE KEYS */;
-/*!40000 ALTER TABLE `sales` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --

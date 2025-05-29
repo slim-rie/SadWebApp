@@ -232,3 +232,74 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 }); 
+
+function fetchAndRenderDeliveries() {
+    fetch('/supplier/deliveries')
+        .then(res => res.json())
+        .then(data => renderDeliveryTable(data));
+}
+
+function renderDeliveryTable(deliveries) {
+    const tbody = document.querySelector('.delivery-status-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!deliveries.length) {
+        tbody.innerHTML = '<tr><td colspan="9">No deliveries found.</td></tr>';
+        return;
+    }
+    deliveries.forEach(delivery => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${delivery.request_id}</td>
+            <td>
+                <ul style="padding-left: 16px; margin: 0;">
+                    ${delivery.products.map(p => `<li>${p.name} (${p.quantity})</li>`).join('')}
+                </ul>
+            </td>
+            <td>${delivery.products.reduce((sum, p) => sum + p.quantity, 0)}</td>
+            <td>${delivery.requested_by}</td>
+            <td>${delivery.supplier_name}</td>
+            <td>${delivery.request_date}</td>
+            <td>${delivery.delivery_date}</td>
+            <td>
+                <select class="delivery-status-dropdown" data-delivery-id="${delivery.delivery_id}">
+                    ${['Pending','Approved','Rejected','In progress','To Ship','To Deliver','Cancelled','Completed'].map(
+                        status => `<option value="${status}" ${delivery.status === status ? 'selected' : ''}>${status}</option>`
+                    ).join('')}
+                </select>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-view" data-delivery-id="${delivery.delivery_id}">View</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Add event listeners for dropdowns
+    tbody.querySelectorAll('.delivery-status-dropdown').forEach(select => {
+        select.addEventListener('change', function() {
+            const deliveryId = this.getAttribute('data-delivery-id');
+            const newStatus = this.value;
+            updateDeliveryStatus(deliveryId, newStatus);
+        });
+    });
+}
+
+function updateDeliveryStatus(deliveryId, newStatus) {
+    fetch('/supplier/update_delivery_status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({delivery_id: deliveryId, status: newStatus})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Delivery status updated!');
+            fetchAndRenderDeliveries();
+        } else {
+            alert('Failed to update delivery status: ' + data.message);
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', fetchAndRenderDeliveries);

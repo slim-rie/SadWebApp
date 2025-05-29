@@ -61,80 +61,24 @@
         </div>
         
         <div class="data-table">
-            <table>
+            <table class="delivery-status-table">
                 <thead>
-                    <tr>
-                        <th>Delivery ID</th>
-                        <th>Request ID</th>
-                        <th>Products</th>
-                        <th>Request Date</th>
-                        <th>Delivery Date</th>
-                        <th>Status</th>
-                    </tr>
+                  <tr>
+                    <th>Request ID</th>
+                    <th>Products</th>
+                    <th>Quantity</th>
+                    <th>Requested By</th>
+                    <th>Supplier Name</th>
+                    <th>Request Date</th>
+                    <th>Delivery Date</th>
+                    <th>Delivery Status</th>
+                    <th>Actions</th>
+                  </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>DEL-001</td>
-                        <td>REQ-001</td>
-                        <td>
-                            <ul>
-                                <li>Cotton Fabric (50m)</li>
-                                <li>Silk Fabric (20m)</li>
-                            </ul>
-                        </td>
-                        <td>2025-04-20</td>
-                        <td>2025-04-25</td>
-                        <td>
-                            <select class="custom-status-select intransit">
-                                <option value="intransit" class="intransit" selected>In Transit</option>
-                                <option value="delivered" class="delivered">Delivered</option>
-                                <option value="pending" class="pending">Pending</option>
-                                <option value="cancelled" class="cancelled">Cancelled</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>DEL-002</td>
-                        <td>REQ-002</td>
-                        <td>
-                            <ul>
-                                <li>Sewing Needles (100 pcs)</li>
-                                <li>Machine Oil (5L)</li>
-                            </ul>
-                        </td>
-                        <td>2025-04-18</td>
-                        <td>2025-04-24</td>
-                        <td>
-                            <select class="custom-status-select delivered">
-                                <option value="intransit" class="intransit">In Transit</option>
-                                <option value="delivered" class="delivered" selected>Delivered</option>
-                                <option value="pending" class="pending">Pending</option>
-                                <option value="cancelled" class="cancelled">Cancelled</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>DEL-003</td>
-                        <td>REQ-003</td>
-                        <td>
-                            <ul>
-                                <li>Polyester Thread (200 spools)</li>
-                                <li>Cotton Thread (150 spools)</li>
-                            </ul>
-                        </td>
-                        <td>2025-04-15</td>
-                        <td>2025-04-23</td>
-                        <td>
-                            <select class="custom-status-select pending">
-                                <option value="intransit" class="intransit">In Transit</option>
-                                <option value="delivered" class="delivered">Delivered</option>
-                                <option value="pending" class="pending" selected>Pending</option>
-                                <option value="cancelled" class="cancelled">Cancelled</option>
-                            </select>
-                        </td>
-                    </tr>
+                  <!-- JS will populate rows here -->
                 </tbody>
-            </table>
+              </table>
         </div>
     </div>
 
@@ -172,7 +116,6 @@
 
     <div id="chatTopbarContainer" style="display:flex;">
         <div class="chat-topbar">
-            <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="chat-float-img" id="openChatModal">
             <div class="chat-profile">
                 <img src="{{ url_for('static', filename='pictures/Skylab.png') }}" alt="User" class="chat-profile-img">
                 <div class="chat-profile-info">
@@ -182,56 +125,6 @@
                 <i class="fas fa-chevron-down" id="profileDropdownToggle" style="cursor:pointer;"></i>
                 <div class="chat-profile-dropdown" id="profileDropdownMenu">
                     <a href="{{ url_for('auth.logout') }}" class="chat-profile-dropdown-item logout-link" id="logoutBtn">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="chatModal" class="chat-modal">
-        <div class="chat-modal-content">
-            <div class="chat-modal-header" id="chatHeaderBar">
-                <span class="chat-modal-title">Recent Chats</span>
-                <button class="chat-modal-close" id="closeChatModal" aria-label="Close">&times;</button>
-            </div>
-            <div class="chat-modal-list" id="chatList" style="display: block;">
-                <div class="chat-modal-item" id="openConversation">
-                    <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
-                    <div class="chat-modal-details">
-                        <div class="chat-modal-name">JBR Tanching C.O</div>
-                        <div class="chat-modal-message">We do not have enough stock avai ...</div>
-                    </div>
-                </div>
-            </div>
-            <div class="chat-modal-conversation" id="chatConversation" style="display: none;">
-                <button class="chat-conv-back" id="backToList">&#8592; Back</button>
-                <div class="chat-conv-company-row">
-                    <img src="{{ url_for('static', filename='pictures/JBR LOGO.png') }}" alt="JBR" class="chat-modal-avatar">
-                    <div class="chat-conv-company-info">
-                        <div class="chat-modal-name">JBR Tanching C.O</div>
-                        <div class="chat-modal-role">Company</div>
-                    </div>
-                </div>
-                <div class="chat-conv-divider">Yesterday</div>
-                <div class="chat-conv-messages">
-                    <div class="chat-message chat-message-them">
-                        <span>When blue color will be available?</span>
-                    </div>
-                    <div class="chat-message chat-message-you">
-                        <span>We don't have enough stock for Lacoster Fabrics</span>
-
-                    </div>
-                </div>
-                <div class="chat-conv-input">
-                    <input type="text" id="chatInput" placeholder="Type here...." />
-                    <input type="file" id="chatFileInput" style="display:none;" />
-                    <div class="chat-conv-icons">
-                        <button class="chat-attach-btn" id="chatAttachBtn" type="button">
-                            <img src="{{ url_for('static', filename='pictures/attach.png') }}" alt="Attach" style="width:28px;height:28px;">
-                        </button>
-                        <button class="chat-send-btn" id="chatSendBtn" type="button">
-                            <img src="{{ url_for('static', filename='pictures/arrow.png') }}" alt="Send" style="width:28px;height:28px;">
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
