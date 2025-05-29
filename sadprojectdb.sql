@@ -1647,7 +1647,7 @@ UNLOCK TABLES;
 -- Table structure for table `sales`
 --
 DROP TABLE IF EXISTS `sales`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sales` (
   `sales_id` INT NOT NULL AUTO_INCREMENT,
@@ -1663,7 +1663,7 @@ CREATE TABLE `sales` (
   KEY `idx_sale_payment` (`payment_id`),
   CONSTRAINT `sales_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
   CONSTRAINT `sales_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  CONSTRAINT `sales_ibfk_3` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`payment_id`)
+  CONSTRAINT `sales_ibfk_3` FOREIGN KEY (`payment_id`) REFERENCES `payment` (`payment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

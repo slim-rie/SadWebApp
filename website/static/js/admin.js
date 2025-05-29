@@ -1423,23 +1423,58 @@ function renderCustomerOrdersTable(orders) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${order.order_id}</td>
-            <td>${order.user_id}</td>
+            <td>${order.username || ''}</td>
             <td>${order.cancellation_id || ''}</td>
             <td>${order.order_date || ''}</td>
+            <td>${order.product_name || ''}</td>
+            <td>${order.quantity || ''}</td>
             <td>${order.total_amount || ''}</td>
-            <td>${order.address_id || ''}</td>
-            <td>${order.status_id || ''}</td>
+            <td>${order.payment_method || ''}</td>
+            <td>${order.address_name || ''}</td>
+            <td>
+                <select class="order-status-dropdown" data-order-id="${order.order_id}">
+                    <option value="1" ${order.status_name === 'To Pay' ? 'selected' : ''}>To Pay</option>
+                    <option value="2" ${order.status_name === 'To Ship' ? 'selected' : ''}>To Ship</option>
+                    <option value="3" ${order.status_name === 'To Receive' ? 'selected' : ''}>To Receive</option>
+                    <option value="4" ${order.status_name === 'Completed' ? 'selected' : ''}>Completed</option>
+                    <option value="5" ${order.status_name === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                    <option value="6" ${order.status_name === 'Refunded' ? 'selected' : ''}>Refunded</option>
+                    <option value="7" ${order.status_name === 'Returned' ? 'selected' : ''}>Returned</option>
+                </select>
+            </td>
             <td>${order.created_at || ''}</td>
             <td>${order.updated_at || ''}</td>
-            <td>
-                <button class="approve-order-btn" data-id="${order.order_id}">Approve</button>
-                <button class="reject-order-btn" data-id="${order.order_id}">Reject</button>
-                <button class="delete-order-btn" data-id="${order.order_id}">Delete</button>
-            </td>
         `;
         tbody.appendChild(tr);
     });
 }
+
+
+// Handle status dropdown change
+// Use event delegation for dynamically rendered dropdowns
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('order-status-dropdown')) {
+        const orderId = e.target.getAttribute('data-order-id');
+        const statusId = e.target.value;
+        fetch(`/admin/update_order_status/${orderId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status_id: statusId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                fetchAndRenderCustomerOrders();
+            } else {
+                alert('Failed to update order status: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => alert('Failed to update order status: ' + err));
+    }
+});
 
 // Ensure customer orders are fetched and rendered on page load if the table is present
 document.addEventListener('DOMContentLoaded', function() {
@@ -1488,45 +1523,6 @@ function renderOrderItemsTable(items) {
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('order-items-table')) {
         fetchAndRenderOrderItems();
-    }
-});
-
-function fetchAndRenderOrderStatuses() {
-    fetch('/admin/order_statuses_list')
-        .then(res => res.json())
-        .then(statuses => renderOrderStatusesTable(statuses))
-        .catch(err => {
-            console.error('Failed to fetch order statuses:', err);
-            renderOrderStatusesTable([]);
-        });
-}
-
-function renderOrderStatusesTable(statuses) {
-    const tbody = document.querySelector('#order-statuses-table tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    if (!statuses.length) {
-        tbody.innerHTML = '<tr><td colspan="4">No statuses found.</td></tr>';
-        return;
-    }
-    statuses.forEach(status => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${status.status_id}</td>
-            <td>${status.status_name}</td>
-            <td>${status.description || ''}</td>
-            <td>
-                <!-- Actions if needed -->
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-// Ensure order statuses are fetched and rendered on page load if the table is present
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('order-statuses-table')) {
-        fetchAndRenderOrderStatuses();
     }
 });
 
