@@ -160,55 +160,36 @@ document.addEventListener('DOMContentLoaded', async function () {
     const addToCartBtn = document.getElementById('addToCartBtn');
     const buyNowBtn = document.getElementById('buyNowBtn');
 
-    addToCartBtn.addEventListener('click', function () {
-        const productName = document.getElementById('productTitle').textContent;
-        const productPrice = parseFloat(document.getElementById('productPrice').textContent.replace('₱', '').replace(',', ''));
-        const productImage = document.getElementById('mainProductImage').src;
-        const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const selectedModelBtn = document.querySelector('.model-choice.selected');
-        const selectedModel = selectedModelBtn ? selectedModelBtn.textContent.trim() : null;
-
-        if (isLoggedIn && product.product_id) {
-            // Logged in: send to backend
-            fetch('/api/cart', {
+    addToCartBtn.addEventListener('click', async function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('product_id');
+        // If you have variant selection, get the selected variant ID here
+        let variantId = null;
+        // Example: variantId = getSelectedVariantId();
+        const quantityInput = document.getElementById('quantityInput');
+        let quantity = 1;
+        if (quantityInput && !isNaN(parseInt(quantityInput.value))) {
+            quantity = parseInt(quantityInput.value);
+        }
+        try {
+            const response = await fetch('/api/cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    product_id: product.product_id,
-                    quantity: productQuantity,
-                    model: selectedModel
+                    product_id: productId,
+                    variant_id: variantId,
+                    quantity: quantity
                 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Product added to cart!');
-                    window.location.href = '/cart';
-                } else {
-                    alert('Failed to add to cart: ' + (data.message || 'Unknown error'));
-                }
             });
-        } else {
-            // Guest: use localStorage
-        const cartItem = {
-            id: productName + (selectedModel || ''),
-            name: productName,
-            price: productPrice,
-            image: productImage,
-            quantity: productQuantity,
-            model: selectedModel
-        };
-        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-        const existingItemIndex = cartItems.findIndex(item => item.id === cartItem.id);
-        if (existingItemIndex !== -1) {
-            cartItems[existingItemIndex].quantity += productQuantity;
-        } else {
-            cartItems.push(cartItem);
-        }
-        localStorage.setItem('cartItems', JSON.stringify(cartItems));
-        alert('Product added to cart!');
-        window.location.href = '/cart';
+            const data = await response.json();
+            if (data.success) {
+                // Redirect to cart page with just_added param
+                window.location.href = `/cart?just_added=${productId}`;
+            } else {
+                alert('Failed to add to cart: ' + (data.message || 'Unknown error'));
+            }
+        } catch (err) {
+            alert('Error adding to cart: ' + err);
         }
     });
 

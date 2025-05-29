@@ -307,7 +307,19 @@ document.addEventListener('DOMContentLoaded', async function () {
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            window.location.href = '/transaction?buy_now=1';
+                            // Check if user has address (simulate by checking a global or via API)
+                            fetch('/api/addresses')
+                                .then(res => res.json())
+                                .then(addrData => {
+                                    if (!addrData.success || !addrData.addresses || addrData.addresses.length === 0) {
+                                        // Redirect to addresses with params
+                                        const redirectUrl = `/addresses?from=product&product_id=${product.product_id}&variant_id=${variant_id}&quantity=${productQuantity}`;
+                                        console.log('Redirecting to:', redirectUrl); // Debug log
+                                        window.location.href = redirectUrl;
+                                    } else {
+                                        window.location.href = '/transaction?buy_now=1';
+                                    }
+                                });
                         } else {
                             alert('Failed to start buy now: ' + (data.message || 'Unknown error'));
                         }

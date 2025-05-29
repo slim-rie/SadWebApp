@@ -235,7 +235,7 @@ class CartItem(db.Model):
     cart_item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
-    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.variant_id'), nullable=False)
+    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.variant_id'), nullable=True)
     quantity = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)

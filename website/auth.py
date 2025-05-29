@@ -660,23 +660,25 @@ def orders():
             })
         # Map database status to frontend status
         status_mapping = {
-            'pending': 'to-pay',
-            'paid': 'to-ship',
-            'shipped': 'to-receive',
-            'delivered': 'completed',
+            'to pay': 'to-pay',
+            'to ship': 'to-ship',
+            'to receive': 'to-receive',
+            'completed': 'completed',
             'cancelled': 'cancelled',
-            'refunded': 'return-refund'
+            'refunded': 'return-refund',
+            'returned': 'return-refund'
         }
         status_text_mapping = {
-            'pending': 'Pending Payment',
-            'paid': 'Seller is preparing your order',
-            'shipped': 'Out for delivery',
-            'delivered': 'Parcel has been delivered',
+            'to pay': 'Pending Payment',
+            'to ship': 'Seller is preparing your order',
+            'to receive': 'Out for delivery',
+            'completed': 'Parcel has been delivered',
             'cancelled': 'Cancelled by you',
-            'refunded': 'REFUND COMPLETED'
+            'refunded': 'REFUND COMPLETED',
+            'returned': 'RETURNED'
         }
         status_obj = OrderStatus.query.get(order.status_id)
-        status_name = status_obj.status_name.lower() if status_obj and hasattr(status_obj, 'status_name') else 'pending'
+        status_name = status_obj.status_name.lower() if status_obj and hasattr(status_obj, 'status_name') else 'to pay'
         # Fetch payment method name
         payment_method_name = ''
         payment = Payment.query.filter_by(order_id=order.order_id).first()
@@ -778,6 +780,25 @@ def add_address():
         db.session.add(address)
         db.session.commit()
         print('Address saved successfully!')
+        
+        # Check if this is from product details
+        from_param = request.args.get('from')
+        product_id = request.args.get('product_id')
+        variant_id = request.args.get('variant_id')
+        quantity = request.args.get('quantity')
+        
+        if from_param == 'product' and product_id:
+            redirect_url = f'/transaction?product_id={product_id}'
+            if variant_id:
+                redirect_url += f'&variant_id={variant_id}'
+            if quantity:
+                redirect_url += f'&quantity={quantity}'
+            return jsonify({
+                'success': True, 
+                'message': 'Address saved successfully!',
+                'redirect': redirect_url
+            })
+            
         return jsonify({'success': True, 'message': 'Address saved successfully!'})
     except Exception as e:
         db.session.rollback()
@@ -791,7 +812,7 @@ def api_get_addresses():
     address_list = []
     for addr in addresses:
         address_list.append({
-            'id': addr.id,
+            'id': addr.address_id,
             'firstName': addr.first_name,
             'lastName': addr.last_name,
             'phoneNumber': addr.phone_number,
@@ -1004,31 +1025,61 @@ def trackorder(order_id):
         flash('Order not found', 'error')
         return redirect(url_for('auth.orders'))
 
+    # Get the status name from OrderStatus
+    status_obj = OrderStatus.query.get(order.status_id)
+    status_name = status_obj.status_name.lower() if status_obj and hasattr(status_obj, 'status_name') else 'to pay'
+
+    # Fetch tracking and tracking status from tracking table with join
+    from .models import Tracking, TrackingStatus
+    tracking = db.session.query(Tracking, TrackingStatus)\
+        .join(TrackingStatus, Tracking.status_id == TrackingStatus.status_id)\
+        .filter(Tracking.order_id == order.order_id)\
+        .first()
+
+    # Mapping of order status to allowed tracking status_ids and default
+    status_map = {
+        'to pay':    ([1, 2], 1),
+        'to ship':   ([3, 4], 3),
+        'to receive':([5, 6], 5),
+        'completed': ([7, 8], 7),
+        'return/refund': ([9, 11, 12], 9),
+        'cancelled': ([10], 10)
+    }
+    allowed_ids, default_id = status_map.get(status_name, ([1], 1))
+
+    # If tracking exists and status_id is not in allowed set, update it
+    if tracking and tracking[0].status_id not in allowed_ids:
+        tracking_record = tracking[0]
+        tracking_record.status_id = default_id
+        db.session.commit()
+        # Re-fetch the tracking and status after update
+        tracking = db.session.query(Tracking, TrackingStatus)\
+            .join(TrackingStatus, Tracking.status_id == TrackingStatus.status_id)\
+            .filter(Tracking.order_id == order.order_id)\
+            .first()
+
+    # If tracking exists, always show its status name (never 'Not assigned' if status_id=1)
+    if tracking:
+        current_tracking_status = tracking[1].status_name
+        courier = tracking[0].courier if tracking[0].courier else 'Not assigned'
+    else:
+        current_tracking_status = 'Not assigned'
+        courier = 'Not assigned'
+
     # Calculate estimated delivery date (3-5 days from shipping)
     estimated_delivery = None
-    if order.status == 'shipped':
+    if status_name == 'to ship':
         shipping_date = order.updated_at
         estimated_delivery = shipping_date + timedelta(days=3)
-    elif order.status == 'delivered':
+    elif status_name == 'completed':
         estimated_delivery = order.updated_at
 
     # Format tracking status based on order status
-    tracking_status = []
-    
-    # Order Confirmed
-    tracking_status.append({
-        'title': 'Order Confirmed',
-        'date': order.created_at.strftime('%B %d, %Y - %I:%M %p'),
-        'description': 'Your order has been confirmed and is being processed.',
-        'icon': 'fas fa-check-circle',
-        'completed': True,
-        'active': False
-    })
-
-    # Packed
-    if order.status in ['paid', 'shipped', 'delivered']:
+    tracking_statuses = []
+    # (No longer append 'Order Confirmed' by default)
+    if status_name in ['to ship', 'to receive', 'completed']:
         packed_date = order.created_at + timedelta(hours=2)
-        tracking_status.append({
+        tracking_statuses.append({
             'title': 'Packed',
             'date': packed_date.strftime('%B %d, %Y - %I:%M %p'),
             'description': 'Your order has been packed and is ready for pickup.',
@@ -1036,11 +1087,9 @@ def trackorder(order_id):
             'completed': True,
             'active': False
         })
-
-    # Shipped
-    if order.status in ['shipped', 'delivered']:
+    if status_name in ['to receive', 'completed']:
         shipped_date = order.created_at + timedelta(days=1)
-        tracking_status.append({
+        tracking_statuses.append({
             'title': 'Shipped',
             'date': shipped_date.strftime('%B %d, %Y - %I:%M %p'),
             'description': 'Your package has been picked up by J&T Express.',
@@ -1048,11 +1097,9 @@ def trackorder(order_id):
             'completed': True,
             'active': False
         })
-
-    # Out for Delivery
-    if order.status == 'shipped':
+    if status_name == 'to receive':
         delivery_date = order.updated_at
-        tracking_status.append({
+        tracking_statuses.append({
             'title': 'Out for Delivery',
             'date': delivery_date.strftime('%B %d, %Y - %I:%M %p'),
             'description': 'Your package is out for delivery today.',
@@ -1065,10 +1112,8 @@ def trackorder(order_id):
                 'image': url_for('static', filename='pictures/driver-icon.png')
             }
         })
-
-    # Delivered
-    if order.status == 'delivered':
-        tracking_status.append({
+    if status_name == 'completed':
+        tracking_statuses.append({
             'title': 'Delivered',
             'date': order.updated_at.strftime('%B %d, %Y - %I:%M %p'),
             'description': 'Your package has been delivered to the shipping address.',
@@ -1079,11 +1124,20 @@ def trackorder(order_id):
 
     # Fetch customer info
     customer = order.user
-    address = Address.query.filter_by(user_id=order.user_id, is_default=True).first()
-    courier = order.courier if hasattr(order, 'courier') and order.courier else 'J&T Express'
-    tracking_number = order.tracking_number if hasattr(order, 'tracking_number') and order.tracking_number else f'JNTPH{order.order_id:08d}'
+    address = Address.query.get(order.address_id)
 
-    # Build order_items list
+    # Fetch tracking number from Tracking table
+    tracking_number = tracking[0].tracking_number if tracking else None
+
+    # Fetch payment and payment method
+    payment = Payment.query.filter_by(order_id=order.order_id).first()
+    payment_method_name = ''
+    if payment:
+        method = PaymentMethod.query.get(payment.payment_method_id)
+        if method:
+            payment_method_name = method.method_name
+
+    # Build order_items list with correct prices
     order_items = []
     for item in order.items:
         product = Product.query.get(item.product_id)
@@ -1104,35 +1158,72 @@ def trackorder(order_id):
             'name': product.product_name,
             'variation': '',  # Add variation if you have it
             'quantity': item.quantity,
-            'price': float(item.price) if hasattr(item, 'price') else float(item.unit_price),
-            'originalPrice': float(product.base_price),
+            'price': float(item.unit_price),  # Discounted price from DB
+            'originalPrice': float(product.base_price),  # Original price from DB
             'image': image_path
         })
 
     order_data = {
         'order_id': order.order_id,
         'estimated_delivery': estimated_delivery.strftime('%B %d, %Y') if estimated_delivery else 'Not available',
-        'shipping_address': order.shipping_address,
+        'shipping_address': address.complete_address if address else '',
         'courier': courier,
         'tracking_number': tracking_number,
-        'tracking_status': tracking_status,
-        'estimated_arrival_time': 'Today, 2:30 PM - 5:30 PM' if order.status == 'shipped' else 'Not available',
-        'distance': '5.2 km away from your location' if order.status == 'shipped' else 'Not available',
-        'estimated_time': 'Approximately 25 minutes' if order.status == 'shipped' else 'Not available',
+        'tracking_status': tracking_statuses,
+        'current_tracking_status': current_tracking_status,
+        'estimated_arrival_time': 'Today, 2:30 PM - 5:30 PM' if status_name == 'to receive' else 'Not available',
+        'distance': '5.2 km away from your location' if status_name == 'to receive' else 'Not available',
+        'estimated_time': 'Approximately 25 minutes' if status_name == 'to receive' else 'Not available',
         'customer_name': f'{customer.first_name} {customer.last_name}' if customer else '',
         'customer_phone': address.phone_number if address else '',
         'address': address,
         'order_items': order_items,
-        # Add subtotal, shipping_fee, total_amount, payment_method, etc. as needed
         'subtotal': sum(i['originalPrice'] * i['quantity'] for i in order_items),
         'shipping_fee': 35,  # Replace with actual shipping fee logic if available
         'total_amount': float(order.total_amount),
-        'payment_method': order.payment_method,
-        'status': order.status
+        'payment_method': payment_method_name,
+        'status': status_name
     }
 
     is_staff_or_admin = getattr(current_user, 'role', None) in ['admin', 'staff']
     return render_template('trackorder.html', order=order_data, is_staff_or_admin=is_staff_or_admin)
+
+@auth.route('/update-tracking-status/<int:order_id>', methods=['POST'])
+@login_required
+def update_tracking_status(order_id):
+    if getattr(current_user, 'role', None) not in ['admin', 'staff']:
+        flash('Unauthorized access.', 'error')
+        return redirect(url_for('auth.orders'))
+    
+    new_status = request.form.get('tracking_status')
+    if not new_status:
+        flash('Tracking status is required.', 'error')
+        return redirect(url_for('auth.trackorder', order_id=order_id))
+    
+    try:
+        from .models import Tracking, TrackingStatus
+        # Get or create tracking record
+        tracking = Tracking.query.filter_by(order_id=order_id).first()
+        if not tracking:
+            tracking = Tracking(order_id=order_id)
+            db.session.add(tracking)
+        
+        # Get the status ID from tracking_statuses table
+        status = TrackingStatus.query.filter_by(status_name=new_status).first()
+        if not status:
+            flash('Invalid tracking status.', 'error')
+            return redirect(url_for('auth.trackorder', order_id=order_id))
+        
+        # Update tracking status
+        tracking.status_id = status.status_id
+        tracking.updated_at = datetime.utcnow()
+        db.session.commit()
+        flash('Tracking status updated successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating tracking status: {str(e)}', 'error')
+    
+    return redirect(url_for('auth.trackorder', order_id=order_id))
 
 @auth.route('/update-order-status/<int:order_id>', methods=['POST'])
 @login_required

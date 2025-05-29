@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales, Payment, PaymentMethod
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales, Payment, PaymentMethod, Tracking
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -167,14 +167,15 @@ def get_cart():
     cart_items = CartItem.query.filter_by(user_id=current_user.user_id).all()
     return jsonify({
         'items': [{
-            'id': item.id,
+            'cart_item_id': item.cart_item_id,
             'product_id': item.product_id,
             'name': item.product.product_name,
             'price': float(item.product.base_price),
             'quantity': item.quantity,
-            # Use ProductImage from DB if available, fallback to static folder
             'image_url': (('/static/' + item.product.images[0].image_url.lstrip('/')) if item.product.images and len(item.product.images) > 0 and not item.product.images[0].image_url.startswith('/static/') else (item.product.images[0].image_url if item.product.images and len(item.product.images) > 0 else get_product_image_url(item.product.product_name))),
-            'stock_quantity': item.product.stock_quantity
+            'stock_quantity': item.product.stock_quantity,
+            'variant': getattr(item, 'variant', None),
+            'model': getattr(item, 'model', None)
         } for item in cart_items]
     })
 
@@ -184,22 +185,30 @@ def add_to_cart():
     data = request.get_json()
     product_id = data.get('product_id')
     quantity = data.get('quantity', 1)
-    color = data.get('color')
-    width = data.get('width')
-    model = data.get('model')
+    variant_id = data.get('variant_id')
 
     if not product_id:
         return jsonify({'success': False, 'message': 'Product ID is required'}), 400
 
     product = Product.query.get_or_404(product_id)
+    # Get category name (assume relationship is product.category)
+    category_name = None
+    if hasattr(product, 'category') and product.category:
+        category_name = product.category.category_name.lower()
+    else:
+        # fallback: try to get category by id
+        category = Category.query.get(product.category_id)
+        if category:
+            category_name = category.category_name.lower()
 
-    # Check if item with same product/color/width/model is already in cart
+    # Only allow variant_id to be None for sewing machines
+    if not (category_name and 'sewing machine' in category_name) and variant_id is None:
+        return jsonify({'success': False, 'message': 'Variant must be selected for this product.'}), 400
+
     cart_item = CartItem.query.filter_by(
         user_id=current_user.user_id,
         product_id=product_id,
-        color=color,
-        width=width,
-        model=model
+        variant_id=variant_id
     ).first()
 
     if cart_item:
@@ -208,10 +217,8 @@ def add_to_cart():
         cart_item = CartItem(
             user_id=current_user.user_id,
             product_id=product_id,
-            quantity=quantity,
-            color=color,
-            width=width,
-            model=model
+            variant_id=variant_id,
+            quantity=quantity
         )
         db.session.add(cart_item)
 
@@ -863,6 +870,16 @@ def create_order():
         db.session.add(order)
         db.session.flush()  # Get order_id
 
+        # Immediately create tracking record
+        tracking = Tracking(
+            order_id=order.order_id,
+            status_id=1,  # Initial status
+            courier='Not assigned',
+            tracking_number='Not assigned'
+        )
+        db.session.add(tracking)
+        db.session.flush()
+
         # Add order item and update stock
         inventory = Inventory.query.filter_by(product_id=product.product_id).first()
         if inventory:
@@ -931,6 +948,16 @@ def create_order():
     )
     db.session.add(order)
     db.session.flush()  # Get order_id
+
+    # Immediately create tracking record
+    tracking = Tracking(
+        order_id=order.order_id,
+        status_id=1,  # Initial status
+        courier='Not assigned',
+        tracking_number='Not assigned'
+    )
+    db.session.add(tracking)
+    db.session.flush()
 
     # Add order items and update stock
     for item in cart_items:

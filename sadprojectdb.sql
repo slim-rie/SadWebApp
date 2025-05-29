@@ -2203,3 +2203,33 @@ INSERT INTO `payment_methods` VALUES
 (3, 'GCash');
 /*!40000 ALTER TABLE `payment_methods` ENABLE KEYS */;
 UNLOCK TABLES;
+
+
+INSERT INTO tracking_statuses (status_name, description) VALUES
+('Order Placed', 'Buyer has placed the order, awaiting seller confirmation'),
+('Processing', 'Seller is preparing the order for shipment'),
+('Ready to Ship', 'Seller has packed the item and generated a shipping label'),
+('Shipped', 'Package has been handed over to logistics partner'),
+('In Transit', 'Package is moving through the logistics network'),
+('Out for Delivery', 'Package is with the courier for final delivery'),
+('Delivered', 'Package has been successfully delivered to buyer'),
+('Failed Delivery', 'Courier attempted delivery but failed (e.g., recipient not available)'),
+('Returned to Seller', 'Package was returned to seller after failed delivery attempts'),
+('Cancelled', 'Order was cancelled before delivery'),
+('Return/Refund in Progress', 'Buyer initiated return/refund process'),
+('Return/Refund Completed', 'Return/refund request has been processed'); 
+
+
+CREATE TABLE cart_items (
+    cart_item_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    variant_id INT NULL,
+    quantity INT,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id),
+    FOREIGN KEY (variant_id) REFERENCES product_variants(variant_id)
+);
+
