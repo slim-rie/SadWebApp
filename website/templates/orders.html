@@ -205,6 +205,150 @@
 </div>
 <!-- End Cancel Reason Modal Modernized -->
 
+<!-- Refund Request Modal -->
+<div class="refund-modal-overlay" id="refundModalOverlay">
+  <div class="refund-modal" role="dialog" aria-modal="true" aria-labelledby="refundTitle">
+    <h2 id="refundTitle">Request Refund</h2>
+    <p style="color:#444; font-size:15px; margin-bottom:18px;">Please let us know about your issue with the order.</p>
+    <form id="refundForm">
+      <div class="refund-received">
+        <label>Did you receive your items?</label>
+        <div class="received-options">
+          <label>
+            <input type="radio" name="items_received" value="yes" required>
+            Yes, I received my items but there are issues
+          </label>
+          <label>
+            <input type="radio" name="items_received" value="no" required>
+            No, I didn't receive my items
+          </label>
+        </div>
+      </div>
+
+      <!-- Reasons for received items -->
+      <div class="received-reasons" style="display: none;">
+        <label>Select the issue:</label>
+        <div class="reason-options">
+          <label>
+            <input type="radio" name="refund_reason" value="missing_parts">
+            Missing part of the order
+          </label>
+          <label>
+            <input type="radio" name="refund_reason" value="wrong_item">
+            Seller sent wrong item
+          </label>
+          <label>
+            <input type="radio" name="refund_reason" value="damaged">
+            Damaged Item
+            <div class="sub-reasons" style="display: none; margin-left: 20px;">
+              <label>
+                <input type="radio" name="damage_type" value="shattered">
+                Shattered/Broken Product
+              </label>
+              <label>
+                <input type="radio" name="damage_type" value="scratched">
+                Scratch/Dents
+              </label>
+              <label>
+                <input type="radio" name="damage_type" value="other_damage">
+                Other types of damage
+              </label>
+            </div>
+          </label>
+          <label>
+            <input type="radio" name="refund_reason" value="defective">
+            Product is defective or does not work
+          </label>
+        </div>
+      </div>
+
+      <!-- Reasons for not received items -->
+      <div class="not-received-reasons" style="display: none;">
+        <label>Select the issue:</label>
+        <div class="reason-options">
+          <label>
+            <input type="radio" name="refund_reason" value="not_delivered">
+            Parcel not delivered
+          </label>
+          <label>
+            <input type="radio" name="refund_reason" value="missing_parts">
+            Missing part of the order
+          </label>
+          <label>
+            <input type="radio" name="refund_reason" value="empty_parcel">
+            Empty Parcel
+          </label>
+        </div>
+      </div>
+
+      <!-- Solution options -->
+      <div class="solution-options" style="display: none;">
+        <label>Select your preferred solution:</label>
+        <div class="solution-choices">
+          <label>
+            <input type="radio" name="solution_type" value="return_refund">
+            Return and Refund
+          </label>
+          <label>
+            <input type="radio" name="solution_type" value="refund_only">
+            Refund Only
+            <div class="refund-amount" style="display: none; margin-left: 20px;">
+              <label>Preferred Refund Amount (₱):</label>
+              <input type="number" name="refund_amount" min="0" step="0.01" placeholder="Enter amount">
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="refund-description">
+        <label for="refundDescription">Description:</label>
+        <textarea id="refundDescription" name="refundDescription" rows="4" placeholder="Please provide details about your refund request..."></textarea>
+      </div>
+
+      <div class="proof-upload">
+        <label>Upload Proof (Photo/Video):</label>
+        <div class="upload-container">
+          <input type="file" id="proofFile" name="proofFile" accept="image/*,video/*" multiple>
+          <label for="proofFile" class="upload-btn">
+            <i class="fas fa-cloud-upload-alt"></i> Choose Files
+          </label>
+          <div id="fileList" class="file-list"></div>
+        </div>
+      </div>
+
+      <div class="return-details" style="display: none;">
+        <label>Return Details:</label>
+        <div class="return-address">
+          <p><strong>Return Address:</strong></p>
+          <p>JBR Tanching C.O</p>
+          <p>123 Main Street</p>
+          <p>Manila, Philippines</p>
+          <p>Contact: +63 912-3456-789</p>
+        </div>
+        <div class="return-instructions">
+          <p><strong>Return Instructions:</strong></p>
+          <ul>
+            <li>Please ensure the item is in its original packaging</li>
+            <li>Include all original accessories and documentation</li>
+            <li>Package the item securely to prevent damage during return shipping</li>
+            <li>You will receive a return shipping label via email</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="contact-info">
+        <p>For any concerns, please email us at: <a href="mailto:tanchingcojbr@gmail.com">tanchingcojbr@gmail.com</a></p>
+      </div>
+
+      <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+        <button type="button" class="modal-btn" id="refundModalNotNowBtn">Not Now</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="confirmRefundBtn" disabled>Submit Refund Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- End Refund Request Modal -->
+
     <footer>
         <div class="container footer-grid">
             <div class="footer-section">

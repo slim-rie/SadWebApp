@@ -177,7 +177,6 @@ class CancellationReason(db.Model):
     __tablename__ = 'cancellation_reason'
     cancellation_reason_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     cancellation_reason_name = db.Column(db.String(100), unique=True, nullable=False)
-    other_reason = db.Column(db.Text, nullable=True)
     cancellations = db.relationship('OrderCancellation', backref='reason', lazy=True)
 
 class OrderCancellation(db.Model):
@@ -185,8 +184,8 @@ class OrderCancellation(db.Model):
     cancellation_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.order_id'), nullable=False)
     cancellation_reason_id = db.Column(db.Integer, db.ForeignKey('cancellation_reason.cancellation_reason_id'), nullable=False)
-cancelled_at = db.Column(db.DateTime, nullable=False)
-other_reason = db.Column(db.String(255))
+    cancelled_at = db.Column(db.DateTime, nullable=False)
+    other_reason = db.Column(db.String(255))
 
 class TrackingStatus(db.Model):
     __tablename__ = 'tracking_statuses'
@@ -250,6 +249,7 @@ class Review(db.Model):
     comment = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user = db.relationship('User', backref='review_list', lazy=True)
+
 class ReviewMedia(db.Model):
     __tablename__ = 'review_media'
     media_id = db.Column(db.Integer, primary_key=True, autoincrement=True)

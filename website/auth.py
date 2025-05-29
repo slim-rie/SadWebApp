@@ -4,7 +4,7 @@ from flask_mail import Message
 auth = Blueprint('auth', __name__)
 
 from flask import render_template, request, flash, redirect, url_for, session, current_app, jsonify
-from .models import User, CartItem, Product, Address, Order, OrderItem, Role, ProductSpecification, Inventory, Review, OrderStatus, Payment, PaymentMethod, CancellationReason, OrderCancellation, ProductImage
+from .models import User, CartItem, Product, Address, Order, OrderItem, Role, ProductSpecification, Inventory, Review, OrderStatus, Payment, PaymentMethod, CancellationReason, OrderCancellation, ProductImage, Refund, Return
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -1393,3 +1393,94 @@ def cancel_order_details():
         payment_method=payment_method,
         user=user
     )
+
+@auth.route('/api/request-refund', methods=['POST'])
+@login_required
+def request_refund():
+    try:
+        data = request.get_json()
+        order_id = data.get('order_id')
+        items_received = data.get('items_received')
+        reason = data.get('reason')
+        damage_type = data.get('damage_type')
+        solution = data.get('solution')
+        refund_amount = data.get('refund_amount')
+        description = data.get('description', '')
+
+        # Validate required fields
+        if not all([order_id, items_received, reason]):
+            return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+
+        # Get the order
+        order = Order.query.filter_by(order_id=order_id, user_id=current_user.id).first()
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found'}), 404
+
+        # Check if order is in "to receive" status
+        if order.order_status != "to receive":
+            return jsonify({'success': False, 'message': 'Refund can only be requested for orders in "To receive" status'}), 400
+
+        # Define reasons that automatically get refund only
+        auto_refund_reasons = ['not_delivered', 'empty_parcel']
+        
+        # Define reasons that require return and refund
+        require_return_reasons = ['damaged', 'defective', 'wrong_item']
+
+        # Validate solution based on reason
+        if reason in auto_refund_reasons and solution != 'refund_only':
+            return jsonify({'success': False, 'message': 'This reason only allows refund only'}), 400
+        
+        if reason in require_return_reasons and solution != 'return_refund':
+            return jsonify({'success': False, 'message': 'This reason requires return and refund'}), 400
+
+        # Create refund record with automatic approval for certain reasons
+        refund_status = 'approved' if reason in auto_refund_reasons else 'pending'
+        
+        refund = Refund(
+            order_id=order_id,
+            refund_reason=reason,
+            refund_status=refund_status,
+            refund_type=solution,
+            refund_amount=refund_amount if solution == 'refund_only' else None,
+            items_received=items_received == 'yes',
+            damage_type=damage_type if reason == 'damaged' else None,
+            description=description
+        )
+        db.session.add(refund)
+
+        # Create return record only if solution is return and refund
+        if solution == 'return_refund':
+            return_record = Return(
+                order_id=order_id,
+                refund_id=refund.refund_id,
+                return_reason=reason,
+                return_issue=description,
+                return_status='pending'
+            )
+            db.session.add(return_record)
+
+        # Update order status
+        order.order_status = "refunded" if refund_status == 'approved' else "pending_refund"
+        
+        # Send email notification
+        msg = Message(
+            "New Refund Request",
+            sender="tanchingcojbr@gmail.com",
+            recipients=["tanchingcojbr@gmail.com"]
+        )
+        msg.body = f"""
+        New refund request received:
+        Order ID: {order_id}
+        Reason: {reason}
+        Items Received: {items_received}
+        Solution: {solution}
+        Description: {description}
+        """
+        mail.send(msg)
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Refund request submitted successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
