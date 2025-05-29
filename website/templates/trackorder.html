@@ -92,49 +92,47 @@
                     <div class="track-order-container">
                         <div class="order-header">
                             <div class="order-id">ORDER ID: {{ order.order_id }}</div>
-                            <div class="order-status">{{ order.status|upper }}</div>
-                        </div>
-                        
-                        <div class="track-progress">
-                            {% for step in order.tracking_status %}
-                            <div class="progress-step {% if step.completed %}completed{% endif %}{% if step.active %} active{% endif %}">
-                                <div class="step-icon">
-                                    <i class="{{ step.icon }}"></i>
-                                </div>
-                                <div class="step-label">{{ step.title }}<br>{{ step.date }}</div>
+                            <div class="tracking-number-section" style="float:right; text-align:right;">
+                                {% if order.tracking_number %}
+                                    <span id="trackingNumber">{{ order.tracking_number }}</span>
+                                    <button class="action-btn btn-secondary" id="copyTrackingBtn" onclick="copyTrackingNumber()">Copy</button>
+                                {% else %}
+                                    <span id="trackingNumber" style="color:#888;">Not assigned</span>
+                                {% endif %}
                             </div>
-                            {% endfor %}
-                        </div>
-                        
-                        <div class="action-buttons">
-                            <a href="/product/{{ order.order_items[0].product_id }}" class="action-btn btn-primary" {% if order.status != 'delivered' %}disabled{% endif %}>Rate</a>
-                            <a href="{{ url_for('auth.cart') }}" class="action-btn btn-secondary">Buy Again</a>
-                            <button class="action-btn btn-secondary">Contact Seller</button>
                         </div>
                         
                         <div class="delivery-address">
                             <div class="address-title">
                                 <span>Delivery Address</span>
-                                <span>{{ order.courier }}<br>{{ order.tracking_number }}</span>
-                            </div>
-                            <div class="shipping-info">
-                                <p><strong>{{ order.customer_name }}</strong></p>
-                                <p>{{ order.customer_phone }}</p>
-                                <p>{{ order.address.street_address }}<br>{{ order.address.complete_address }}<br>Postal Code: {{ order.address.postal_code }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="delivery-timeline">
-                            {% for event in order.tracking_status|reverse %}
-                            <div class="timeline-event">
-                                <div class="timeline-dot"></div>
-                                <div class="timeline-content">
-                                    {% if event.title %}<div class="event-title">{{ event.title }}</div>{% endif %}
-                                    <div class="event-desc">{{ event.description }}</div>
-                                    <div class="event-time">{{ event.date }}</div>
+                                {% if is_staff_or_admin %}
+                                <div class="tracking-status-update" style="float:right;">
+                                    <form method="post" action="{{ url_for('auth.update_tracking_status', order_id=order.order_id) }}" style="display:inline;">
+                                        <select name="tracking_status" class="tracking-status-select">
+                                            <option value="Order Confirmed" {% if order.current_tracking_status == 'Order Confirmed' %}selected{% endif %}>Order Confirmed</option>
+                                            <option value="Packed" {% if order.current_tracking_status == 'Packed' %}selected{% endif %}>Packed</option>
+                                            <option value="Shipped" {% if order.current_tracking_status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                            <option value="Out for Delivery" {% if order.current_tracking_status == 'Out for Delivery' %}selected{% endif %}>Out for Delivery</option>
+                                            <option value="Delivered" {% if order.current_tracking_status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                        </select>
+                                        <button type="submit" class="action-btn btn-primary">Update Status</button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                                <div class="current-tracking-status" style="float:right; margin-right: 20px;">
+                                    <span class="courier-label" style="font-weight:600; color:#495057;">Courier:</span>
+                                    <span class="courier-value" style="margin-right:16px;">{{ order.courier }}</span><br>
+                                    <span class="status-label">Current Status:</span>
+                                    <span class="status-value">{{ order.current_tracking_status }}</span>
                                 </div>
                             </div>
-                            {% endfor %}
+                            <div class="shipping-info">
+                                <p><strong>{{ order.address.first_name }} {{ order.address.last_name }}</strong></p>
+                                <p>{{ order.address.phone_number }}</p>
+                                <p>{{ order.address.street_address }}</p>
+                                <p>{{ order.address.complete_address }}</p>
+                                <p>Postal Code: {{ order.address.postal_code }}</p>
+                            </div>
                         </div>
                         
                         <div class="product-details">
@@ -280,5 +278,15 @@
         </form>
     </div>
     {% endif %}
+
+    <script>
+    function copyTrackingNumber() {
+        var trackingNumber = document.getElementById('trackingNumber').innerText;
+        if (trackingNumber && trackingNumber !== 'Not assigned') {
+            navigator.clipboard.writeText(trackingNumber);
+            alert('Tracking number copied!');
+        }
+    }
+    </script>
 </body>
 </html>

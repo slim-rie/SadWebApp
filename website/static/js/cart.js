@@ -24,46 +24,60 @@ document.addEventListener('DOMContentLoaded', function () {
             return response.json();
         })
         .then(data => {
-            if (data.items) {
-                // Remove out-of-stock items for logged-in users
-                cartItems = data.items.filter(item => item.stock_quantity === undefined || item.stock_quantity > 0).map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    price: item.price,
-                    image: item.image_url,
-                    quantity: item.quantity,
-                    selected: true
-                }));
-                renderCart(cartItems);
+            if (isLoggedIn) {
+                // Only use backend items for logged-in users
+                if (data.items) {
+                    cartItems = data.items.map(item => ({
+                        id: item.cart_item_id || item.id, // Use cart_item_id from backend if available
+                        product_id: item.product_id,
+                        name: item.name,
+                        price: item.price,
+                        image: item.image_url,
+                        quantity: item.quantity,
+                        variant: item.variant, // If backend provides variant info
+                        model: item.model,     // If backend provides model info
+                        selected: true
+                    }));
+                    renderCart(cartItems);
+                } else {
+                    cartItems = [];
+                    renderCart(cartItems);
+                }
             } else {
-                cartItems = [];
+                // For guests: use localStorage
+                cartItems = data.items || [];
                 renderCart(cartItems);
             }
         })
         .catch(() => {
-            // For guests: fetch latest prices for products in localStorage cart
-            let localCart = JSON.parse(localStorage.getItem('cartItems')) || [];
-            if (localCart.length > 0) {
-                // Collect product names (or IDs if available)
-                const productNames = localCart.map(item => encodeURIComponent(item.name));
-                fetch(`/api/products?names=${productNames.join(',')}`)
-                    .then(res => res.json())
-                    .then(products => {
-                        // Map product names to latest prices
-                        localCart = localCart.map(item => {
-                            const latest = products.find(p => p.name === item.name);
-                            if (latest) {
-                                item.price = latest.price;
-                            }
-                            return item;
+            if (!isLoggedIn) {
+                // For guests: fetch latest prices for products in localStorage cart
+                let localCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+                if (localCart.length > 0) {
+                    // Collect product names (or IDs if available)
+                    const productNames = localCart.map(item => encodeURIComponent(item.name));
+                    fetch(`/api/products?names=${productNames.join(',')}`)
+                        .then(res => res.json())
+                        .then(products => {
+                            // Map product names to latest prices
+                            localCart = localCart.map(item => {
+                                const latest = products.find(p => p.name === item.name);
+                                if (latest) {
+                                    item.price = latest.price;
+                                }
+                                return item;
+                            });
+                            renderCart(localCart);
+                        })
+                        .catch(() => {
+                            renderCart(localCart);
                         });
-                        renderCart(localCart);
-                    })
-                    .catch(() => {
-                        renderCart(localCart);
-                    });
+                } else {
+                    renderCart(localCart);
+                }
             } else {
-                renderCart(localCart);
+                // For logged-in users, show empty cart on error
+                renderCart([]);
             }
         });
 
@@ -105,6 +119,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <div class="product-details">
                                     <h4>${item.name}</h4>
                                     <div style="color: #888; font-size: 0.95em;">Item# ${item.product_id || ''}</div>
+                                    ${item.variant ? `<div style='color:#555;font-size:0.95em;'>Variant: ${item.variant}</div>` : ''}
+                                    ${item.model ? `<div style='color:#555;font-size:0.95em;'>Model: ${item.model}</div>` : ''}
                                 </div>
                             </div>
                             <div class="item-price">₱${item.price.toLocaleString(undefined, {minimumFractionDigits:2})}</div>
@@ -138,6 +154,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
             setupCartActions();
+
+            // Highlight just added product if present in URL
+            const params = new URLSearchParams(window.location.search);
+            const justAdded = params.get('just_added');
+            if (justAdded) {
+                document.querySelectorAll('.cart-item').forEach(itemDiv => {
+                    const productId = itemDiv.querySelector('.product-details .product-name')?.textContent;
+                    if (itemDiv.querySelector('.product-details') && itemDiv.innerHTML.includes(`Item# ${justAdded}`)) {
+                        itemDiv.style.background = '#e6ffe6';
+                        itemDiv.style.transition = 'background 0.5s';
+                        setTimeout(() => {
+                            itemDiv.style.background = '';
+                        }, 2000);
+                    }
+                });
+            }
         }
 
         if (isLoggedIn) {

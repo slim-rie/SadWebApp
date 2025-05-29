@@ -9,7 +9,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateUIForLoginStatus(isLoggedIn, username);
     
-    document.getElementById('sidebarUsername').textContent = current_user.username || '';
+    // Truncate long usernames in sidebar
+    const sidebarUsername = document.getElementById('sidebarUsername');
+    if (sidebarUsername) {
+        const username = current_user.username || '';
+        if (username.length > 15) {
+            sidebarUsername.textContent = username.substring(0, 12) + '...';
+        } else {
+            sidebarUsername.textContent = username;
+        }
+    }
     
     const savedProfileImage = localStorage.getItem('profileImage');
     if (savedProfileImage) {
@@ -516,21 +525,17 @@ function openAddressModal(mode, addressId = null) {
     } else {
         modalTitle.textContent = 'Add New Address';
         currentEditId = null;
-        // Prefill with user info if available
-        if (window.current_user) {
-            const safe = v => (v && v !== 'None') ? v : '';
-            document.getElementById('firstName').value = safe(window.current_user.first_name);
-            document.getElementById('lastName').value = safe(window.current_user.last_name);
-            document.getElementById('phoneNumber').value = safe(window.current_user.phone_number) || safe(window.current_user.phone);
-        }
-        // Check if this is the first address
+        // Always blank fields and leave default unchecked if user has at least 1 address
         fetch('/api/addresses')
             .then(response => response.json())
             .then(data => {
                 if (!data.success || !data.addresses || data.addresses.length === 0) {
+                    // First address: force default checked and disabled
                     defaultAddressCheckbox.checked = true;
                     defaultAddressCheckbox.disabled = true;
                 } else {
+                    // User has at least 1 address: blank fields, default unchecked and enabled
+                    resetAddressForm();
                     defaultAddressCheckbox.checked = false;
                     defaultAddressCheckbox.disabled = false;
                 }
@@ -643,10 +648,19 @@ function saveAddressWithData(firstName, lastName, phoneNumber, postalCode, stree
 
     const method = currentEditId ? 'PUT' : 'POST';
     let url = currentEditId ? `/api/address/${currentEditId}` : '/add-address';
-    // Append next param if present in the URL
+    
+    // Get URL parameters for redirect
     const params = new URLSearchParams(window.location.search);
-    if (params.has('next') && !currentEditId) {
-        url += '?next=' + encodeURIComponent(params.get('next'));
+    const from = params.get('from');
+    const productId = params.get('product_id');
+    const variantId = params.get('variant_id');
+    const quantity = params.get('quantity');
+    
+    // Add URL parameters if they exist
+    if (!currentEditId && from === 'product' && productId) {
+        url += `?from=${from}&product_id=${productId}`;
+        if (variantId) url += `&variant_id=${variantId}`;
+        if (quantity) url += `&quantity=${quantity}`;
     }
 
     fetch(url, {
@@ -658,9 +672,11 @@ function saveAddressWithData(firstName, lastName, phoneNumber, postalCode, stree
     .then(data => {
         if (data.success) {
             if (data.redirect) {
+                console.log('Redirecting to:', data.redirect);
                 window.location.href = data.redirect;
                 return;
             }
+            
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.textContent = 'Address saved to database!';
             statusMessage.style.display = 'block';
