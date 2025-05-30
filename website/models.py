@@ -133,6 +133,7 @@ class ProductVariant(db.Model):
     variant_name = db.Column(db.String(100), nullable=False)
     variant_value = db.Column(db.String(100), nullable=False)
     additional_price = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)
+    stock_quantity = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     def __repr__(self):

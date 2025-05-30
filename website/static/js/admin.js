@@ -80,17 +80,76 @@ function fetchAndRenderSupplierProducts() {
                     <td>${item.supplier_price}</td>
                     <td>${item.is_primary ? 'Yes' : 'No'}</td>
                     <td>
+                        <button class="add-supplier-product-btn" data-id="${item.product_supplier_id}">Add</button>
                         <button class="update-supplier-product-btn" data-id="${item.product_supplier_id}">Update</button>
                         <button class="delete-supplier-product-btn" data-id="${item.product_supplier_id}">Delete</button>
                     </td>
                 `;
                 tableBody.appendChild(row);
             });
+
+            // Add event listeners for the Add buttons
+            document.querySelectorAll('.add-supplier-product-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    addSupplierProduct(id);
+                });
+            });
         })
         .catch(error => {
             console.error('Error fetching supplier products:', error);
         });
 }
+
+// Function to handle adding a supplier product
+function addSupplierProduct() {
+    // Clear all modal fields for new entry
+    document.getElementById('modal-product-id').value = '';
+    document.getElementById('modal-product-name').value = '';
+    document.getElementById('modal-supplier-id').value = '';
+    document.getElementById('modal-supplier-price').value = '';
+    document.getElementById('modal-is-primary').value = '1';
+    // Show the modal using Bootstrap's jQuery API
+    $('#addSupplierProductModal').modal('show');
+}
+
+// Handle form submission for adding supplier product
+const addSupplierProductForm = document.getElementById('add-supplier-product-form');
+if (addSupplierProductForm) {
+    addSupplierProductForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Gather form data
+        const productId = document.getElementById('modal-product-id').value;
+        const productName = document.getElementById('modal-product-name').value;
+        const supplierId = document.getElementById('modal-supplier-id').value;
+        const supplierPrice = document.getElementById('modal-supplier-price').value;
+        const isPrimary = document.getElementById('modal-is-primary').value;
+        fetch('/admin/add_supplier_product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                product_id: productId,
+                product_name: productName, // Optional, backend may ignore
+                supplier_id: supplierId,
+                supplier_price: supplierPrice,
+                is_primary: isPrimary
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                $('#addSupplierProductModal').modal('hide');
+                fetchAndRenderSupplierProducts();
+            } else {
+                alert('Error: ' + (data.error || 'Failed to add supplier product'));
+            }
+        })
+        .catch(err => {
+            alert('Request failed: ' + err);
+        });
+    });
+}
+
 
 // Call this function when the page loads or when you need to refresh the table
 document.addEventListener('DOMContentLoaded', function() {
@@ -99,6 +158,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Call this function on page load or after updating supplier products
 fetchAndRenderSupplierProducts();
+
+// === SUPPLIER PRODUCTS MANAGEMENT: Add Button Initialization ===
+// Add the add button event handler after DOMContentLoaded
+function insertSupplierProductsAddButton() {
+    const section = document.querySelector('#supplier-products-section .section-header, #supplier-products-section .header, #supplier-products-section h2');
+    if (section && !document.getElementById('supplier-products-add-btn')) {
+        const addBtn = document.createElement('button');
+        addBtn.className = 'btn btn-primary btn-sm';
+        addBtn.id = 'supplier-products-add-btn';
+        addBtn.textContent = 'Add Supplier Product';
+        addBtn.style.marginLeft = '12px';
+        addBtn.onclick = addSupplierProduct;
+        section.appendChild(addBtn);
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    insertSupplierProductsAddButton();
+});
 
 // === UNIFIED INITIALIZATION AND SIDEBAR NAVIGATION ===
 document.addEventListener('DOMContentLoaded', function() {
@@ -116,6 +193,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show dashboard section by default on load
     showSection('dashboard');
 
+    // --- UPDATE FOR DELIVERY & NEW ORDERS CARDS ---
+    fetch('/admin/orders_list')
+        .then(res => res.json())
+        .then(orders => {
+            const deliveryCount = Array.isArray(orders) ? orders.filter(o => o.status_name === 'To Ship' || o.status_name === 'To Receive').length : 0;
+            const deliveryCard = document.querySelector('.card-for-delivery .total-orders-number');
+            if (deliveryCard) deliveryCard.textContent = deliveryCount;
+            // New Orders count
+            const newOrdersCount = Array.isArray(orders) ? orders.filter(o => o.status_name === 'To Pay').length : 0;
+            const newOrdersCard = document.querySelector('.card-for-new-orders .total-orders-number');
+            if (newOrdersCard) newOrdersCard.textContent = newOrdersCount;
+        });
+
     // --- PRODUCT TABLES ---
     if (typeof fetchAndRenderProducts === 'function') fetchAndRenderProducts();
     if (typeof fetchAndRenderProductImages === 'function') fetchAndRenderProductImages();
@@ -126,7 +216,86 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('customer-orders-table') && typeof fetchAndRenderCustomerOrders === 'function') {
         fetchAndRenderCustomerOrders();
     }
+    // --- CANCELLED ORDERS TABLE ---
+    if (document.getElementById('cancelled-order-items-table') && typeof fetchAndRenderCancelledOrders === 'function') {
+        fetchAndRenderCancelledOrders();
+    }
+    // --- PRODUCT VARIANTS TABLE ---
+    if (document.querySelector('.product-variants-table') && typeof fetchAndRenderProductVariants === 'function') {
+        fetchAndRenderProductVariants();
+    }
+    // --- CATEGORY TABLE ---
+    if (document.querySelector('.category-table') && typeof fetchAndRenderCategories === 'function') {
+        fetchAndRenderCategories();
+    }
 });
+
+function fetchAndRenderCategories() {
+    fetch('/admin/category_list')
+        .then(res => res.json())
+        .then(categories => renderCategoryTable(categories))
+        .catch(err => {
+            console.error('Failed to fetch categories:', err);
+            const tbody = document.querySelector('.category-table tbody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="3">Failed to load categories.</td></tr>';
+        });
+}
+
+function renderCategoryTable(categories) {
+    const tbody = document.querySelector('.category-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!Array.isArray(categories) || categories.length === 0 || categories.error) {
+        tbody.innerHTML = '<tr><td colspan="3">No categories found.</td></tr>';
+        return;
+    }
+    categories.forEach(category => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${category.category_id || ''}</td>
+            <td>${category.category_name || ''}</td>
+            <td>${category.parent_category_id || ''}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+
+function fetchAndRenderProductVariants() {
+    fetch('/admin/product_variant_list')
+        .then(res => res.json())
+        .then(variants => renderProductVariantTable(variants))
+        .catch(err => {
+            console.error('Failed to fetch product variants:', err);
+            const tbody = document.querySelector('.product-variants-table tbody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="8">Failed to load product variants.</td></tr>';
+        });
+}
+
+function renderProductVariantTable(variants) {
+    const tbody = document.querySelector('.product-variants-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!Array.isArray(variants) || variants.length === 0 || variants.error) {
+        tbody.innerHTML = '<tr><td colspan="8">No product variants found.</td></tr>';
+        return;
+    }
+    variants.forEach(variant => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${variant.variant_id || ''}</td>
+            <td>${variant.product_id || ''}</td>
+            <td>${variant.variant_name || ''}</td>
+            <td>${variant.variant_value || ''}</td>
+            <td>${variant.additional_price || ''}</td>
+            <td>${variant.stock_quantity || ''}</td>
+            <td>${variant.created_at || ''}</td>
+            <td>${variant.updated_at || ''}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
 
 function fetchAndRenderSuppliers() {
     fetch('/admin/supplier_list')
@@ -469,8 +638,8 @@ function showInventoryModal(title, item, onSave) {
                 <input type="text" id="inventory-product-id" required>
               </div>
               <div class="form-group">
-                <label>Order ID</label>
-                <input type="text" id="inventory-order-id" required>
+                <label>Order ID (auto-filled when product is ordered)</label>
+                <input type="text" id="inventory-order-id" placeholder="(auto)" autocomplete="off">
               </div>
               <div class="form-group">
                 <label>Stock Quantity</label>
@@ -537,7 +706,8 @@ function showInventoryModal(title, item, onSave) {
         e.preventDefault();
         const inventory = {
             product_id: document.getElementById('inventory-product-id').value,
-            order_id: document.getElementById('inventory-order-id').value,
+            // Only include order_id if filled
+        ...(document.getElementById('inventory-order-id').value ? { order_id: document.getElementById('inventory-order-id').value } : {}),
             stock_quantity: parseInt(document.getElementById('inventory-stock-quantity').value),
             stock_in: parseInt(document.getElementById('inventory-stock-in').value),
             stock_out: parseInt(document.getElementById('inventory-stock-out').value),
@@ -1073,14 +1243,14 @@ function fetchAndRenderProductImages() {
     const tbody = imageTable ? imageTable.querySelector('tbody') : null;
     fetch('/admin/product_images')
         .then(res => res.json())
-        .then(images => renderProductImageTable(images, tbody))
+        .then(images => renderProductImagesTable(images, tbody))
         .catch(err => {
             console.error('Failed to fetch product images:', err);
             if (tbody) tbody.innerHTML = '<tr><td colspan="7">Failed to load product images.</td></tr>';
         });
 }
 
-function renderProductImageTable(images, tbody=null) {
+function renderProductImagesTable(images, tbody=null) {
     // Find the correct table for product images if not provided
     if (!tbody) {
         const tables = document.querySelectorAll('#product-section .product-table');
@@ -1131,7 +1301,7 @@ function renderProductTable(products) {
     products.forEach(product => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><img src="${product.image || ''}" alt="Product Image" style="width:48px;height:48px;object-fit:cover;border-radius:4px;"></td>
+            <td><img src="${product.image && !product.image.startsWith('/static/') ? '/static/pictures/' + product.image : (product.image || '')}" alt="Product Image" style="width:48px;height:48px;object-fit:cover;border-radius:4px;"></td>
             <td>${product.product_id || ''}</td>
             <td>${product.name || ''}</td>
             <td>${product.model_number || ''}</td>
@@ -1167,6 +1337,24 @@ function renderProductTable(products) {
             }
         });
     });
+}
+
+// --- PRODUCT DELETE FUNCTION ---
+function deleteProduct(productId) {
+    if (!productId) return;
+    fetch(`/admin/delete_product/${productId}`, {
+        method: 'DELETE',
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Product deleted!');
+            fetchAndRenderProducts();
+        } else {
+            alert('Failed to delete product: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(err => alert('Error deleting product: ' + err));
 }
 
 // --- UPDATE PRODUCT MODAL ---
@@ -1236,14 +1424,73 @@ $('#productModal').on('show.bs.modal', function() {
 });
 
 // --- 3. PRODUCT FORM SUBMIT ---
-document.getElementById('modal-product-form').onsubmit = function(e) {
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Open Product Image Modal
+    const openProductImageModalBtn = document.getElementById('openProductImageModal');
+    const productImageModal = document.getElementById('productImageModal');
+    if (openProductImageModalBtn && productImageModal) {
+        openProductImageModalBtn.addEventListener('click', function() {
+            if (typeof $ !== 'undefined' && $(productImageModal).modal) {
+                $(productImageModal).modal('show');
+            } else {
+                productImageModal.style.display = 'block';
+            }
+        });
+    }
+
+    // Add Product Image Form Submit
+    const productImageForm = document.getElementById('modal-product-image-form');
+    if (productImageForm) {
+        productImageForm.onsubmit = function(e) {
+            e.preventDefault();
+            const formData = new FormData(productImageForm);
+            fetch('/admin/add_product_image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof $ !== 'undefined' && $(productImageModal).modal) {
+                        $(productImageModal).modal('hide');
+                    } else {
+                        productImageModal.style.display = 'none';
+                    }
+                    productImageForm.reset();
+                    if (typeof fetchAndRenderProductImages === 'function') fetchAndRenderProductImages();
+                    alert('Product image added!');
+                } else {
+                    alert('Failed to add product image: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(err => alert('Error adding product image: ' + err));
+        };
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const openProductModalBtn = document.getElementById('openProductModal');
+    const addProductModal = document.getElementById('addProductModal');
+    if (openProductModalBtn && addProductModal) {
+        openProductModalBtn.addEventListener('click', function() {
+            // Use Bootstrap's modal if available, otherwise fallback
+            if (typeof $ !== 'undefined' && $(addProductModal).modal) {
+                $(addProductModal).modal('show');
+            } else {
+                addProductModal.style.display = 'block';
+            }
+        });
+    }
+});
+document.getElementById('add-product-form').onsubmit = function(e) {
     e.preventDefault();
     const formData = new FormData(this);
     fetch('/admin/add_product', { method: 'POST', body: formData })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            $('#productModal').modal('hide');
+            $('#addProductModal').modal('hide');
             this.reset();
             fetchAndRenderProducts();
             alert('Product added!');
@@ -1254,6 +1501,34 @@ document.getElementById('modal-product-form').onsubmit = function(e) {
 };
 
 // --- 5. PRODUCT SPEC FORM SUBMIT ---
+
+document.addEventListener('DOMContentLoaded', function() {
+    const openProductVariantModalBtn = document.getElementById('openProductVariantModal');
+    const productVariantModal = document.getElementById('productVariantModal');
+    if (openProductVariantModalBtn && productVariantModal) {
+        openProductVariantModalBtn.addEventListener('click', function() {
+            if (typeof $ !== 'undefined' && $(productVariantModal).modal) {
+                $(productVariantModal).modal('show');
+            } else {
+                productVariantModal.style.display = 'block';
+            }
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const openProductSpecModalBtn = document.getElementById('openProductSpecModal');
+    const productSpecModal = document.getElementById('productSpecModal');
+    if (openProductSpecModalBtn && productSpecModal) {
+        openProductSpecModalBtn.addEventListener('click', function() {
+            if (typeof $ !== 'undefined' && $(productSpecModal).modal) {
+                $(productSpecModal).modal('show');
+            } else {
+                productSpecModal.style.display = 'block';
+            }
+        });
+    }
+});
 document.getElementById('modal-product-spec-form').onsubmit = function(e) {
     e.preventDefault();
     const formData = new FormData(this);
@@ -1424,7 +1699,7 @@ function renderCustomerOrdersTable(orders) {
         tr.innerHTML = `
             <td>${order.order_id}</td>
             <td>${order.username || ''}</td>
-            <td>${order.cancellation_id || ''}</td>
+
             <td>${order.order_date || ''}</td>
             <td>${order.product_name || ''}</td>
             <td>${order.quantity || ''}</td>
@@ -1494,6 +1769,39 @@ function renderCustomerOrdersTable(orders) {
         });
     });
 }
+
+// ===================== CANCELLED ORDERS =====================
+function fetchAndRenderCancelledOrders() {
+    fetch('/admin/cancelled_orders')
+        .then(res => res.json())
+        .then(cancelledOrders => renderCancelledOrdersTable(cancelledOrders))
+        .catch(err => {
+            console.error('Failed to fetch cancelled orders:', err);
+            renderCancelledOrdersTable([]);
+        });
+}
+
+function renderCancelledOrdersTable(cancelledOrders) {
+    const tbody = document.querySelector('#cancelled-order-items-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!Array.isArray(cancelledOrders) || cancelledOrders.length === 0 || cancelledOrders.error) {
+        tbody.innerHTML = '<tr><td colspan="5">No cancelled orders found.</td></tr>';
+        return;
+    }
+    cancelledOrders.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.cancellation_id || ''}</td>
+            <td>${item.order_id || ''}</td>
+            <td>${item.cancellation_reason || ''}</td>
+            <td>${item.other_reason || ''}</td>
+            <td>${item.cancelled_at || ''}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
 
 
 

@@ -332,6 +332,81 @@ body {
   border: 1px solid rgba(0,0,0,.125);
   background-clip: border-box;
 }
+
+.card-for-delivery,
+.card-for-new-orders {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(20, 30, 70, 0.09);
+  padding: 24px;
+  width: 25%;
+  max-width: 100%;
+  overflow-x: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  border: 1px solid rgba(0,0,0,.125);
+  background-clip: border-box;
+  transition: transform 0.3s ease;
+}
+
+.card-for-delivery:hover,
+.card-for-new-orders:hover {
+  transform: scale(1.03);
+}
+
+.total-orders {
+  margin-top: 12px;
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.total-orders-number {
+  font-weight: bold;
+  font-size: 32px;
+}
+
+.order-label {
+  font-size: 16px;
+  color: #6c757d; 
+}
+
+.card-for-delivery .total-orders-number {
+  color: #35dc59; /* Red */
+}
+
+.card-for-new-orders .total-orders-number {
+  color: #35dc62; /* Red for urgency or new alerts */
+}
+
+.bible-verse {
+  background-color: #fef9f2;
+  border-left: 5px solid #ffc107;
+  padding: 16px 24px;
+  margin-top: 20px;
+  border-radius: 12px;
+  font-family: 'Georgia', serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.verse-text {
+  font-size: 16px;
+  font-style: italic;
+  color: #333;
+}
+
+.verse-ref {
+  display: block;
+  margin-top: 8px;
+  font-weight: bold;
+  color: #555;
+}
+
+
 /* ===== CONTENT SECTIONS ===== */
 
 .content-section {
@@ -1852,14 +1927,44 @@ td:nth-child(2) {
 
 /* Modal backdrop */
 .modal {
+  display: none;
   position: fixed;
-  z-index: 1000;
+  z-index: 2000;
   left: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: auto;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.3); /* lighter overlay */
+}
+
+.modal.show {
+  display: block;
+}
+
+.modal-content {
+  position: relative;
+  z-index: 2100;
+  background: #fff;
+  color: #222;
+  border-radius: 8px;
+  margin: 60px auto;
+  padding: 30px 40px;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  pointer-events: auto;
+}
+
+.modal .close, .modal .btn-close {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 24px;
+  color: #888;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 2200;
 }
 
 /* Modal content */

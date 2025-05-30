@@ -1074,6 +1074,24 @@ def buy_now():
 
 #ari
 
+@views.route('/admin/add_supplier_product', methods=['POST'])
+def add_supplier_product():
+    data = request.get_json()
+    try:
+        new_supplier_product = ProductSupplier(
+            product_id=data['product_id'],
+            supplier_id=data['supplier_id'],
+            supplier_price=data['supplier_price'],
+            is_primary=bool(int(data['is_primary']))
+        )
+        db.session.add(new_supplier_product)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Supplier product added!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
+
+
 @views.route('/admin/critical_stock')
 def critical_stock():
     results = (
@@ -1314,30 +1332,21 @@ def inventory_list():
 def add_inventory():
     data = request.get_json()
     required_fields = [
-        'product_id', 'order_id', 'stock_quantity', 'stock_in', 'stock_out', 'min_stock', 'max_stock', 'available_stock', 'stock_status'
+        'product_id', 'stock_quantity', 'stock_in', 'stock_out', 'min_stock', 'max_stock', 'available_stock', 'stock_status'
     ]
     missing = [f for f in required_fields if f not in data or data[f] in (None, '')]
     if missing:
         return jsonify({'success': False, 'error': f'Missing required fields: {", ".join(missing)}'})
     try:
         from datetime import datetime
-        last_updated = data.get('last_updated')
-        if last_updated:
-            try:
-                last_updated_dt = datetime.strptime(last_updated, '%Y-%m-%dT%H:%M')
-            except Exception:
-                last_updated_dt = datetime.utcnow()
-        else:
-            last_updated_dt = datetime.utcnow()
         inventory = Inventory(
             product_id=data.get('product_id'),
-            order_id=data.get('order_id'),
+            order_id=data.get('order_id') if 'order_id' in data and data.get('order_id') not in (None, '') else None,
             stock_quantity=data.get('stock_quantity'),
             stock_in=data.get('stock_in'),
             stock_out=data.get('stock_out'),
             min_stock=data.get('min_stock'),
             max_stock=data.get('max_stock'),
-            last_updated=last_updated_dt,
             available_stock=data.get('available_stock'),
             stock_status=data.get('stock_status'),
         )
@@ -1708,6 +1717,19 @@ def add_product_variant():
         return jsonify({'success': False, 'error': str(e)}), 400
 
 # --- PRODUCT IMAGE UPLOAD ---
+
+@views.route('/admin/category_list')
+def category_list():
+    categories = Category.query.order_by(Category.category_id).all()
+    return jsonify([
+        {
+            'category_id': c.category_id,
+            'category_name': c.category_name,
+            'parent_category_id': c.parent_category_id
+        }
+        for c in categories
+    ])
+
 UPLOAD_FOLDER = os.path.join('SadWebApp', 'website', 'static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -1745,7 +1767,13 @@ def add_product_image():
         filename = secure_filename(file.filename)
         save_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(save_path)
-        image_url = f'/static/uploads/{filename}'
+        # Also copy to static/pictures
+        import shutil
+        pictures_folder = os.path.join('SadWebApp', 'website', 'static', 'pictures')
+        os.makedirs(pictures_folder, exist_ok=True)
+        pictures_path = os.path.join(pictures_folder, filename)
+        shutil.copy(save_path, pictures_path)
+        image_url = f'/static/pictures/{filename}'
         # Save to DB
         new_img = ProductImage(
             product_id=request.form.get('product_id'),
@@ -1914,7 +1942,39 @@ def admin_update_order_status(order_id):
 
 
 
-from .models import Order, OrderItem, User
+from .models import Order, OrderItem, User, SupplyRequest, Product
+
+# --- SUPPLIER DASHBOARD: RECENT REQUESTS API ---
+from flask import jsonify
+
+@views.route('/supplier/recent_requests')
+def supplier_recent_requests():
+    # Query recent supply requests (limit 20, latest first)
+    requests = SupplyRequest.query.order_by(SupplyRequest.request_date.desc()).limit(20).all()
+    results = []
+    for req in requests:
+        user = User.query.get(req.requested_by)
+        product = Product.query.get(req.product_id)
+        # Compose products and quantity (support future multi-product)
+        products = product.product_name if product else 'N/A'
+        quantity = req.quantity_requested
+        # Compose total amount (if product and price available)
+        total_amount = f"₱{float(product.base_price) * quantity:,.2f}" if product and product.base_price else ''
+        # Compose requested by
+        requested_by = f"{user.first_name} {user.last_name}" if user else 'N/A'
+        # Use status as-is, capitalized
+        status_val = req.supply_status.capitalize() if req.supply_status else 'N/A'
+        results.append({
+            'request_id': req.request_id,
+            'date': req.request_date.strftime('%Y-%m-%d'),
+            'products': products,
+            'quantity': quantity,
+            'total_amount': total_amount,
+            'requested_by': requested_by,
+            'status': status_val
+        })
+    return jsonify(results)
+
 
 @views.route('/admin/orders_list')
 def admin_orders_list():
@@ -2024,6 +2084,34 @@ def promotion_list():
             'updated_at': promotion.updated_at.strftime('%Y-%m-%d %H:%M:%S')
         })
     return jsonify(promotion_list)
+
+
+# ===================== ADMIN: CANCELLED ORDERS API =====================
+@views.route('/admin/cancelled_orders')
+def admin_cancelled_orders():
+    from .models import OrderCancellation, CancellationReason
+    cancelled = (
+        db.session.query(
+            OrderCancellation.cancellation_id,
+            OrderCancellation.order_id,
+            CancellationReason.cancellation_reason_name.label('cancellation_reason'),
+            OrderCancellation.other_reason,
+            OrderCancellation.cancelled_at
+        )
+        .join(CancellationReason, OrderCancellation.cancellation_reason_id == CancellationReason.cancellation_reason_id)
+        .order_by(OrderCancellation.cancelled_at.desc())
+        .all()
+    )
+    result = []
+    for item in cancelled:
+        result.append({
+            'cancellation_id': item.cancellation_id,
+            'order_id': item.order_id,
+            'cancellation_reason': item.cancellation_reason,
+            'other_reason': item.other_reason,
+            'cancelled_at': item.cancelled_at.strftime('%Y-%m-%d %H:%M:%S') if item.cancelled_at else ''
+        })
+    return jsonify(result)
 
 @views.route('/admin/add_promotion', methods=['POST'])
 def add_promotion():
