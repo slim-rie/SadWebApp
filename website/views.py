@@ -2030,7 +2030,8 @@ def admin_orders_list():
 
         data.append({
             "order_id": order.order_id,
-            "username": username,
+            # Show full name from address for Users column
+            "username": address_name,
             "cancellation_id": order.cancellation_id,
             "order_date": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
             "product_name": product_names,

@@ -187,8 +187,8 @@ class OrderCancellation(db.Model):
     cancellation_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.order_id'), nullable=False)
     cancellation_reason_id = db.Column(db.Integer, db.ForeignKey('cancellation_reason.cancellation_reason_id'), nullable=False)
-cancelled_at = db.Column(db.DateTime, nullable=False)
-other_reason = db.Column(db.String(255))
+    cancelled_at = db.Column(db.DateTime, nullable=False)
+    other_reason = db.Column(db.String(255))
 
 class TrackingStatus(db.Model):
     __tablename__ = 'tracking_statuses'
