@@ -339,17 +339,37 @@
                 seen.add(prod.product_id);
                 const card = document.createElement('div');
                 card.className = 'related-product-card';
+                card.style.width = '260px';
                 card.innerHTML = `
                     <div class="related-product-img-wrapper">
-                        <img src="${prod.image}" alt="${prod.name}" class="related-product-img">
+                        <img src="${prod.image && prod.image !== '' ? prod.image : '/static/pictures/no-image.png'}" alt="${prod.name}" class="related-product-img">
                     </div>
                     <div class="related-product-title">${prod.name}</div>
-                    <div class="related-product-price">₱ ${prod.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                    <div class="related-product-meta">
-                        <span class="related-stars">${'<i class=\'fas fa-star\'></i>'.repeat(5)}</span>
-                        <span class="related-rating">0.0</span>
-                        <span class="related-reviews">0 reviews</span>
-                        <span class="related-sold">0 sold</span>
+                    <div class="related-product-price" style="text-align: left;">₱ ${prod.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                    <div class="related-product-rating-container" style="box-sizing: border-box; width: 100%; padding: 0 0 10px 0;">
+                        <div class="related-product-rating-row" style="display: flex; align-items: center; gap: 4px; margin-top: 4px; white-space: nowrap; width: 100%; justify-content: flex-start;">
+                            <span class="stars" style="color: #ffc107; font-size: 13px; display: flex; align-items: center;">
+                                ${(() => {
+                                    let stars = '';
+                                    const rating = prod.rating || 0;
+                                    for (let i = 1; i <= 5; i++) {
+                                        if (i <= Math.floor(rating)) {
+                                            stars += '<i class=\"fas fa-star\"></i>';
+                                        } else if (i - rating < 1 && i - rating > 0) {
+                                            stars += '<i class=\"fas fa-star-half-alt\"></i>';
+                                        } else {
+                                            stars += '<i class=\"far fa-star\"></i>';
+                                        }
+                                    }
+                                    return stars;
+                                })()}
+                            </span>
+                            <span style="font-size: 12px; color: #222;">${prod.rating ? prod.rating.toFixed(1) : '0.0'}</span>
+                            <span style="font-size: 12px; color: #222;">${prod.review_count || 0}</span>
+                            <span style="color: #888; font-size: 12px; margin-left: 2px;">reviews</span>
+                            <span style="color: #888; font-size: 12px; margin-left: 8px;">${prod.sold || 0}</span>
+                            <span style="color: #888; font-size: 12px; margin-left: 2px;">sold</span>
+                        </div>
                     </div>
                 `;
                 card.onclick = () => window.location = `/sm-productdetails?product_id=${prod.product_id}`;

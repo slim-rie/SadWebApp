@@ -517,6 +517,8 @@ def products():
         reviews = Review.query.filter_by(product_id=product.product_id).all()
         avg_rating = sum(review.rating for review in reviews) / len(reviews) if reviews else 0
         review_count = len(reviews)
+        sold_count = Sales.query.filter_by(product_id=product.product_id).count()
+
         # Always use ProductImage from DB if available
         img = None
         if product.images and len(product.images) > 0:
@@ -544,7 +546,8 @@ def products():
             'refurbished': product.refurbished if hasattr(product, 'refurbished') else None,
             'sold': product.sold if hasattr(product, 'sold') else None,
             'rating': avg_rating,
-            'review_count': review_count
+            'review_count': review_count,
+            'sold_count': sold_count
         })
     return jsonify(product_list)
 
@@ -591,16 +594,31 @@ def get_product_details():
             'media_url': getattr(r, 'media_url', None),
             'media_type': getattr(r, 'media_type', None)
         })
+    review_count = len(reviews)
+    sold_count = Sales.query.filter_by(product_id=product.product_id).count()
 
     # Get related products (same category, exclude current)
     related_products = []
-    for p in Product.query.filter(Product.category_id == product.category_id, Product.product_id != product.product_id).limit(8).all():
+    for p in Product.query.filter(Product.category_id == product.category_id, Product.product_id != product.product_id).limit(4).all():
+        # Get review count, sold count, and average rating for each related product
+        rel_reviews = Review.query.filter_by(product_id=p.product_id).all()
+        rel_review_count = len(rel_reviews)
+        rel_sold_count = Sales.query.filter_by(product_id=p.product_id).count()
+        rel_avg_rating = sum(r.rating for r in rel_reviews) / rel_review_count if rel_review_count else 0
+        rel_image = None
+        if p.images and len(p.images) > 0:
+            rel_image = p.images[0].image_url
+        if not rel_image:
+            rel_image = get_product_image_url(p.product_name)
         related_products.append({
             'product_id': p.product_id,
             'name': p.product_name,
             'model_number': p.model_number,
             'price': float(p.base_price),
-            'image': get_product_image_url(p.product_name)
+            'image': rel_image,
+            'review_count': rel_review_count,
+            'sold': rel_sold_count,
+            'rating': rel_avg_rating
         })
 
     # Get category name
@@ -641,6 +659,8 @@ def get_product_details():
         'specifications': specs,
         'model_options': model_options,
         'reviews': reviews,
+        'review_count': review_count,
+        'sold': sold_count,
         'related_products': related_products
     })
 
@@ -1018,6 +1038,8 @@ def get_related_products():
             'sold': p.sold if hasattr(p, 'sold') else 0,
             'rating': avg_rating,
             'review_count': review_count,
+            'sold_count': sold_count
+
     
         })
     return jsonify(result)
