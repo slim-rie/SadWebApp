@@ -575,3 +575,23 @@ tr:last-child td {
 .chat-modal-close:hover {
     color: #2563eb;
 } 
+/* --- Status Badge Styles for Dashboard Table --- */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.95em;
+    font-weight: 500;
+    color: #fff;
+    min-width: 80px;
+    text-align: center;
+}
+.status-badge.status-pending { background: #fbbf24; color: #fff; } /* Amber */
+.status-badge.status-approved { background: #2563eb; color: #fff; } /* Blue */
+.status-badge.status-rejected { background: #ef4444; color: #fff; } /* Red */
+.status-badge.status-inprogress { background: #818cf8; color: #fff; } /* Indigo */
+.status-badge.status-toship { background: #0ea5e9; color: #fff; } /* Sky */
+.status-badge.status-todeliver { background: #06d6a0; color: #fff; } /* Green Teal */
+.status-badge.status-cancelled { background: #6b7280; color: #fff; } /* Gray */
+.status-badge.status-completed { background: #22c55e; color: #fff; } /* Green */
+.status-badge.status-other { background: #a1a1aa; color: #fff; } /* Neutral */

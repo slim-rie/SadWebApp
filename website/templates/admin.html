@@ -17,7 +17,7 @@
             <a href="#" class="nav-item active" id="dashboard-tab-btn">Dashboard</a>
             <a href="#" class="nav-item" id="supplier-tab-btn">Supplier</a>
             <a href="#" class="nav-item" id="inventory-tab-btn">Inventory</a>
-            <a href="#" class="nav-item" id="product-tab-btn">Product</a>
+            <a href="#" class="nav-item" id="product-tab-btn">Products</a>
             <a href="#" class="nav-item" id="sales-tab-btn">Sales</a>
             <a href="#" class="nav-item" id="customer-orders-tab-btn">Customer Order</a>
             <a href="#" class="nav-item" id="reports-tab-btn">Reports</a>
@@ -337,8 +337,30 @@
             <div class="header">
                 <h1>DASHBOARD</h1>
             </div>
+            
             <div class="dashboard-cards">
-                <!-- Critical Stock Card -->
+
+              <div class="bible-verse">
+                <p class="verse-text">"I can do all things through Christ who strengthens me." <br> <span class="verse-ref">– Philippians 4:13</span></p>
+              </div>
+
+                 <!-- For Delivery Card -->
+                <div class="card-for-delivery">
+                  <h2>🚚 For Delivery</h2>
+                  <div class="total-orders">
+                    <span class="total-orders-number">20</span>
+                    <span class="order-label">Total Orders to Deliver</span>
+                  </div>
+                </div>
+
+                <div class="card-for-new-orders">
+                  <h2>🆕 New Orders</h2>
+                  <div class="total-orders">
+                    <span class="total-orders-number">0</span>
+                    <span class="order-label">Total of New Orders</span>
+                  </div>
+                </div>
+              <!-- Critical Stock Card -->
                 <div class="card">
                     <h2>
                         Critical Stock
@@ -361,142 +383,6 @@
                         </thead>
                         <tbody>
                             
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Original New Orders Card -->
-                <div class="card">
-                    <h2>
-                        New Orders
-                        <div class="total-orders">
-                            <span class="total-orders-number">20</span>
-                            Total of New Orders
-                        </div>
-                    </h2>
-                    <table class="table table-sm new-orders-table">
-                        <thead>
-                            <tr>
-                                <th>ORDER ID</th>
-                                <th>ORDER NUMBER</th>
-                                <th>PRODUCT ID</th>
-                                <th>CUSTOMER NAME</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>2</td>
-                                <td>2</td>
-                                <td>1</td>
-                                <td>Cody Fisher</td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>4</td>
-                                <td>2</td>
-                                <td>Kristin Watson</td>
-                            </tr>
-                            <tr>
-                                <td>6</td>
-                                <td>6</td>
-                                <td>12</td>
-                                <td>Esther Howard</td>
-                            </tr>
-                            <tr>
-                                <td>8</td>
-                                <td>8</td>
-                                <td>22</td>
-                                <td>Jenny Wilson</td>
-                            </tr>
-                            <tr>
-                                <td>10</td>
-                                <td>10</td>
-                                <td>32</td>
-                                <td>John Smith</td>
-                            </tr>
-                            <tr>
-                                <td>12</td>
-                                <td>12</td>
-                                <td>41</td>
-                                <td>Cameron Williamson</td>
-                            </tr>
-                            <tr>
-                                <td>14</td>
-                                <td>14</td>
-                                <td>41</td>
-                                <td>Cameron Williamson</td>
-                            </tr>
-                            <tr>
-                                <td>16</td>
-                                <td>16</td>
-                                <td>41</td>
-                                <td>Cameron Williamson</td>
-                            </tr>
-                            <tr>
-                                <td>18</td>
-                                <td>18</td>
-                                <td>41</td>
-                                <td>Cameron Williamson</td>
-                            </tr>
-                            <tr>
-                                <td>20</td>
-                                <td>20</td>
-                                <td>44</td>
-                                <td>Cameron Williamson</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- For Delivery Card -->
-                <div class="card">
-                    <h2>
-                        For Delivery
-                        <div class="total-orders">
-                            <span class="total-orders-number">20</span>
-                            Total Orders to Deliver
-                        </div>
-                    </h2>
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>ORDER ID</th>
-                                <th>PRODUCT ID</th>
-                                <th>PRODUCT NAME</th>
-                                <th>CUSTOMER NAME</th>
-                                <th>CUSTOMER ADDRESS</th>
-                                <th>PRODUCT QUANTITY</th>
-                                <th>TRACKING NUMBER</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>1</td>
-                                <td>Portable sewing machine</td>
-                                <td>John Doe</td>
-                                <td>123 Main St, Anytown, USA</td>
-                                <td>1</td>
-                                <td>94001001093611300113</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>1</td>
-                                <td>Portable sewing machine</td>
-                                <td>John Doe</td>
-                                <td>123 Main St, Anytown, USA</td>
-                                <td>2</td>
-                                <td>94001001093611300113</td>
-                            </tr>
-                            <tr>
-                                <td>1</td>
-                                <td>1</td>
-                                <td>Portable sewing machine</td>
-                                <td>John Doe</td>
-                                <td>123 Main St, Anytown, USA</td>
-                                <td>12</td>
-                                <td>94001001093611300113</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -585,7 +471,9 @@
                </div>
                 <div class="card">
                   <table class="supplier-products-table-body">
-                    <h3>SUPPLIERS PRODUCTS MANAGEMENT</h3>
+                    <h3>SUPPLIERS PRODUCTS MANAGEMENT
+    <button class="btn btn-primary btn-sm" style="margin-left: 12px;" onclick="addSupplierProduct()">Add Supplier Product</button>
+</h3>
                       <thead>
                           <tr>
                               <th>Product Supplier ID</th>
@@ -792,7 +680,7 @@
 
             <div class="card">
               <button class="btn btn-outline-dark mb-2" id="openProductVariantModal">Add Product Variant</button>
-              <table class="table table-sm product-variant-table">
+              <table class="table table-sm product-variants-table">
                 <h2>PRODUCTS VARIANTS</h2>
                   <thead>
                       <tr>
@@ -813,25 +701,6 @@
                   </tbody>
               </table>
           </div>
-
-          <div class="card">
-            
-            
-              
-                <thead>
-                    <tr>
-                        
-                        
-                        
-                        
-                    </tr>
-                </thead>
-                <tbody>
-                <!-- Product rows will be dynamically rendered by JavaScript -->
-                </tbody>
-            </table>
-        </div>
-
 
         <div class="card">
           <button class="btn btn-outline-dark mb-2" id="openCategoryModal">Add Category</button>
@@ -890,7 +759,6 @@
                   </div>
                   <div class="filter-buttons">
                     <button class="filter-btn">Apply Filters</button>
-                    <button class="add-btn">New Sale</button>
                   </div>
                 </div>
               </div>
@@ -956,15 +824,16 @@
                   <thead>
                     <tr>
                       <th>Order ID</th>
-                      <th>User ID</th>
-                      <th>Cancellation ID</th>
+                      <th>Users</th>
                       <th>Order Date</th>
                       <th>Product Name</th>
                       <th>Product Quantity</th>
                       <th>Total Amount</th>
                       <th>Payment Method</th>
-                      <th>Address Name</th>
                       <th>Order Status</th>
+                      <th>Courier</th>
+                      <th>Reference Number</th>
+                      <th>Tracking Status</th>
                       <th>Created At</th>
                       <th>Updated At</th>
                     </tr>
@@ -986,6 +855,22 @@
                       <th>Unit Price</th>
                       <th>Discount Amount</th>
                       <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+              <div class="card">
+                <table class="table table-sm" id="cancelled-order-items-table">
+                  <h3>CANCELLED ORDERS</h3>
+                  <thead>
+                    <tr>
+                      <th>Cancellation ID</th>
+                      <th>Order ID</th>
+                      <th>Cancellation Reason</th>
+                      <th>Other Reason</th>
+                      <th>Cancelled At</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1323,36 +1208,41 @@
               </div>
               <div class="modal-body">
                 <form id="add-product-form">
-                  <div class="form-group">
+  <div class="form-group">
                     <label for="product-picture">Picture</label>
                     <input type="file" class="form-control" id="product-picture" name="picture" accept="image/*">
                   </div>
+                  
                   <div class="form-group">
-                    <label for="product-id">ID</label>
-                    <input type="text" class="form-control" id="product-id" name="id" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="product-name">Product Name</label>
-                    <input type="text" class="form-control" id="product-name" name="name" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="product-category">Category</label>
-                    <input type="text" class="form-control" id="product-category" name="category" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="product-specifications">Specifications</label>
-                    <input type="text" class="form-control" id="product-specifications" name="specifications">
-                  </div>
-                  <div class="form-group">
-                    <label for="product-description">Description</label>
-                    <textarea class="form-control" id="product-description" name="description" rows="2"></textarea>
-                  </div>
-                  <div class="form-group">
-                    <label for="product-price">Price</label>
-                    <input type="number" class="form-control" id="product-price" name="price" step="0.01" required>
-                  </div>
-                  <div class="form-group">
-                    <label for="product-variation">Variation</label>
+    <label for="product-name">Product Name</label>
+    <input type="text" class="form-control" id="product-name" name="product_name" required>
+  </div>
+  <div class="form-group">
+    <label for="model-number">Model Number</label>
+    <input type="text" class="form-control" id="model-number" name="model_number" required>
+  </div>
+  <div class="form-group">
+    <label for="product-description">Description</label>
+    <textarea class="form-control" id="product-description" name="description" rows="2"></textarea>
+  </div>
+  <div class="form-group">
+    <label for="category-id">Category ID</label>
+    <input type="number" class="form-control" id="category-id" name="category_id" required>
+  </div>
+  <div class="form-group">
+    <label for="base-price">Base Price</label>
+    <input type="number" class="form-control" id="base-price" name="base_price" step="0.01" required>
+  </div>
+  <div class="form-group">
+    <label for="created-at">Created At</label>
+    <input type="datetime-local" class="form-control" id="created-at" name="created_at">
+  </div>
+  <div class="form-group">
+    <label for="updated-at">Updated At</label>
+    <input type="datetime-local" class="form-control" id="updated-at" name="updated_at">
+  </div>
+  <button type="submit" class="btn btn-primary">Add Product</button>
+</form>
                     <input type="text" class="form-control" id="product-variation" name="variation">
                   </div>
                   <button type="submit" class="btn btn-primary">Add Product</button>
@@ -1360,6 +1250,52 @@
               </div>
             </div>
           </div>
+
+          <!-- Supplier Product Add Modal -->
+<div class="modal fade" id="addSupplierProductModal" tabindex="-1" role="dialog" aria-labelledby="addSupplierProductModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="add-supplier-product-form">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addSupplierProductModalLabel">Add Supplier Product</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="modal-product-id">Product ID</label>
+            <input type="text" class="form-control" id="modal-product-id" name="product_id" required>
+          </div>
+          <div class="form-group">
+            <label for="modal-product-name">Product Name</label>
+            <input type="text" class="form-control" id="modal-product-name" name="product_name" required>
+          </div>
+          <div class="form-group">
+            <label for="modal-supplier-id">Supplier ID</label>
+            <input type="text" class="form-control" id="modal-supplier-id" name="supplier_id" required>
+          </div>
+          <div class="form-group">
+            <label for="modal-supplier-price">Supplier Price</label>
+            <input type="number" class="form-control" id="modal-supplier-price" name="supplier_price" required>
+          </div>
+          <div class="form-group">
+            <label for="modal-is-primary">Is Primary</label>
+            <select class="form-control" id="modal-is-primary" name="is_primary">
+              <option value="1">Yes</option>
+              <option value="0">No</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
         </div>
 
         </div> <!-- end of main-content -->

@@ -1,4 +1,77 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Render Recent Requests Table ---
+    fetch('/supplier/recent_requests')
+        .then(res => res.json())
+        .then(requests => {
+            // Update summary cards dynamically by status
+            // Make status counting case-insensitive and ignore extra spaces
+            const statusKeys = [
+                'pending',
+                'approved',
+                'rejected',
+                'in progress',
+                'to ship',
+                'to deliver',
+                'cancelled',
+                'completed'
+            ];
+            const statusCounts = Object.fromEntries(statusKeys.map(k => [k, 0]));
+            requests.forEach(req => {
+                if (req.status) {
+                    const normalized = req.status.trim().toLowerCase();
+                    if (statusCounts.hasOwnProperty(normalized)) {
+                        statusCounts[normalized]++;
+                    }
+                }
+            });
+            // Find all summary cards and update their values (case-insensitive match)
+            const summaryCards = document.querySelectorAll('.summary-card');
+            summaryCards.forEach(card => {
+                const title = card.querySelector('.summary-title');
+                const value = card.querySelector('.summary-value');
+                if (!title || !value) return;
+                const normalizedTitle = title.textContent.trim().toLowerCase();
+                if (normalizedTitle === 'total requests') {
+                    value.textContent = Array.isArray(requests) ? requests.length : 0;
+                } else if (statusCounts.hasOwnProperty(normalizedTitle)) {
+                    value.textContent = statusCounts[normalizedTitle];
+                }
+            });
+            const table = document.querySelector('table');
+            const tbody = table ? table.querySelector('tbody') : null;
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (!Array.isArray(requests) || requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;">No recent requests found.</td></tr>';
+                return;
+            }
+            requests.forEach(req => {
+                // Assign a CSS class based on status
+                let statusClass = '';
+                switch ((req.status || '').toLowerCase()) {
+                    case 'pending': statusClass = 'status-pending'; break;
+                    case 'approved': statusClass = 'status-approved'; break;
+                    case 'rejected': statusClass = 'status-rejected'; break;
+                    case 'in progress': statusClass = 'status-inprogress'; break;
+                    case 'to ship': statusClass = 'status-toship'; break;
+                    case 'to deliver': statusClass = 'status-todeliver'; break;
+                    case 'cancelled': statusClass = 'status-cancelled'; break;
+                    case 'completed': statusClass = 'status-completed'; break;
+                    default: statusClass = 'status-other'; break;
+                }
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${req.request_id}</td>
+                    <td>${req.date}</td>
+                    <td>${req.products}</td>
+                    <td>${req.quantity}</td>
+                    <td>${req.total_amount}</td>
+                    <td>${req.requested_by}</td>
+                    <td><span class="status-badge ${statusClass}">${req.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
     // Profile dropdown
     const profileDropdownToggle = document.getElementById('profileDropdownToggle');
     const profileDropdownMenu = document.getElementById('profileDropdownMenu');
