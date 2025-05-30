@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, flash, redirect, url_for, jsonify, request, session
 from flask_login import login_required, current_user
 from . import db
-from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales, Payment, PaymentMethod, Tracking, ProductSupplier, OrderStatus
+from .models import Product, CartItem, SupplyRequest, Category, Review, User, Address, Order, OrderItem, ProductImage, Inventory, Supplier, ProductSpecification, ProductVariant, Role, ProductPromotion, Sales, Payment, PaymentMethod, Tracking, ProductSupplier, OrderStatus, Refund
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -568,9 +568,13 @@ def get_product_details():
     if not product:
         return jsonify({'error': 'Product not found'}), 404
 
-    # Get stock from Inventory by product_id
-    inventory = Inventory.query.filter_by(product_id=product.product_id).first()
-    stock_quantity = inventory.available_stock if inventory and hasattr(inventory, 'available_stock') else 0
+    # Sum stock from variants
+    variant_stocks = ProductVariant.query.filter_by(product_id=product.product_id).all()
+    if variant_stocks:
+        stock_quantity = sum(v.stock_quantity for v in variant_stocks)
+    else:
+        inventory = Inventory.query.filter_by(product_id=product.product_id).first()
+        stock_quantity = inventory.available_stock if inventory and hasattr(inventory, 'available_stock') else 0
 
     # Get images (use ProductImage relationship)
     images = [img.image_url for img in sorted(product.images, key=lambda i: getattr(i, 'display_order', 0))] if product.images else []
@@ -645,6 +649,19 @@ def get_product_details():
         } for m in model_family
     ]
 
+    # Get all variants for this product
+    variants = ProductVariant.query.filter_by(product_id=product.product_id).all()
+    variant_list = [
+        {
+            'variant_id': v.variant_id,
+            'variant_name': v.variant_name,
+            'variant_value': v.variant_value,
+            'additional_price': float(v.additional_price),
+            'stock_quantity': v.stock_quantity
+        }
+        for v in variants
+    ]
+
     return jsonify({
         'product_id': product.product_id,
         'name': product.product_name,
@@ -661,7 +678,8 @@ def get_product_details():
         'reviews': reviews,
         'review_count': review_count,
         'sold': sold_count,
-        'related_products': related_products
+        'related_products': related_products,
+        'variants': variant_list,
     })
 
 ALLOWED_REVIEW_MEDIA = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
@@ -1051,7 +1069,12 @@ def can_review():
     if not product_id:
         return jsonify({'can_review': False, 'reason': 'No product_id specified'}), 400
     # Check if user has a completed order for this product
-    completed_orders = Order.query.filter_by(user_id=current_user.user_id, status='completed').all()
+    completed_status = OrderStatus.query.filter_by(status_name='Completed').first()
+    completed_status_id = completed_status.status_id if completed_status else None
+    if completed_status_id:
+        completed_orders = Order.query.filter_by(user_id=current_user.user_id, status_id=completed_status_id).all()
+    else:
+        completed_orders = []
     eligible = False
     for order in completed_orders:
         for item in order.order_items:
@@ -1964,7 +1987,7 @@ def admin_update_order_status(order_id):
 
 
 
-from .models import Order, OrderItem, User, SupplyRequest, Product
+from .models import Order, OrderItem, User, SupplyRequest, Product, Refund
 
 # --- SUPPLIER DASHBOARD: RECENT REQUESTS API ---
 from flask import jsonify
@@ -2068,6 +2091,23 @@ def admin_orders_list():
             "tracking_status_name": tracking_status_name,
             "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
             "updated_at": order.updated_at.strftime("%Y-%m-%d %H:%M:%S") if order.updated_at else "",
+        })
+    return jsonify(data)
+
+@views.route('/admin/refunds_list')
+def admin_refunds_list():
+    refunds = Refund.query.order_by(Refund.created_at.desc()).all()
+    data = []
+    for r in refunds:
+        data.append({
+            "refund_id": r.refund_id,
+            "refund_reason": r.refund_reason,
+            "refund_status": r.refund_status,
+            "proof_of_refund": r.proof_of_refund,
+            "order_id": r.order_id,
+            "return_id": r.return_id,
+            "created_at": r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else "",
+            "updated_at": r.updated_at.strftime("%Y-%m-%d %H:%M:%S") if r.updated_at else "",
         })
     return jsonify(data)
 
@@ -2259,3 +2299,156 @@ def get_deliveries():
             "status": d.supply_status
         })
     return jsonify(result)
+
+@views.route('/admin/activity_report')
+def admin_activity_report():
+    users = User.query.all()
+    data = []
+    for u in users:
+        data.append({
+            "user_id": u.user_id,
+            "username": u.username,
+            "first_name": u.first_name,
+            "last_name": u.last_name,
+            "role": u.role,  # Uses the @property from your model
+            "last_login": u.last_login.strftime("%Y-%m-%d %H:%M:%S") if u.last_login else ""
+        })
+    return jsonify(data)
+
+@views.route('/admin/sales_report')
+def admin_sales_report():
+    # Join Sales, Order, Address, and Payment
+    sales = (
+        db.session.query(
+            Sales.sales_id,
+            Sales.order_id,
+            Sales.product_id,
+            Address.first_name,
+            Address.last_name,
+            Sales.sale_date,
+            Sales.total_amount,
+            Sales.payment_id
+        )
+        .join(Order, Sales.order_id == Order.order_id)
+        .join(Address, Order.address_id == Address.address_id)
+        .all()
+    )
+    data = []
+    for s in sales:
+        data.append({
+            "sales_id": s.sales_id,
+            "order_id": s.order_id,
+            "product_id": s.product_id,
+            "user": f"{s.first_name} {s.last_name}",
+            "sale_date": s.sale_date.strftime("%Y-%m-%d %H:%M:%S") if s.sale_date else "",
+            "total_amount": str(s.total_amount),
+            "payment_id": s.payment_id
+        })
+    return jsonify(data)
+
+@views.route('/admin/stock_in_report')
+def admin_stock_in_report():
+    # Join Inventory, Product, Supplier, and ProductSupplier for stock-in history
+    stock_ins = (
+        db.session.query(
+            Inventory.inventory_id,
+            Inventory.product_id,
+            Product.product_name,
+            Supplier.supplier_name,
+            ProductSupplier.supplier_price,
+            Inventory.stock_quantity,
+            Inventory.stock_in,
+            Inventory.available_stock,
+            Inventory.stock_status,
+            Inventory.created_at,
+            Inventory.updated_at
+        )
+        .join(Product, Inventory.product_id == Product.product_id)
+        .join(ProductSupplier, Inventory.product_id == ProductSupplier.product_id)
+        .join(Supplier, ProductSupplier.supplier_id == Supplier.supplier_id)
+        .order_by(Inventory.inventory_id.desc())
+        .all()
+    )
+    data = []
+    for s in stock_ins:
+        data.append({
+            "inventory_id": s.inventory_id,
+            "product_id": s.product_id,
+            "product_name": s.product_name,
+            "supplier_name": s.supplier_name,
+            "supplier_price": s.supplier_price,
+            "stock_quantity": s.stock_quantity,
+            "stock_in": s.stock_in,
+            "available_stock": s.available_stock,
+            "stock_status": s.stock_status,
+            "created_at": s.created_at.strftime("%Y-%m-%d %H:%M:%S") if s.created_at else "",
+            "updated_at": s.updated_at.strftime("%Y-%m-%d %H:%M:%S") if s.updated_at else "",
+        })
+    return jsonify(data)
+
+@views.route('/admin/stock_out_report')
+def admin_stock_out_report():
+    # Join Inventory, Product, Supplier, and ProductSupplier for stock-out history
+    stock_outs = (
+        db.session.query(
+            Inventory.inventory_id,
+            Inventory.product_id,
+            Product.product_name,
+            Supplier.supplier_name,
+            ProductSupplier.supplier_price,
+            Inventory.stock_quantity,
+            Inventory.stock_out,
+            Inventory.available_stock,
+            Inventory.stock_status,
+            Inventory.created_at,
+            Inventory.updated_at
+        )
+        .join(Product, Inventory.product_id == Product.product_id)
+        .join(ProductSupplier, Inventory.product_id == ProductSupplier.product_id)
+        .join(Supplier, ProductSupplier.supplier_id == Supplier.supplier_id)
+        .order_by(Inventory.inventory_id.desc())
+        .all()
+    )
+    data = []
+    for s in stock_outs:
+        data.append({
+            "inventory_id": s.inventory_id,
+            "product_id": s.product_id,
+            "product_name": s.product_name,
+            "supplier_name": s.supplier_name,
+            "supplier_price": s.supplier_price,
+            "stock_quantity": s.stock_quantity,
+            "stock_out": s.stock_out,
+            "available_stock": s.available_stock,
+            "stock_status": s.stock_status,
+            "created_at": s.created_at.strftime("%Y-%m-%d %H:%M:%S") if s.created_at else "",
+            "updated_at": s.updated_at.strftime("%Y-%m-%d %H:%M:%S") if s.updated_at else "",
+        })
+    return jsonify(data)
+
+@views.route('/admin/refunds_report')
+def admin_refunds_report():
+    refunds = (
+        db.session.query(
+            Refund.refund_id,
+            Refund.order_id,
+            # Remove Refund.refund_amount,
+            Refund.refund_reason,
+            Refund.refund_status,
+            Refund.created_at,
+            Refund.updated_at
+        ).order_by(Refund.refund_id.desc()).all()
+    )
+    data = []
+    for r in refunds:
+        data.append({
+            "refund_id": r.refund_id,
+            "order_id": r.order_id,
+            # "refund_amount": r.refund_amount,  # Remove this line too
+            "refund_reason": r.refund_reason,
+            "refund_status": r.refund_status,
+            "created_at": r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else "",
+            "updated_at": r.updated_at.strftime("%Y-%m-%d %H:%M:%S") if r.updated_at else "",
+        })
+    return jsonify(data)
+

@@ -89,9 +89,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('productPrice').textContent = '₱ ' + product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     let totalStock = 0;
     let variantStockMap = {};
-    if (product.product_variants && product.product_variants.length > 0) {
-        totalStock = product.product_variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0);
-        product.product_variants.forEach(v => {
+    if (product.variants && product.variants.length > 0) {
+        totalStock = product.variants.reduce((sum, v) => sum + (v.stock_quantity || 0), 0);
+        product.variants.forEach(v => {
             variantStockMap[v.variant_id] = v.stock_quantity || 0;
         });
     } else {
@@ -102,21 +102,20 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // --- Dynamic Variant Options ---
     let variantTypeMap = {};
-    if (product.product_variants && product.product_variants.length > 0) {
-        product.product_variants.forEach(v => {
+    if (product.variants && product.variants.length > 0) {
+        product.variants.forEach(v => {
             if (!variantTypeMap[v.variant_name]) {
                 variantTypeMap[v.variant_name] = new Set();
             }
             variantTypeMap[v.variant_name].add(v.variant_value);
         });
-        // Enforce order: Color > Width > others (alphabetically, including Silk Type)
+        // Enforce order: Color > Size > others (alphabetically)
         const allVariantTypes = Object.keys(variantTypeMap);
         const colorKey = allVariantTypes.find(k => k.toLowerCase().includes('color'));
-        const widthKey = allVariantTypes.find(k => k.toLowerCase().includes('width'));
+        const sizeKey = allVariantTypes.find(k => k.toLowerCase().includes('size'));
         let sortedVariantTypes = [];
         if (colorKey) sortedVariantTypes.push(colorKey);
-        if (widthKey) sortedVariantTypes.push(widthKey);
-        // Add any other types alphabetically (including Silk Type)
+        if (sizeKey) sortedVariantTypes.push(sizeKey);
         allVariantTypes.sort().forEach(k => {
             if (!sortedVariantTypes.includes(k)) sortedVariantTypes.push(k);
         });
@@ -153,13 +152,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                     <span class="option-label">${variantName}</span>
                     <div class="option-value">${buttonsHTML}</div>
                 `;
-                productOptionsDiv.insertBefore(row, productOptionsDiv.querySelector('.option-row'));
+                productOptionsDiv.insertBefore(row, productOptionsDiv.querySelector('.quantity-selector-row'));
             });
-            // After rendering all variant rows, move the quantity selector row to the end
-            const qtyRow = productOptionsDiv.querySelector('.quantity-selector-row');
-            if (qtyRow) {
-                productOptionsDiv.appendChild(qtyRow);
-            }
         }
         // --- Require all variant selections before enabling Add to Cart/Buy Now ---
         let selectedVariants = {};
@@ -179,18 +173,17 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
         let currentVariantStock = totalStock;
         document.querySelectorAll('.variant-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const variantName = btn.getAttribute('data-variant-name');
                 btn.parentNode.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 btn.style.border = '2.5px solid #ff6f61';
-                // Remove orange border from others
                 btn.parentNode.querySelectorAll('.variant-btn').forEach(b => {
                     if (b !== btn) b.style.border = '2px solid #ddd';
                 });
                 selectedVariants[variantName] = btn.getAttribute('data-variant-value');
                 // Find the matching variant (all types must match)
-                let matchingVariant = product.product_variants.find(v =>
+                let matchingVariant = product.variants.find(v =>
                     sortedVariantTypes.every(k => v.variant_name === k ? v.variant_value === selectedVariants[k] : true)
                 );
                 // Update stock info and quantity selector
@@ -215,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         // --- Add to Cart and Buy Now: send variant_id and selected values ---
         function getSelectedVariantId() {
             if (!allVariantsSelected()) return null;
-            const matchingVariant = product.product_variants.find(v =>
+            const matchingVariant = product.variants.find(v =>
                 sortedVariantTypes.every(k => v.variant_name === k ? v.variant_value === selectedVariants[k] : true)
             );
             return matchingVariant ? matchingVariant.variant_id : null;
@@ -281,25 +274,32 @@ document.addEventListener('DOMContentLoaded', async function () {
         const buyNowBtn = document.getElementById('buyNowBtn');
         if (buyNowBtn) {
             buyNowBtn.addEventListener('click', function (e) {
+                if (!allVariantsSelected()) {
+                    e.preventDefault();
+                    alert('Please select an option for each variant before buying.');
+                    return false;
+                }
+                const variant_id = getSelectedVariantId();
+                if (!variant_id) {
+                    e.preventDefault();
+                    alert('No matching variant found.');
+                    return false;
+                }
                 const productQuantity = parseInt(document.getElementById('quantityInput').value, 10);
                 const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                // Get selected variant id if needed
-                let selectedVariantId = null;
-                const selectedBtn = document.querySelector('.variant-btn.selected');
-                if (selectedBtn) selectedVariantId = selectedBtn.getAttribute('data-variant-id');
                 if (isLoggedIn && product.product_id) {
                     fetch('/api/addresses')
                         .then(res => res.json())
                         .then(data => {
                             if (!data.success || !data.addresses || data.addresses.length === 0) {
-                                window.location.href = `/addresses?from=product&product_id=${product.product_id}&product_type=f${selectedVariantId ? `&variant_id=${selectedVariantId}` : ''}&quantity=${productQuantity}`;
+                                window.location.href = `/addresses?from=product&product_id=${product.product_id}&product_type=f${variant_id ? `&variant_id=${variant_id}` : ''}&quantity=${productQuantity}`;
                             } else {
                                 fetch('/buy-now', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         product_id: product.product_id,
-                                        variant_id: selectedVariantId,
+                                        variant_id: variant_id,
                                         quantity: productQuantity
                                     })
                                 })
@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                     // Guest: use sessionStorage
                     const buyNowItem = {
                         product_id: product.product_id,
-                        variant_id: selectedVariantId,
+                        variant_id: variant_id,
                         quantity: productQuantity
                     };
                     sessionStorage.setItem('buyNowItem', JSON.stringify(buyNowItem));

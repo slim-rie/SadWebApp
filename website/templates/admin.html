@@ -877,6 +877,45 @@
                   </tbody>
                 </table>
               </div>
+              <div class="card">
+                <table class="table table-sm" id="refunded-order-items-table">
+                  <h3>REFUNDED ORDERS</h3>
+                  <thead>
+                    <tr>
+                      <th>Refund ID</th>
+                      <th>Refund Reason</th>
+                      <th>Refund Status</th>
+                      <th>Proof of Refund</th>
+                      <th>Order ID</th>
+                      <th>Return ID</th>
+                      <th>Created At</th>
+                      <th>Updated At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
+              <div class="card">
+                <table class="table table-sm" id="returned-order-items-table">
+                  <h3>RETURNED ORDERS</h3>
+                  <thead>
+                    <tr>
+                      <th>Return ID</th>
+                      <th>Return Reason</th>
+                      <th>Return Issue</th>
+                      <th>Other Reason</th>
+                      <th>Return Status</th>
+                      <th>Refund ID</th>
+                      <th>Order ID</th>
+                      <th>Created At</th>
+                      <th>Updated At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
           
@@ -955,7 +994,7 @@
                 <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
                 <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Customer List</div>
             </div>
-            <div class="report-icon-block" data-report="delivery">
+            <div class="report-icon-block" data-report="activity">
                 <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
                 <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Activity Report</div>
             </div>
@@ -971,11 +1010,11 @@
               <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
               <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Supplier List</div>
           </div>
-          <div class="report-icon-block" data-report="delivery">
+          <div class="report-icon-block" data-report="purchase">
               <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
               <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Purchase Order Report</div>
           </div>
-          <div class="report-icon-block" data-report="fulfillment">
+          <div class="report-icon-block" data-report="payment">
               <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
               <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Payment Report</div>
           </div>
@@ -995,11 +1034,11 @@
             <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
             <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Product List</div>
         </div>
-        <div class="report-icon-block" data-report="delivery">
+        <div class="report-icon-block" data-report="stockin">
             <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
             <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Stock In Report</div>
         </div>
-        <div class="report-icon-block" data-report="fulfillment">
+        <div class="report-icon-block" data-report="stockout">
             <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
             <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Stock Out List</div>
         </div>
@@ -1035,7 +1074,7 @@
           <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
           <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Sales Order Report</div>
       </div>
-      <div class="report-icon-block" data-report="delivery">
+      <div class="report-icon-block" data-report="refunded">
           <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
           <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Refunded Items Report</div>
       </div>
@@ -1051,11 +1090,11 @@
         <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
         <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Customer Order Report</div>
     </div>
-    <div class="report-icon-block" data-report="delivery">
+    <div class="report-icon-block" data-report="returned">
         <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
         <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Returned Items Report</div>
     </div>
-    <div class="report-icon-block" data-report="fulfillment">
+    <div class="report-icon-block" data-report="cancelled">
         <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
         <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Feedback & Reviews Report</div>
     </div>
@@ -1067,15 +1106,15 @@
     <div class="reports-table">
       <h2>Personnel Reports</h2>
       <div id="reportIcons">
-  <div class="report-icon-block" data-report="stock">
+  <div class="report-icon-block" data-report="personnel">
       <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
       <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Personnel List</div>
   </div>
-  <div class="report-icon-block" data-report="delivery">
+  <div class="report-icon-block" data-report="performance">
       <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
       <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Employee Performance</div>
   </div>
-  <div class="report-icon-block" data-report="fulfillment">
+  <div class="report-icon-block" data-report="audit">
       <i class="fa fa-file-alt report-file-icon" style="font-size:64px;color:#2563eb;cursor:pointer;"></i>
       <div style="font-size:1.2rem;color:#2563eb;margin-top:8px;">Audit Log</div>
   </div>
