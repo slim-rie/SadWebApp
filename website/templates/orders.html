@@ -208,141 +208,80 @@
 <!-- Refund Request Modal -->
 <div class="refund-modal-overlay" id="refundModalOverlay">
   <div class="refund-modal" role="dialog" aria-modal="true" aria-labelledby="refundTitle">
-    <h2 id="refundTitle">Request Refund</h2>
-    <p style="color:#444; font-size:15px; margin-bottom:18px;">Please let us know about your issue with the order.</p>
+    <h2 id="refundTitle">Select Reason to Refund</h2>
     <form id="refundForm">
-      <div class="refund-received">
-        <label>Did you receive your items?</label>
-        <div class="received-options">
-          <label>
-            <input type="radio" name="items_received" value="yes" required>
-            Yes, I received my items but there are issues
+      <div class="refund-reason-section" id="refundReasonSection">
+        <div class="refund-radio-group" id="mainOptionsGroup">
+          <label class="refund-radio-option" id="receivedOptionLabel">
+            <input type="radio" name="items_received" value="yes">
+            <span>I have received my items but there are issues</span>
           </label>
-          <label>
-            <input type="radio" name="items_received" value="no" required>
-            No, I didn't receive my items
-          </label>
-        </div>
-      </div>
-
-      <!-- Reasons for received items -->
-      <div class="received-reasons" style="display: none;">
-        <label>Select the issue:</label>
-        <div class="reason-options">
-          <label>
-            <input type="radio" name="refund_reason" value="missing_parts">
-            Missing part of the order
-          </label>
-          <label>
-            <input type="radio" name="refund_reason" value="wrong_item">
-            Seller sent wrong item
-          </label>
-          <label>
-            <input type="radio" name="refund_reason" value="damaged">
-            Damaged Item
-            <div class="sub-reasons" style="display: none; margin-left: 20px;">
-              <label>
+          <div class="sub-reasons" id="receivedSubReasons" style="display:none;">
+            <label class="refund-radio-option">
+              <input type="radio" name="refund_reason" value="missing_parts">
+              <span>Missing part of the order</span>
+            </label>
+            <label class="refund-radio-option">
+              <input type="radio" name="refund_reason" value="wrong_item">
+              <span>Seller sent wrong item</span>
+            </label>
+            <label class="refund-radio-option" id="damagedItemOption">
+              <input type="radio" name="refund_reason" value="damaged">
+              <span>Damaged Item</span>
+            </label>
+            <div class="sub-reasons" id="damagedSubReasons" style="display:none; margin-left:32px; margin-top:2px;">
+              <label class="refund-radio-option">
                 <input type="radio" name="damage_type" value="shattered">
-                Shattered/Broken Product
+                <span>Shattered/Broken Product</span>
               </label>
-              <label>
+              <label class="refund-radio-option">
                 <input type="radio" name="damage_type" value="scratched">
-                Scratch/Dents
+                <span>Scratch/Dents</span>
               </label>
-              <label>
+              <label class="refund-radio-option">
                 <input type="radio" name="damage_type" value="other_damage">
-                Other types of damage
+                <span>Other types of damage</span>
               </label>
             </div>
+            <label class="refund-radio-option">
+              <input type="radio" name="refund_reason" value="defective">
+              <span>Product is defective or does not work</span>
+            </label>
+          </div>
+          <label class="refund-radio-option" id="notReceivedOptionLabel">
+            <input type="radio" name="items_received" value="no">
+            <span>I didn't receive my items</span>
           </label>
-          <label>
-            <input type="radio" name="refund_reason" value="defective">
-            Product is defective or does not work
-          </label>
+          <div class="sub-reasons" id="notReceivedSubReasons" style="display:none;">
+            <label class="refund-radio-option">
+              <input type="radio" name="refund_reason" value="not_delivered">
+              <span>Parcel not delivered</span>
+            </label>
+            <label class="refund-radio-option">
+              <input type="radio" name="refund_reason" value="missing_parts">
+              <span>Missing part of the order</span>
+            </label>
+            <label class="refund-radio-option">
+              <input type="radio" name="refund_reason" value="empty_parcel">
+              <span>Empty Parcel</span>
+            </label>
+          </div>
         </div>
       </div>
-
-      <!-- Reasons for not received items -->
-      <div class="not-received-reasons" style="display: none;">
-        <label>Select the issue:</label>
-        <div class="reason-options">
-          <label>
-            <input type="radio" name="refund_reason" value="not_delivered">
-            Parcel not delivered
-          </label>
-          <label>
-            <input type="radio" name="refund_reason" value="missing_parts">
-            Missing part of the order
-          </label>
-          <label>
-            <input type="radio" name="refund_reason" value="empty_parcel">
-            Empty Parcel
-          </label>
-        </div>
-      </div>
-
-      <!-- Solution options -->
-      <div class="solution-options" style="display: none;">
-        <label>Select your preferred solution:</label>
-        <div class="solution-choices">
-          <label>
-            <input type="radio" name="solution_type" value="return_refund">
-            Return and Refund
-          </label>
-          <label>
-            <input type="radio" name="solution_type" value="refund_only">
-            Refund Only
-            <div class="refund-amount" style="display: none; margin-left: 20px;">
-              <label>Preferred Refund Amount (₱):</label>
-              <input type="number" name="refund_amount" min="0" step="0.01" placeholder="Enter amount">
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div class="refund-description">
+      <div class="refund-description" style="margin-top:24px;">
         <label for="refundDescription">Description:</label>
         <textarea id="refundDescription" name="refundDescription" rows="4" placeholder="Please provide details about your refund request..."></textarea>
       </div>
-
-      <div class="proof-upload">
+      <div class="proof-upload" style="margin-top:18px;">
         <label>Upload Proof (Photo/Video):</label>
         <div class="upload-container">
           <input type="file" id="proofFile" name="proofFile" accept="image/*,video/*" multiple>
-          <label for="proofFile" class="upload-btn">
-            <i class="fas fa-cloud-upload-alt"></i> Choose Files
-          </label>
           <div id="fileList" class="file-list"></div>
         </div>
       </div>
-
-      <div class="return-details" style="display: none;">
-        <label>Return Details:</label>
-        <div class="return-address">
-          <p><strong>Return Address:</strong></p>
-          <p>JBR Tanching C.O</p>
-          <p>123 Main Street</p>
-          <p>Manila, Philippines</p>
-          <p>Contact: +63 912-3456-789</p>
-        </div>
-        <div class="return-instructions">
-          <p><strong>Return Instructions:</strong></p>
-          <ul>
-            <li>Please ensure the item is in its original packaging</li>
-            <li>Include all original accessories and documentation</li>
-            <li>Package the item securely to prevent damage during return shipping</li>
-            <li>You will receive a return shipping label via email</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="contact-info">
-        <p>For any concerns, please email us at: <a href="mailto:tanchingcojbr@gmail.com">tanchingcojbr@gmail.com</a></p>
-      </div>
-
       <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
-        <button type="button" class="modal-btn" id="refundModalNotNowBtn">Not Now</button>
-        <button type="button" class="modal-btn modal-btn-danger" id="confirmRefundBtn" disabled>Submit Refund Request</button>
+        <button type="button" class="modal-btn" id="refundModalNotNowBtn">Cancel</button>
+        <button type="button" class="modal-btn modal-btn-danger" id="confirmRefundBtn" disabled>Submit</button>
       </div>
     </form>
   </div>
@@ -405,6 +344,195 @@
         });
     });
     </script>
+
+<style>
+.refund-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.refund-radio-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.08em;
+  padding: 4px 0;
+}
+.refund-radio-option input[type="radio"] {
+  margin-top: 0;
+}
+.sub-reasons {
+  margin-left: 32px;
+  margin-top: 2px;
+}
+.modal-btn-danger {
+  background-color: #e63946;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.modal-btn-danger:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.modal-btn-danger:not(:disabled) {
+  background-color: #e63946;
+  cursor: pointer;
+  opacity: 1;
+}
+.modal-btn-danger:not(:disabled):hover {
+  background-color: #d62839;
+}
+.file-list {
+  margin-top: 10px;
+  max-height: 100px;
+  overflow-y: auto;
+}
+.file-list div {
+  padding: 5px;
+  background-color: #f8f9fa;
+  margin-bottom: 5px;
+  border-radius: 4px;
+}
+</style>
+<script>
+function updateSubReasons() {
+  const receivedRadio = document.querySelector('input[name="items_received"][value="yes"]');
+  const notReceivedRadio = document.querySelector('input[name="items_received"][value="no"]');
+  const receivedSubReasons = document.getElementById('receivedSubReasons');
+  const notReceivedSubReasons = document.getElementById('notReceivedSubReasons');
+  const damagedRadio = document.querySelector('input[name="refund_reason"][value="damaged"]');
+  const damagedSubReasons = document.getElementById('damagedSubReasons');
+
+  if (receivedSubReasons && receivedRadio) {
+    receivedSubReasons.style.display = receivedRadio.checked ? 'block' : 'none';
+  }
+  if (notReceivedSubReasons && notReceivedRadio) {
+    notReceivedSubReasons.style.display = notReceivedRadio.checked ? 'block' : 'none';
+  }
+
+  // Hide damaged sub-reasons if not selected
+  if (damagedSubReasons) {
+    if (!damagedRadio || !damagedRadio.checked) {
+      damagedSubReasons.style.display = 'none';
+      damagedSubReasons.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+    } else {
+      damagedSubReasons.style.display = 'block';
+    }
+  }
+  validateRefundForm();
+}
+
+function validateRefundForm() {
+  const mainSelected = document.querySelector('input[name="items_received"]:checked');
+  const refundReasonSelected = document.querySelector('input[name="refund_reason"]:checked');
+  const confirmRefundBtn = document.getElementById('confirmRefundBtn');
+  if (confirmRefundBtn) {
+    const isValid = mainSelected && refundReasonSelected;
+    confirmRefundBtn.disabled = !isValid;
+    if (isValid) {
+      confirmRefundBtn.classList.add('active');
+    } else {
+      confirmRefundBtn.classList.remove('active');
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Attach event listeners for main and sub-reason logic
+  document.querySelectorAll('input[name="items_received"]').forEach(el => {
+    el.addEventListener('change', updateSubReasons);
+  });
+  document.querySelectorAll('input[name="refund_reason"]').forEach(el => {
+    el.addEventListener('change', updateSubReasons);
+  });
+  document.querySelectorAll('input[name="damage_type"]').forEach(el => {
+    el.addEventListener('change', validateRefundForm);
+  });
+
+  // File input validation and file list display
+  const proofFileInput = document.getElementById('proofFile');
+  if (proofFileInput) {
+    proofFileInput.addEventListener('change', function() {
+      validateRefundForm();
+      const fileList = document.getElementById('fileList');
+      if (fileList) {
+        fileList.innerHTML = '';
+        Array.from(this.files).forEach(file => {
+          const fileItem = document.createElement('div');
+          fileItem.textContent = file.name;
+          fileList.appendChild(fileItem);
+        });
+      }
+    });
+  }
+
+  // Initial state
+  updateSubReasons();
+
+  // Submit handler
+  const confirmRefundBtn = document.getElementById('confirmRefundBtn');
+  if (confirmRefundBtn) {
+    confirmRefundBtn.disabled = false;
+    confirmRefundBtn.classList.add('active');
+  }
+
+  // Cancel button handler
+  const refundModalNotNowBtn = document.getElementById('refundModalNotNowBtn');
+  if (refundModalNotNowBtn) {
+    refundModalNotNowBtn.addEventListener('click', function() {
+      document.getElementById('refundModalOverlay').style.display = 'none';
+      document.getElementById('refundForm').reset();
+      updateSubReasons();
+    });
+  }
+});
+
+// Helper to open modal with orderId
+function openRefundModal(orderId) {
+  const refundForm = document.getElementById('refundForm');
+  if (refundForm) {
+    refundForm.dataset.orderId = orderId;
+    refundForm.reset();
+    const fileList = document.getElementById('fileList');
+    if (fileList) fileList.innerHTML = '';
+    updateSubReasons();
+  }
+  document.getElementById('refundModalOverlay').style.display = 'block';
+
+  // Attach event listeners every time modal opens
+  document.querySelectorAll('input[name="items_received"]').forEach(el => {
+    el.onchange = updateSubReasons;
+  });
+  document.querySelectorAll('input[name="refund_reason"]').forEach(el => {
+    el.onchange = updateSubReasons;
+  });
+  document.querySelectorAll('input[name="damage_type"]').forEach(el => {
+    el.onchange = validateRefundForm;
+  });
+  const proofFileInput = document.getElementById('proofFile');
+  if (proofFileInput) {
+    proofFileInput.onchange = function() {
+      validateRefundForm();
+      const fileList = document.getElementById('fileList');
+      if (fileList) {
+        fileList.innerHTML = '';
+        Array.from(this.files).forEach(file => {
+          const fileItem = document.createElement('div');
+          fileItem.textContent = file.name;
+          fileList.appendChild(fileItem);
+        });
+      }
+    };
+  }
+  // Initial validation
+  validateRefundForm();
+}
+</script>
 
 </body>
 </html>

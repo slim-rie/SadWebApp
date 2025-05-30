@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 
                 const mappedStatus = mapStatus(order.status);
+                // Restore all action buttons for each status
                 if (mappedStatus === 'completed') {
                     orderHtml += `
                         <button class="action-btn rate-btn">Rate</button>
@@ -108,9 +109,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn track-order-btn">Track Order</button>
-                        ${mappedStatus === 'to-receive' ? '<button class="action-btn request-refund-btn">Request Refund</button>' : ''}
                         <button class="action-btn order-received-btn">Order Received</button>
                     `;
+                }
+                // Refund button logic (add in addition to other buttons)
+                let showRefundBtn = false;
+                if (mappedStatus === 'to-receive') {
+                    showRefundBtn = true;
+                } else if (mappedStatus === 'completed') {
+                    // Check if within 7-15 days of completion
+                    if (order.deliveryDate) {
+                        const deliveredDate = new Date(order.deliveryDate);
+                        const now = new Date();
+                        const diffDays = Math.floor((now - deliveredDate) / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 7 && diffDays <= 15) {
+                            showRefundBtn = true;
+                        }
+                    }
+                }
+                if (showRefundBtn) {
+                    orderHtml += `<button class="action-btn request-refund-btn">Request Refund</button>`;
                 }
                 
                 orderHtml += `
@@ -297,8 +315,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Order ID not found.');
                     return;
                 }
-                document.getElementById('refundModalOverlay').style.display = 'flex';
-                document.getElementById('refundForm').dataset.orderId = orderId;
+                const refundModalOverlay = document.getElementById('refundModalOverlay');
+                const refundForm = document.getElementById('refundForm');
+                const confirmRefundBtn = document.getElementById('confirmRefundBtn');
+                refundModalOverlay.style.display = 'flex';
+                refundForm.dataset.orderId = orderId;
+                // Always disable and uncolor the button when modal opens
+                if (confirmRefundBtn) {
+                    confirmRefundBtn.disabled = true;
+                    confirmRefundBtn.classList.remove('active');
+                }
+                // Attach validation logic
+                function enableRefundBtnIfNeeded() {
+                    const itemsReceived = refundForm.querySelector('input[name="items_received"]:checked');
+                    const reason = refundForm.querySelector('input[name="refund_reason"]:checked');
+                    let isValid = itemsReceived && reason;
+                    confirmRefundBtn.disabled = !isValid;
+                    if (isValid) {
+                        confirmRefundBtn.classList.add('active');
+                    } else {
+                        confirmRefundBtn.classList.remove('active');
+                    }
+                }
+                refundForm.querySelectorAll('input[name="items_received"], input[name="refund_reason"]').forEach(radio => {
+                    radio.addEventListener('change', enableRefundBtnIfNeeded);
+                });
             });
         });
 
@@ -313,139 +354,39 @@ document.addEventListener('DOMContentLoaded', function() {
         const refundAmount = document.querySelector('.refund-amount');
 
         if (refundForm && confirmRefundBtn) {
-            // Handle items received selection
-            refundForm.querySelectorAll('input[name="items_received"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    receivedReasons.style.display = this.value === 'yes' ? 'block' : 'none';
-                    notReceivedReasons.style.display = this.value === 'no' ? 'block' : 'none';
-                    solutionOptions.style.display = 'none';
-                    returnDetails.style.display = 'none';
-                    refundAmount.style.display = 'none';
-                    validateForm();
-                });
-            });
-
-            // Handle damage type selection
-            refundForm.querySelector('input[value="damaged"]').addEventListener('change', function() {
-                const subReasons = this.parentElement.querySelector('.sub-reasons');
-                subReasons.style.display = this.checked ? 'block' : 'none';
-            });
-
-            // Handle solution type selection
-            refundForm.querySelectorAll('input[name="solution_type"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    const reason = refundForm.querySelector('input[name="refund_reason"]:checked')?.value;
-                    const isRefundOnly = this.value === 'refund_only';
-                    
-                    // Show refund amount input for refund only
-                    refundAmount.style.display = isRefundOnly ? 'block' : 'none';
-                    
-                    // Show return details for return and refund
-                    returnDetails.style.display = !isRefundOnly ? 'block' : 'none';
-                    
-                    validateForm();
-                });
-            });
-
-            // Handle refund reason selection
-            refundForm.querySelectorAll('input[name="refund_reason"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    const reason = this.value;
-                    const itemsReceived = refundForm.querySelector('input[name="items_received"]:checked')?.value;
-                    
-                    // Show solution options after reason is selected
-                    solutionOptions.style.display = 'block';
-                    
-                    // Reset solution options
-                    refundForm.querySelectorAll('input[name="solution_type"]').forEach(input => {
-                        input.checked = false;
-                    });
-                    returnDetails.style.display = 'none';
-                    refundAmount.style.display = 'none';
-                    
-                    // Enable/disable solution options based on reason
-                    const refundOnlyOption = refundForm.querySelector('input[value="refund_only"]');
-                    const returnRefundOption = refundForm.querySelector('input[value="return_refund"]');
-                    
-                    // List of reasons that only allow refund only
-                    const refundOnlyReasons = [
-                        'not_delivered',
-                        'missing_parts',
-                        'empty_parcel',
-                        'shattered',
-                        'spilled',
-                        'expired'
-                    ];
-                    
-                    if (refundOnlyReasons.includes(reason)) {
-                        refundOnlyOption.disabled = false;
-                        returnRefundOption.disabled = true;
-                        refundOnlyOption.checked = true;
-                        refundAmount.style.display = 'block';
-                    } else {
-                        refundOnlyOption.disabled = false;
-                        returnRefundOption.disabled = false;
-                    }
-                    
-                    validateForm();
-                });
-            });
-
-            function validateForm() {
-                const itemsReceived = refundForm.querySelector('input[name="items_received"]:checked');
-                const reason = refundForm.querySelector('input[name="refund_reason"]:checked');
-                const solution = refundForm.querySelector('input[name="solution_type"]:checked');
-                const damageType = refundForm.querySelector('input[name="damage_type"]:checked');
-                
-                let isValid = itemsReceived && reason && solution;
-                
-                // Additional validation for damage type
-                if (reason && reason.value === 'damaged' && !damageType) {
-                    isValid = false;
-                }
-                
-                // Additional validation for refund amount
-                if (solution && solution.value === 'refund_only') {
-                    const amount = refundForm.querySelector('input[name="refund_amount"]').value;
-                    if (!amount || parseFloat(amount) <= 0) {
-                        isValid = false;
-                    }
-                }
-                
-                confirmRefundBtn.disabled = !isValid;
-            }
-
-            // Add validation listeners
-            refundForm.addEventListener('change', validateForm);
-            refundForm.querySelector('input[name="refund_amount"]').addEventListener('input', validateForm);
-
-            // Handle refund submission
-            confirmRefundBtn.addEventListener('click', function() {
+            // Remove any previous click handlers
+            confirmRefundBtn.replaceWith(confirmRefundBtn.cloneNode(true));
+            const newConfirmRefundBtn = document.getElementById('confirmRefundBtn');
+            newConfirmRefundBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Refund submit button clicked!');
                 const orderId = refundForm.dataset.orderId;
                 const itemsReceived = refundForm.querySelector('input[name="items_received"]:checked').value;
                 const reason = refundForm.querySelector('input[name="refund_reason"]:checked').value;
-                const solution = refundForm.querySelector('input[name="solution_type"]:checked').value;
                 const description = refundDescription.value.trim();
-                const refundAmount = refundForm.querySelector('input[name="refund_amount"]').value;
-                
                 let damageType = null;
                 if (reason === 'damaged') {
-                    damageType = refundForm.querySelector('input[name="damage_type"]:checked').value;
+                    const damageTypeInput = refundForm.querySelector('input[name="damage_type"]:checked');
+                    damageType = damageTypeInput ? damageTypeInput.value : null;
                 }
-
-                // Send refund request to server
+                // Handle proof files
+                const proofFileInput = refundForm.querySelector('input[type="file"]');
+                const formData = new FormData();
+                formData.append('order_id', orderId);
+                formData.append('items_received', itemsReceived);
+                formData.append('reason', reason);
+                formData.append('description', description);
+                if (damageType) {
+                    formData.append('damage_type', damageType);
+                }
+                if (proofFileInput && proofFileInput.files.length > 0) {
+                    for (let i = 0; i < proofFileInput.files.length; i++) {
+                        formData.append('proof_files', proofFileInput.files[i]);
+                    }
+                }
                 fetch('/api/request-refund', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        order_id: orderId,
-                        items_received: itemsReceived,
-                        reason: reason,
-                        damage_type: damageType,
-                        solution: solution,
-                        refund_amount: refundAmount,
-                        description: description
-                    })
+                    body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -463,38 +404,122 @@ document.addEventListener('DOMContentLoaded', function() {
                 .finally(() => {
                     document.getElementById('refundModalOverlay').style.display = 'none';
                     refundForm.reset();
-                    receivedReasons.style.display = 'none';
-                    notReceivedReasons.style.display = 'none';
-                    solutionOptions.style.display = 'none';
-                    returnDetails.style.display = 'none';
-                    refundAmount.style.display = 'none';
+                    if (typeof updateSubReasons === 'function') updateSubReasons();
                 });
             });
         }
 
-        // Close refund modal
-        document.getElementById('refundModalNotNowBtn').addEventListener('click', function() {
-            document.getElementById('refundModalOverlay').style.display = 'none';
-            refundForm.reset();
-            receivedReasons.style.display = 'none';
-            notReceivedReasons.style.display = 'none';
-            solutionOptions.style.display = 'none';
-            returnDetails.style.display = 'none';
-            refundAmount.style.display = 'none';
+        // Handle items received selection
+        refundForm.querySelectorAll('input[name="items_received"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                receivedReasons.style.display = this.value === 'yes' ? 'block' : 'none';
+                notReceivedReasons.style.display = this.value === 'no' ? 'block' : 'none';
+                solutionOptions.style.display = 'none';
+                returnDetails.style.display = 'none';
+                refundAmount.style.display = 'none';
+                validateForm();
+            });
         });
+
+        // Handle damage type selection
+        refundForm.querySelector('input[value="damaged"]').addEventListener('change', function() {
+            const subReasons = this.parentElement.querySelector('.sub-reasons');
+            subReasons.style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Handle solution type selection
+        refundForm.querySelectorAll('input[name="solution_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const reason = refundForm.querySelector('input[name="refund_reason"]:checked')?.value;
+                const isRefundOnly = this.value === 'refund_only';
+                
+                // Show refund amount input for refund only
+                refundAmount.style.display = isRefundOnly ? 'block' : 'none';
+                
+                // Show return details for return and refund
+                returnDetails.style.display = !isRefundOnly ? 'block' : 'none';
+                
+                validateForm();
+            });
+        });
+
+        // Handle refund reason selection
+        refundForm.querySelectorAll('input[name="refund_reason"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const reason = this.value;
+                const itemsReceived = refundForm.querySelector('input[name="items_received"]:checked')?.value;
+                
+                // Show solution options after reason is selected
+                solutionOptions.style.display = 'block';
+                
+                // Reset solution options
+                refundForm.querySelectorAll('input[name="solution_type"]').forEach(input => {
+                    input.checked = false;
+                });
+                returnDetails.style.display = 'none';
+                refundAmount.style.display = 'none';
+                
+                // Enable/disable solution options based on reason
+                const refundOnlyOption = refundForm.querySelector('input[value="refund_only"]');
+                const returnRefundOption = refundForm.querySelector('input[value="return_refund"]');
+                
+                // List of reasons that only allow refund only
+                const refundOnlyReasons = [
+                    'not_delivered',
+                    'missing_parts',
+                    'empty_parcel',
+                    'shattered',
+                    'spilled',
+                    'expired'
+                ];
+                
+                if (refundOnlyReasons.includes(reason)) {
+                    refundOnlyOption.disabled = false;
+                    returnRefundOption.disabled = true;
+                    refundOnlyOption.checked = true;
+                    refundAmount.style.display = 'block';
+                } else {
+                    refundOnlyOption.disabled = false;
+                    returnRefundOption.disabled = false;
+                }
+                
+                validateForm();
+            });
+        });
+
+        function validateForm() {
+            const itemsReceived = refundForm.querySelector('input[name="items_received"]:checked');
+            const reason = refundForm.querySelector('input[name="refund_reason"]:checked');
+            // Only require these two
+            let isValid = itemsReceived && reason;
+            confirmRefundBtn.disabled = !isValid;
+            if (isValid) {
+                confirmRefundBtn.classList.add('active');
+            } else {
+                confirmRefundBtn.classList.remove('active');
+            }
+        }
+
+        // Add validation listeners
+        refundForm.addEventListener('change', validateForm);
+        refundForm.querySelector('input[name="refund_amount"]').addEventListener('input', validateForm);
     }
     
-    // Initial load of all orders
-    loadOrders();
-    
-    // Tab click handlers
-    document.querySelectorAll('.tab').forEach(tab => {
+    // Restore tab click handler and initial load
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
         tab.addEventListener('click', function() {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
-            loadOrders(this.getAttribute('data-tab'));
+            if (typeof loadOrders === 'function') loadOrders(this.getAttribute('data-tab'));
         });
     });
+    // Set initial active tab and load orders
+    const initialTab = document.querySelector('.tab.active') || tabs[0];
+    if (initialTab) {
+        initialTab.classList.add('active');
+        if (typeof loadOrders === 'function') loadOrders(initialTab.getAttribute('data-tab'));
+    }
     
     // Search functionality
     document.getElementById('searchBtn').addEventListener('click', function() {
@@ -552,6 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 
                 const mappedStatus = mapStatus(order.status);
+                // Restore all action buttons for each status
                 if (mappedStatus === 'completed') {
                     orderHtml += `
                         <button class="action-btn rate-btn">Rate</button>
@@ -574,9 +600,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     orderHtml += `
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn track-order-btn">Track Order</button>
-                        ${mappedStatus === 'to-receive' ? '<button class="action-btn request-refund-btn">Request Refund</button>' : ''}
                         <button class="action-btn order-received-btn">Order Received</button>
                     `;
+                }
+                // Refund button logic (add in addition to other buttons)
+                let showRefundBtn = false;
+                if (mappedStatus === 'to-receive') {
+                    showRefundBtn = true;
+                } else if (mappedStatus === 'completed') {
+                    // Check if within 7-15 days of completion
+                    if (order.deliveryDate) {
+                        const deliveredDate = new Date(order.deliveryDate);
+                        const now = new Date();
+                        const diffDays = Math.floor((now - deliveredDate) / (1000 * 60 * 60 * 24));
+                        if (diffDays >= 7 && diffDays <= 15) {
+                            showRefundBtn = true;
+                        }
+                    }
+                }
+                if (showRefundBtn) {
+                    orderHtml += `<button class="action-btn request-refund-btn">Request Refund</button>`;
                 }
                 
                 orderHtml += `
@@ -756,30 +799,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Show modal when Cancel Order is clicked
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('cancel-order-btn')) {
-            const orderCard = e.target.closest('.order-card');
-            const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
-            if (!orderId) {
-                alert('Order ID not found.');
-                return;
-            }
-            document.getElementById('cancelModalOverlay').style.display = 'flex';
-            document.getElementById('cancelForm').dataset.orderId = orderId;
-        }
-    });
+    // === Cancel Modal Dedicated Logic (robust, independent) ===
+    document.addEventListener('DOMContentLoaded', function() {
+        let cancelOrderId = null;
+        const cancelForm = document.getElementById('cancelForm');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const otherRadio = document.getElementById('otherRadio');
+        const otherText = document.getElementById('otherText');
+        const cancelModalOverlay = document.getElementById('cancelModalOverlay');
+        const cancelModalNotNowBtn = document.getElementById('cancelModalNotNowBtn');
 
-    // Handle cancellation form submission
-    const cancelForm = document.getElementById('cancelForm');
-    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
-    const otherRadio = document.getElementById('otherRadio');
-    const otherText = document.getElementById('otherText');
-    if (cancelForm && confirmCancelBtn) {
-        cancelForm.addEventListener('change', function() {
+        function validateCancelModal() {
             const checked = cancelForm.querySelector('input[name="cancel_reason"]:checked');
-            confirmCancelBtn.disabled = !checked;
+            let enable = false;
             if (checked) {
+                if (otherRadio && otherRadio.checked) {
+                    if (otherText && otherText.value.trim() !== '') {
+                        enable = true;
+                    } else {
+                        enable = false;
+                    }
+                } else {
+                    enable = true;
+                }
+            }
+            confirmCancelBtn.disabled = !enable;
+            if (enable) {
                 confirmCancelBtn.classList.add('modal-btn-danger');
             } else {
                 confirmCancelBtn.classList.remove('modal-btn-danger');
@@ -794,63 +839,83 @@ document.addEventListener('DOMContentLoaded', function() {
                     otherText.required = false;
                 }
             }
-        });
-    }
+        }
 
-    // Handle cancel order button click
-    if (confirmCancelBtn && cancelForm) {
-        confirmCancelBtn.addEventListener('click', function() {
-            const orderId = cancelForm.dataset.orderId;
-            const reasonInput = cancelForm.querySelector('input[name="cancel_reason"]:checked');
-            const cancellation_id = reasonInput ? reasonInput.value : '';
-            let other_reason = '';
-            if (otherRadio && otherRadio.checked && otherText) {
-                other_reason = otherText.value.trim();
-                if (!other_reason) {
-                    otherText.focus();
-                    alert('Please specify the reason for cancellation.');
+        // Open modal and set orderId
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('cancel-order-btn')) {
+                const orderCard = e.target.closest('.order-card');
+                cancelOrderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
+                if (!cancelOrderId) {
+                    alert('Order ID not found.');
                     return;
                 }
+                cancelModalOverlay.style.display = 'flex';
+                cancelForm.reset();
+                validateCancelModal();
             }
-            if (!cancellation_id) {
-                alert('Please select a cancellation reason.');
-                return;
+        });
+
+        // Validation listeners
+        if (cancelForm && confirmCancelBtn) {
+            cancelForm.addEventListener('change', validateCancelModal);
+            if (otherText) {
+                otherText.addEventListener('input', validateCancelModal);
             }
-            fetch('/api/cancel-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ order_id: orderId, cancellation_id: cancellation_id, other_reason: other_reason })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showSuccessMessage('Order cancelled successfully');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    alert(data.message || 'Failed to cancel order');
+            validateCancelModal();
+        }
+
+        // Cancel order submit
+        if (confirmCancelBtn && cancelForm) {
+            confirmCancelBtn.addEventListener('click', function() {
+                const reasonInput = cancelForm.querySelector('input[name="cancel_reason"]:checked');
+                const cancellation_id = reasonInput ? reasonInput.value : '';
+                let other_reason = '';
+                if (otherRadio && otherRadio.checked && otherText) {
+                    other_reason = otherText.value.trim();
+                    if (!other_reason) {
+                        otherText.focus();
+                        alert('Please specify the reason for cancellation.');
+                        return;
+                    }
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while cancelling the order');
-            })
-            .finally(() => {
-                document.getElementById('cancelModalOverlay').style.display = 'none';
+                if (!cancellation_id) {
+                    alert('Please select a cancellation reason.');
+                    return;
+                }
+                fetch('/api/cancel-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_id: cancelOrderId, cancellation_id: cancellation_id, other_reason: other_reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        alert(data.message || 'Failed to cancel order');
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred while cancelling the order');
+                })
+                .finally(() => {
+                    cancelModalOverlay.style.display = 'none';
+                    cancelForm.reset();
+                    if (otherText) otherText.style.display = 'none';
+                });
+            });
+        }
+
+        // Not Now button
+        if (cancelModalNotNowBtn) {
+            cancelModalNotNowBtn.addEventListener('click', function() {
+                cancelModalOverlay.style.display = 'none';
                 cancelForm.reset();
                 if (otherText) otherText.style.display = 'none';
             });
-        });
-    }
-
-    // Handle Not Now button click
-    const cancelModalNotNowBtn = document.getElementById('cancelModalNotNowBtn');
-    if (cancelModalNotNowBtn) {
-        cancelModalNotNowBtn.addEventListener('click', function() {
-            document.getElementById('cancelModalOverlay').style.display = 'none';
-            cancelForm.reset();
-            if (otherText) otherText.style.display = 'none';
-        });
-    }
+        }
+    });
 
     // Tracking modal close logic
     const trackingModal = document.getElementById('trackingModal');
@@ -886,6 +951,59 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = `/orders/${orderId}/item/${itemId}`;
         });
     });
+
+    // --- Cancel Modal Robust Validation (copied from refund modal logic) ---
+    function updateCancelModalRobust() {
+        const cancelForm = document.getElementById('cancelForm');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+        const otherRadio = document.getElementById('otherRadio');
+        const otherText = document.getElementById('otherText');
+        if (!cancelForm || !confirmCancelBtn) return;
+        const checked = cancelForm.querySelector('input[name="cancel_reason"]:checked');
+        let enable = false;
+        if (checked) {
+            if (otherRadio && otherRadio.checked) {
+                if (otherText && otherText.value.trim() !== '') {
+                    enable = true;
+                } else {
+                    enable = false;
+                }
+            } else {
+                enable = true;
+            }
+        }
+        confirmCancelBtn.disabled = !enable;
+        if (enable) {
+            confirmCancelBtn.classList.add('modal-btn-danger');
+        } else {
+            confirmCancelBtn.classList.remove('modal-btn-danger');
+        }
+        // Show/hide otherText
+        if (otherRadio && otherText) {
+            if (otherRadio.checked) {
+                otherText.style.display = 'inline-block';
+                otherText.required = true;
+            } else {
+                otherText.style.display = 'none';
+                otherText.required = false;
+            }
+        }
+    }
+
+    // Attach robust validation to cancel modal
+    (function attachCancelModalRobustValidation() {
+        document.addEventListener('DOMContentLoaded', function() {
+            const cancelForm = document.getElementById('cancelForm');
+            const otherText = document.getElementById('otherText');
+            if (cancelForm) {
+                cancelForm.addEventListener('change', updateCancelModalRobust);
+            }
+            if (otherText) {
+                otherText.addEventListener('input', updateCancelModalRobust);
+            }
+            updateCancelModalRobust();
+        });
+    })();
 });
 
 function createRatingModal() {
