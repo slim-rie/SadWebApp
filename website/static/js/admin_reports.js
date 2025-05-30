@@ -1082,3 +1082,771 @@ function renderProductReportTable(products) {
     });
 }
 
+function showActivityReportModal() {
+    // Inject style only once
+    if (!document.getElementById('activity-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'activity-report-modal-style';
+        style.innerHTML = `
+        #activity-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        #activity-report-modal .modal-content {
+            max-width: 1000px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .modal-content h2 i {
+            margin-right: 10px;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.activity-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.activity-report-table th, table.activity-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.activity-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.activity-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    // Modal HTML
+    let modal = document.getElementById('activity-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'activity-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closeActivityReportModal">&times;</span>
+            <h2><i class="fa fa-user"></i> Activity Report</h2>
+            <div id="activity-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closeActivityReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderActivityReport();
+}
+
+function fetchAndRenderActivityReport() {
+    const container = document.getElementById('activity-report-table-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; color:#2563eb; padding:20px;">Loading users...</div>';
+    }
+    fetch('/admin/activity_report')
+        .then(response => response.json())
+        .then(data => {
+            const users = data.map(u => [
+                u.user_id,
+                u.username,
+                u.first_name,
+                u.last_name,
+                u.role,
+                u.last_login
+            ]);
+            renderActivityReportTable(users);
+        })
+        .catch(error => {
+            if (container) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Failed to load activity report.</div>';
+            }
+        });
+}
+
+function renderActivityReportTable(users) {
+    const container = document.getElementById('activity-report-table-container');
+    if (!container) return;
+    const headers = [
+        'User ID',
+        'Username',
+        'First Name',
+        'Last Name',
+        'Role',
+        
+        'Last Login'
+    ];
+    let html = '<table class="activity-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (users.length === 0) {
+        html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;">No users found.</td></tr>`;
+    } else {
+        users.forEach(u => {
+            html += '<tr>' + u.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+document.querySelectorAll('.report-icon-block[data-report="stock"]').forEach(reportBlock => {
+    const label = reportBlock.querySelector('div');
+    if (label && label.textContent.trim() === "Sales Order Report") {
+        reportBlock.addEventListener('click', showSalesReportModal);
+    }
+});
+
+function showSalesReportModal() {
+    if (!document.getElementById('sales-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'sales-report-modal-style';
+        style.innerHTML = `
+        #sales-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #sales-report-modal .modal-content {
+            max-width: 1000px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.sales-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.sales-report-table th, table.sales-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.sales-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.sales-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    let modal = document.getElementById('sales-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'sales-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closeSalesReportModal">&times;</span>
+            <h2><i class="fa fa-file-alt"></i> Sales Order Report</h2>
+            <div id="sales-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closeSalesReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderSalesReport();
+}
+
+function fetchAndRenderSalesReport() {
+    const container = document.getElementById('sales-report-table-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; color:#2563eb; padding:20px;">Loading sales...</div>';
+    }
+    fetch('/admin/sales_report')
+        .then(response => response.json())
+        .then(data => {
+            const sales = data.map(s => [
+                s.sales_id,
+                s.order_id,
+                s.product_id,
+                s.user,
+                s.sale_date,
+                s.total_amount,
+                s.payment_id
+            ]);
+            renderSalesReportTable(sales);
+        })
+        .catch(error => {
+            if (container) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Failed to load sales report.</div>';
+            }
+        });
+}
+
+function renderSalesReportTable(sales) {
+    const container = document.getElementById('sales-report-table-container');
+    if (!container) return;
+    const headers = [
+        'Sale ID',
+        'Order ID',
+        'Product ID',
+        'User',
+        'Sale Date',
+        'Total Amount',
+        'Payment ID'
+    ];
+    let html = '<table class="sales-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (sales.length === 0) {
+        html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;">No sales found.</td></tr>`;
+    } else {
+        sales.forEach(row => {
+            html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+
+// Personnel List modal trigger
+    document.querySelectorAll('.report-icon-block[data-report="personnel"]').forEach(reportBlock => {
+        const label = reportBlock.querySelector('div');
+        if (label && label.textContent.trim() === "Personnel List") {
+            reportBlock.addEventListener('click', showPersonnelListReportModal);
+        }
+    });
+    // Activity Report modal trigger
+    document.querySelectorAll('.report-icon-block[data-report="activity"]').forEach(reportBlock => {
+        reportBlock.addEventListener('click', showActivityReportModal);
+    });
+
+// Attach event for Stock In Report icon
+document.querySelectorAll('.report-icon-block[data-report="stockin"]').forEach(reportBlock => {
+    const label = reportBlock.querySelector('div');
+    if (label && label.textContent.trim() === "Stock In Report") {
+        reportBlock.addEventListener('click', showStockInReportModal);
+    }
+});
+
+function showStockInReportModal() {
+    if (!document.getElementById('stock-in-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'stock-in-report-modal-style';
+        style.innerHTML = `
+        #stock-in-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #stock-in-report-modal .modal-content {
+            max-width: 1200px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.stock-in-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.stock-in-report-table th, table.stock-in-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.stock-in-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.stock-in-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    let modal = document.getElementById('stock-in-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'stock-in-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closeStockInReportModal">&times;</span>
+            <h2><i class="fa fa-file-alt"></i> Stock In Report</h2>
+            <div id="stock-in-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closeStockInReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderStockInReport();
+}
+
+function fetchAndRenderStockInReport() {
+    const container = document.getElementById('stock-in-report-table-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; color:#2563eb; padding:20px;">Loading stock-in records...</div>';
+    }
+    fetch('/admin/stock_in_report')
+        .then(response => response.json())
+        .then(data => {
+            const records = data.map(s => [
+                s.inventory_id,
+                s.product_id,
+                s.product_name,
+                s.supplier_name,
+                s.supplier_price !== undefined ? `₱${parseFloat(s.supplier_price).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2})}` : '',
+                s.stock_quantity,
+                s.stock_in,
+                s.available_stock,
+                s.stock_status,
+                s.created_at,
+                s.updated_at
+            ]);
+            renderStockInReportTable(records);
+        })
+        .catch(error => {
+            if (container) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Failed to load stock-in report.</div>';
+            }
+        });
+}
+
+function renderStockInReportTable(records) {
+    const container = document.getElementById('stock-in-report-table-container');
+    if (!container) return;
+    const headers = [
+        'Inventory ID',
+        'Product ID',
+        'Product Name',
+        'Supplier Name',
+        'Supplier Price',
+        'Stock Quantity',
+        'Stock In',
+        'Available Stock',
+        'Stock Status',
+        'Created At',
+        'Last Updated'
+    ];
+    let html = '<table class="stock-in-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (records.length === 0) {
+        html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;">No stock-in records found.</td></tr>`;
+    } else {
+        records.forEach(row => {
+            html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+// Attach event for Stock Out List icon
+
+document.querySelectorAll('.report-icon-block[data-report="stockout"]').forEach(reportBlock => {
+    const label = reportBlock.querySelector('div');
+    if (label && label.textContent.trim() === "Stock Out List") {
+        reportBlock.addEventListener('click', showStockOutReportModal);
+    }
+});
+
+function showStockOutReportModal() {
+    if (!document.getElementById('stock-out-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'stock-out-report-modal-style';
+        style.innerHTML = `
+        #stock-out-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #stock-out-report-modal .modal-content {
+            max-width: 1200px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.stock-out-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.stock-out-report-table th, table.stock-out-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.stock-out-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.stock-out-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    let modal = document.getElementById('stock-out-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'stock-out-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closeStockOutReportModal">&times;</span>
+            <h2><i class="fa fa-file-alt"></i> Stock Out List</h2>
+            <div id="stock-out-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closeStockOutReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderStockOutReport();
+}
+
+function fetchAndRenderStockOutReport() {
+    const container = document.getElementById('stock-out-report-table-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; color:#2563eb; padding:20px;">Loading stock-out records...</div>';
+    }
+    fetch('/admin/stock_out_report')
+        .then(response => response.json())
+        .then(data => {
+            const records = data.map(s => [
+                s.inventory_id,
+                s.product_id,
+                s.product_name,
+                s.supplier_name,
+                s.supplier_price !== undefined ? `₱${parseFloat(s.supplier_price).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2})}` : '',
+                s.stock_quantity,
+                s.stock_out,
+                s.available_stock,
+                s.stock_status,
+                s.created_at,
+                s.updated_at
+            ]);
+            renderStockOutReportTable(records);
+        })
+        .catch(error => {
+            if (container) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Failed to load stock-out report.</div>';
+            }
+        });
+}
+
+function renderStockOutReportTable(records) {
+    const container = document.getElementById('stock-out-report-table-container');
+    if (!container) return;
+    const headers = [
+        'Inventory ID',
+        'Product ID',
+        'Product Name',
+        'Supplier Name',
+        'Supplier Price',
+        'Stock Quantity',
+        'Stock Out',
+        'Available Stock',
+        'Stock Status',
+        'Created At',
+        'Last Updated'
+    ];
+    let html = '<table class="stock-out-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (records.length === 0) {
+        html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;">No stock-out records found.</td></tr>`;
+    } else {
+        records.forEach(row => {
+            html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+
+// Attach event for Refunded Items Report icon
+
+document.querySelectorAll('.report-icon-block[data-report="refunded"]').forEach(reportBlock => {
+    const label = reportBlock.querySelector('div');
+    if (label && label.textContent.trim() === "Refunded Items Report") {
+        reportBlock.addEventListener('click', showRefundsReportModal);
+    }
+});
+
+function showRefundsReportModal() {
+    if (!document.getElementById('refunds-report-modal-style')) {
+        const style = document.createElement('style');
+        style.id = 'refunds-report-modal-style';
+        style.innerHTML = `
+        #refunds-report-modal {
+            position: fixed;
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(34, 41, 47, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #refunds-report-modal .modal-content {
+            max-width: 1000px;
+            width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 24px;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+        }
+        .close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            font-size: 28px;
+            color: #888;
+            cursor: pointer;
+        }
+        table.refunds-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+        }
+        table.refunds-report-table th, table.refunds-report-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 16px;
+        }
+        table.refunds-report-table th {
+            background: #f4f6fb;
+            color: #2563eb;
+        }
+        table.refunds-report-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        `;
+        document.head.appendChild(style);
+    }
+    let modal = document.getElementById('refunds-report-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'refunds-report-modal';
+        modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close" id="closeRefundsReportModal">&times;</span>
+            <h2><i class="fa fa-file-alt"></i> Refunded Items Report</h2>
+            <div id="refunds-report-table-container"></div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    document.getElementById('closeRefundsReportModal').onclick = function() {
+        modal.style.display = 'none';
+    };
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.style.display = 'none';
+    };
+    fetchAndRenderRefundsReport();
+}
+
+function fetchAndRenderRefundsReport() {
+    const container = document.getElementById('refunds-report-table-container');
+    if (container) {
+        container.innerHTML = '<div style="text-align:center; color:#2563eb; padding:20px;">Loading refund records...</div>';
+    }
+    fetch('/admin/refunds_report')
+        .then(response => response.json())
+        .then(data => {
+            const records = data.map(r => [
+                r.refund_id,
+                r.order_id,
+                r.product_id,
+                r.user_id,
+                r.refund_amount !== undefined ? `₱${parseFloat(r.refund_amount).toLocaleString('en-PH', {minimumFractionDigits:2, maximumFractionDigits:2})}` : '',
+                r.refund_reason,
+                r.refund_status,
+                r.created_at,
+                r.updated_at
+            ]);
+            renderRefundsReportTable(records);
+        })
+        .catch(error => {
+            if (container) {
+                container.innerHTML = '<div style="color:red; text-align:center;">Failed to load refunds report.</div>';
+            }
+        });
+}
+
+function renderRefundsReportTable(records) {
+    const container = document.getElementById('refunds-report-table-container');
+    if (!container) return;
+    const headers = [
+        'Refund ID',
+        'Order ID',
+        'Product ID',
+        'User ID',
+        'Refund Amount',
+        'Refund Reason',
+        'Refund Status',
+        'Created At',
+        'Updated At'
+    ];
+    let html = '<table class="refunds-report-table"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    if (records.length === 0) {
+        html += `<tr><td colspan="${headers.length}" style="text-align:center;color:#888;">No refund records found.</td></tr>`;
+    } else {
+        records.forEach(row => {
+            html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+    }
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+
+
