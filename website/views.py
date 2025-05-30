@@ -568,9 +568,13 @@ def get_product_details():
     if not product:
         return jsonify({'error': 'Product not found'}), 404
 
-    # Get stock from Inventory by product_id
-    inventory = Inventory.query.filter_by(product_id=product.product_id).first()
-    stock_quantity = inventory.available_stock if inventory and hasattr(inventory, 'available_stock') else 0
+    # Sum stock from variants
+    variant_stocks = ProductVariant.query.filter_by(product_id=product.product_id).all()
+    if variant_stocks:
+        stock_quantity = sum(v.stock_quantity for v in variant_stocks)
+    else:
+        inventory = Inventory.query.filter_by(product_id=product.product_id).first()
+        stock_quantity = inventory.available_stock if inventory and hasattr(inventory, 'available_stock') else 0
 
     # Get images (use ProductImage relationship)
     images = [img.image_url for img in sorted(product.images, key=lambda i: getattr(i, 'display_order', 0))] if product.images else []
@@ -645,6 +649,19 @@ def get_product_details():
         } for m in model_family
     ]
 
+    # Get all variants for this product
+    variants = ProductVariant.query.filter_by(product_id=product.product_id).all()
+    variant_list = [
+        {
+            'variant_id': v.variant_id,
+            'variant_name': v.variant_name,
+            'variant_value': v.variant_value,
+            'additional_price': float(v.additional_price),
+            'stock_quantity': v.stock_quantity
+        }
+        for v in variants
+    ]
+
     return jsonify({
         'product_id': product.product_id,
         'name': product.product_name,
@@ -661,7 +678,8 @@ def get_product_details():
         'reviews': reviews,
         'review_count': review_count,
         'sold': sold_count,
-        'related_products': related_products
+        'related_products': related_products,
+        'variants': variant_list,
     })
 
 ALLOWED_REVIEW_MEDIA = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov', 'avi'}
@@ -1051,7 +1069,12 @@ def can_review():
     if not product_id:
         return jsonify({'can_review': False, 'reason': 'No product_id specified'}), 400
     # Check if user has a completed order for this product
-    completed_orders = Order.query.filter_by(user_id=current_user.user_id, status='completed').all()
+    completed_status = OrderStatus.query.filter_by(status_name='Completed').first()
+    completed_status_id = completed_status.status_id if completed_status else None
+    if completed_status_id:
+        completed_orders = Order.query.filter_by(user_id=current_user.user_id, status_id=completed_status_id).all()
+    else:
+        completed_orders = []
     eligible = False
     for order in completed_orders:
         for item in order.order_items:
