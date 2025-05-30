@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Restore all action buttons for each status
                 if (mappedStatus === 'completed') {
                     orderHtml += `
-                        <button class="action-btn rate-btn">Rate</button>
+                        <button class="action-btn rate-btn" data-order-id="${order.id}" data-product-id="${product.product_id !== undefined ? product.product_id : product.id}">Rate</button>
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
                     `;
@@ -300,19 +300,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.querySelectorAll('.rate-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const orderCard = btn.closest('.order-card');
-                if (!orderCard) return;
-                // Find the first product in this order
-                const orderId = orderCard.getAttribute('data-order-id');
-                const order = (window.orders || []).find(o => o.id == orderId);
-                if (order && order.products && order.products.length > 0) {
-                    console.log('DEBUG: First product in order:', order.products[0]); // Debug log
-                    const productId = order.products[0].id;
-                    window.location.href = `/product/${productId}`;
-                } else {
-                    alert('Product not found for this order.');
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const orderId = btn.getAttribute('data-order-id');
+                const productId = btn.getAttribute('data-product-id');
+                currentOrderId = parseInt(orderId);
+                currentProductId = parseInt(productId);
+                console.log('Set IDs:', currentOrderId, currentProductId);
+                if (isNaN(currentOrderId) || isNaN(currentProductId)) {
+                    alert('Invalid product or order ID! (NaN)');
+                    return;
                 }
+                const order = (window.orders || []).find(o => o.id == currentOrderId);
+                if (!order) return;
+                const product = order.products.find(p => (p.product_id == currentProductId || p.id == currentProductId));
+                if (!product) return;
+                document.getElementById('ratingProductImg').src = product.image;
+                document.getElementById('ratingProductName').textContent = product.name;
+                document.getElementById('ratingProductQty').textContent = 'Qty: ' + (product.quantity || 1);
+                document.getElementById('ratingProductVariant').textContent = product.variation || '';
+                document.getElementById('debugIdInfo').textContent = `Order ID: ${currentOrderId} | Product ID: ${currentProductId}`;
+                // Reset modal fields
+                if (typeof selectedRating !== 'undefined') selectedRating = 0;
+                if (typeof stars !== 'undefined') stars.forEach(s => s.style.color = '#ccc');
+                if (typeof ratingForm !== 'undefined') ratingForm.reset();
+                if (typeof charCount !== 'undefined') charCount.textContent = '0/600';
+                if (typeof photoFileName !== 'undefined') photoFileName.textContent = '';
+                if (typeof photoPreview !== 'undefined') photoPreview.style.display = 'none';
+                if (typeof videoFileName !== 'undefined') videoFileName.textContent = '';
+                if (typeof videoPreview !== 'undefined') videoPreview.style.display = 'none';
+                // Show modal
+                const ratingModalOverlay = document.getElementById('ratingModalOverlay');
+                ratingModalOverlay.style.display = 'flex';
             });
         });
 
@@ -595,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Restore all action buttons for each status
                 if (mappedStatus === 'completed') {
                     orderHtml += `
-                        <button class="action-btn rate-btn">Rate</button>
+                        <button class="action-btn rate-btn" data-order-id="${order.id}" data-product-id="${product.product_id !== undefined ? product.product_id : product.id}">Rate</button>
                         <button class="action-btn contact-seller-btn">Contact Seller</button>
                         <button class="action-btn buy-again-btn">Buy Again</button>
                     `;
@@ -796,13 +815,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const ratingModalOverlay = document.querySelector('.rating-modal-overlay');
     const closeModalBtn = document.querySelector('.close-modal-btn');
-    const rateButtons = document.querySelectorAll('.rate-btn');
-
-    rateButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            ratingModalOverlay.style.display = 'flex'; 
-        });
-    });
 
     closeModalBtn.addEventListener('click', function () {
         ratingModalOverlay.style.display = 'none'; 
@@ -1101,9 +1113,6 @@ function updateStarDisplay(starRating, rating) {
         }
     });
 }
-       document.querySelectorAll('.rate-btn').forEach(button => {
-    button.addEventListener('click', openRatingModal);
-});
 
 // Map backend status to frontend status
 function mapStatus(status) {

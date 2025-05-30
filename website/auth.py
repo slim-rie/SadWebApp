@@ -4,7 +4,7 @@ from flask_mail import Message
 auth = Blueprint('auth', __name__)
 
 from flask import render_template, request, flash, redirect, url_for, session, current_app, jsonify
-from .models import User, CartItem, Product, Address, Order, OrderItem, Role, ProductSpecification, Inventory, Review, OrderStatus, Payment, PaymentMethod, CancellationReason, OrderCancellation, ProductImage, Refund, Return
+from .models import User, CartItem, Product, Address, Order, OrderItem, Role, ProductSpecification, Inventory, Review, OrderStatus, Payment, PaymentMethod, CancellationReason, OrderCancellation, ProductImage, Refund, Return, ReviewMedia
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
 import os
@@ -1561,4 +1561,71 @@ def request_refund():
 
     except Exception as e:
         db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth.route('/api/submit-review', methods=['POST'])
+@login_required
+def submit_review():
+    try:
+        order_id = request.form.get('order_id')
+        product_id = request.form.get('product_id')
+        print('RAW order_id:', order_id, 'RAW product_id:', product_id)
+        try:
+            order_id = int(order_id)
+            product_id = int(product_id)
+        except Exception as e:
+            print('PARSE ERROR:', e)
+            return jsonify({'success': False, 'message': 'Invalid product_id or order_id'}), 400
+        print('PARSED order_id:', order_id, 'PARSED product_id:', product_id)
+        rating = int(request.form.get('rating', 0))
+        review = request.form.get('review')
+        photo = request.files.get('photo')
+        video = request.files.get('video')
+
+        # Validate required fields
+        if not order_id or not product_id:
+            print('Validation failed: missing order_id or product_id')
+            return jsonify({'success': False, 'message': 'Missing product_id or order_id'}), 400
+
+        # Use only the main review as comment
+        comment = review or ''
+
+        # Create the Review record first
+        print('About to add review:', order_id, product_id)
+        review_obj = Review(
+            user_id=current_user.user_id,
+            order_id=order_id,
+            product_id=product_id,
+            rating=rating,
+            comment=comment
+        )
+        db.session.add(review_obj)
+        db.session.commit()  # Now review_obj.review_id is available
+        print('Review committed:', review_obj.review_id)
+
+        # Save photo/video if provided and create ReviewMedia records
+        from .models import ReviewMedia  # Import your ReviewMedia model
+        if photo:
+            photo_filename = secure_filename(photo.filename)
+            photo_dir = os.path.join(current_app.root_path, 'static', 'review_photos')
+            os.makedirs(photo_dir, exist_ok=True)
+            photo.save(os.path.join(photo_dir, photo_filename))
+            print('About to add review media (photo):', photo_filename)
+            db.session.add(ReviewMedia(review_id=review_obj.review_id, media_type='photo', filename=photo_filename))
+            db.session.commit()
+            print('Review media committed (photo)')
+        if video:
+            video_filename = secure_filename(video.filename)
+            video_dir = os.path.join(current_app.root_path, 'static', 'review_videos')
+            os.makedirs(video_dir, exist_ok=True)
+            video.save(os.path.join(video_dir, video_filename))
+            print('About to add review media (video):', video_filename)
+            db.session.add(ReviewMedia(review_id=review_obj.review_id, media_type='video', filename=video_filename))
+            db.session.commit()
+            print('Review media committed (video)')
+
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        print('Exception in submit_review:', str(e))
         return jsonify({'success': False, 'message': str(e)}), 500
