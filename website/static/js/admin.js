@@ -2140,3 +2140,36 @@ function renderSupplyRequestTable(requests) {
 
 // Call this on DOMContentLoaded so the table is filled when the admin page loads
 document.addEventListener('DOMContentLoaded', fetchAndRenderSupplyRequests);
+
+// Fetch and render reviews for the admin reviews table
+function fetchAndRenderReviewsTable() {
+    const tbody = document.querySelector('#reviews-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#2563eb;">Loading reviews...</td></tr>';
+    fetch('/admin/reviews_report')
+        .then(response => response.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;">No reviews found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(r => `
+                <tr>
+                    <td>${r.review_id}</td>
+                    <td>${r.product_id}</td>
+                    <td>${r.order_id}</td>
+                    <td>${r.user_id}</td>
+                    <td>${r.rating}</td>
+                    <td>${r.comment}</td>
+                    <td>${r.created_at}</td>
+                </tr>
+            `).join('');
+        })
+        .catch(error => {
+            tbody.innerHTML = '<tr><td colspan="7" style="color:red; text-align:center;">Failed to load reviews.</td></tr>';
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetchAndRenderReviewsTable();
+});
