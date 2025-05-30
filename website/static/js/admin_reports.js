@@ -329,9 +329,46 @@ function renderInventoryListReportTable(inventories, headers) {
     container.innerHTML = html;
 }
 
+// Fetch and render refunded orders
+function fetchAndRenderRefundedOrders() {
+    fetch('/admin/refunds_list')
+        .then(res => res.json())
+        .then(refunds => renderRefundedOrdersTable(refunds))
+        .catch(err => {
+            const tbody = document.querySelector('#refunded-order-items-table tbody');
+            if (tbody) tbody.innerHTML = '<tr><td colspan="8">Failed to load refunds.</td></tr>';
+        });
+}
+
+function renderRefundedOrdersTable(refunds) {
+    const tbody = document.querySelector('#refunded-order-items-table tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!Array.isArray(refunds) || refunds.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8">No refunded orders found.</td></tr>';
+        return;
+    }
+    refunds.forEach(refund => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${refund.refund_id || ''}</td>
+            <td>${refund.refund_reason || ''}</td>
+            <td>${refund.refund_status || ''}</td>
+            <td>${refund.proof_of_refund || ''}</td>
+            <td>${refund.order_id || ''}</td>
+            <td>${refund.return_id || ''}</td>
+            <td>${refund.created_at || ''}</td>
+            <td>${refund.updated_at || ''}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
 // Show all products in a modal table when the report icon is clicked
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Load refunded orders on page load
+    fetchAndRenderRefundedOrders();
     document.querySelectorAll('.report-icon-block[data-report="stock"]').forEach(reportBlock => {
         const label = reportBlock.querySelector('div');
         if (label && label.textContent.trim() === "Personnel List") {

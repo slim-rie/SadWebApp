@@ -1964,7 +1964,7 @@ def admin_update_order_status(order_id):
 
 
 
-from .models import Order, OrderItem, User, SupplyRequest, Product
+from .models import Order, OrderItem, User, SupplyRequest, Product, Refund
 
 # --- SUPPLIER DASHBOARD: RECENT REQUESTS API ---
 from flask import jsonify
@@ -2068,6 +2068,23 @@ def admin_orders_list():
             "tracking_status_name": tracking_status_name,
             "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if order.created_at else "",
             "updated_at": order.updated_at.strftime("%Y-%m-%d %H:%M:%S") if order.updated_at else "",
+        })
+    return jsonify(data)
+
+@views.route('/admin/refunds_list')
+def admin_refunds_list():
+    refunds = Refund.query.order_by(Refund.created_at.desc()).all()
+    data = []
+    for r in refunds:
+        data.append({
+            "refund_id": r.refund_id,
+            "refund_reason": r.refund_reason,
+            "refund_status": r.refund_status,
+            "proof_of_refund": r.proof_of_refund,
+            "order_id": r.order_id,
+            "return_id": r.return_id,
+            "created_at": r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else "",
+            "updated_at": r.updated_at.strftime("%Y-%m-%d %H:%M:%S") if r.updated_at else "",
         })
     return jsonify(data)
 
