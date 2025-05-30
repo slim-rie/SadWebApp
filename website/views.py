@@ -2452,3 +2452,29 @@ def admin_refunds_report():
         })
     return jsonify(data)
 
+@views.route('/admin/reviews_report')
+def admin_reviews_report():
+    reviews = (
+        db.session.query(
+            Review.review_id,
+            Review.product_id,
+            Review.order_id,
+            Review.user_id,
+            Review.rating,
+            Review.comment,
+            Review.created_at
+        ).order_by(Review.review_id.desc()).all()
+    )
+    data = []
+    for r in reviews:
+        data.append({
+            "review_id": r.review_id,
+            "product_id": r.product_id,
+            "order_id": r.order_id,
+            "user_id": r.user_id,
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else ""
+        })
+    return jsonify(data)
+
