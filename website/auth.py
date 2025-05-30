@@ -658,27 +658,12 @@ def orders():
                 'originalPrice': float(product.base_price),
                 'image': image_path
             })
-        # Map database status to frontend status
-        status_mapping = {
-            'to pay': 'to-pay',
-            'to ship': 'to-ship',
-            'to receive': 'to-receive',
-            'completed': 'completed',
-            'cancelled': 'cancelled',
-            'refunded': 'return-refund',
-            'returned': 'return-refund'
-        }
-        status_text_mapping = {
-            'to pay': 'Pending Payment',
-            'to ship': 'Seller is preparing your order',
-            'to receive': 'Out for delivery',
-            'completed': 'Parcel has been delivered',
-            'cancelled': 'Cancelled by you',
-            'refunded': 'REFUND COMPLETED',
-            'returned': 'RETURNED'
-        }
-        status_obj = OrderStatus.query.get(order.status_id)
-        status_name = status_obj.status_name.lower() if status_obj and hasattr(status_obj, 'status_name') else 'to pay'
+        # Use order.order_status if it exists, otherwise use status_name from OrderStatus
+        if hasattr(order, 'order_status') and order.order_status:
+            status_name = order.order_status.lower()
+        else:
+            status_obj = OrderStatus.query.get(order.status_id)
+            status_name = status_obj.status_name.lower() if status_obj and hasattr(status_obj, 'status_name') else 'to pay'
         # Fetch payment method name
         payment_method_name = ''
         payment = Payment.query.filter_by(order_id=order.order_id).first()
@@ -696,15 +681,39 @@ def orders():
             if img and not img.startswith('/static/'):
                 img = '/static/' + img.lstrip('/')
             item.image_path = img
+        # Map backend status to frontend tab/section and display text
+        status_mapping = {
+            'to pay': 'to-pay',
+            'to ship': 'to-ship',
+            'to receive': 'to-receive',
+            'completed': 'completed',
+            'cancelled': 'cancelled',
+            'refunded': 'return-refund',
+            'returned': 'return-refund',
+            'return/refund': 'return-refund',
+            'pending_refund': 'return-refund',
+        }
+        status_text_mapping = {
+            'to pay': 'Pending Payment',
+            'to ship': 'Seller is preparing your order',
+            'to receive': 'Out for delivery',
+            'completed': 'Parcel has been delivered',
+            'cancelled': 'Cancelled by you',
+            'refunded': 'REFUND COMPLETED',
+            'returned': 'RETURNED',
+            'return/refund': 'Return/Refund in Progress',
+            'pending_refund': 'Pending Refund',
+        }
         formatted_orders.append({
             'id': order.order_id,
             'status': status_mapping.get(status_name, 'to-pay'),
-            'statusText': status_text_mapping.get(status_name, 'Pending Payment'),
+            'statusText': status_text_mapping.get(status_name, status_name.capitalize()),
             'products': order_items,
             'total': float(order.total_amount),
             'deliveryDate': '',  # Add delivery date if you have it
             'paymentMethod': payment_method_name
         })
+    print('[DEBUG] formatted_orders:', formatted_orders)
     cancellation_reasons = CancellationReason.query.all()
     return render_template('orders.html', orders=formatted_orders, user=current_user, cancellation_reasons=cancellation_reasons)
 
@@ -999,25 +1008,37 @@ def cancel_order():
         db.session.add(order_cancellation)
         db.session.flush()  # get the new cancellation_id
         # 2. Update the order
-        cancelled_status = OrderStatus.query.filter_by(status_name='Cancelled').first()
-        if cancelled_status:
-            order.status_id = cancelled_status.status_id
-        order.cancellation_id = order_cancellation.cancellation_id
-        # Only store standard reason in orders.cancellation_reason
-        if not other_reason:
-            reason_obj = CancellationReason.query.get(cancellation_id)
-            order.cancellation_reason = reason_obj.cancellation_reason_name if reason_obj else ''
+        updated_status = False
+        if hasattr(order, 'order_status'):
+            order.order_status = 'pending_refund'
+            order.updated_at = datetime.utcnow()
+            print(f"[DEBUG] Set order.order_status to: {order.order_status}")
+            updated_status = True
         else:
-            order.cancellation_reason = ''
-        order.cancellation_requested_by = 'buyer'
-        order.updated_at = datetime.utcnow()
-        # Restore inventory for each cancelled item
-        for item in order.items:
-            inventory = Inventory.query.filter_by(product_id=item.product_id).first()
-            if inventory:
-                inventory.available_stock += item.quantity
-                if hasattr(inventory, 'stock_in') and inventory.stock_in is not None:
-                    inventory.stock_in += item.quantity
+            pending_refund_status = OrderStatus.query.filter(OrderStatus.status_name.ilike('pending_refund')).first()
+            if pending_refund_status:
+                order.status_id = pending_refund_status.status_id
+                order.updated_at = datetime.utcnow()
+                print(f"[DEBUG] Set order.status_id to: {order.status_id} (pending_refund)")
+                updated_status = True
+        if not updated_status:
+            print(f"[DEBUG] Could not set pending_refund status!")
+        db.session.commit()
+        print(f"[DEBUG] Order status after commit: order_status={getattr(order, 'order_status', None)}, status_id={getattr(order, 'status_id', None)}")
+
+        # Send email notification
+        msg = Message(
+            "New Refund Request",
+            sender="tanchingcojbr@gmail.com",
+            recipients=["tanchingcojbr@gmail.com"]
+        )
+        msg.body = f"""
+        New refund request received:
+        Order ID: {order_id}
+        Reason: {other_reason}
+        """
+        mail.send(msg)
+
         db.session.commit()
         return jsonify({'success': True, 'message': 'Order cancelled successfully.'})
     except Exception as e:
@@ -1253,14 +1274,37 @@ def update_order_status(order_id):
 @auth.route('/api/orders/<int:order_id>/received', methods=['POST'])
 @login_required
 def mark_order_received(order_id):
-    order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
-    if not order:
-        return jsonify({'success': False, 'message': 'Order not found.'}), 404
-    if order.status not in ['shipped', 'to-receive', 'paid']:
-        return jsonify({'success': False, 'message': 'Order cannot be marked as received in its current status.'}), 400
-    order.status = 'delivered'
-    db.session.commit()
-    return jsonify({'success': True, 'message': 'Order marked as received.'})
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+        order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+        if not order:
+            return jsonify({'success': False, 'message': 'Order not found.'}), 404
+
+        # Get the current status
+        status_obj = OrderStatus.query.get(order.status_id)
+        current_status = status_obj.status_name.lower() if status_obj else None
+
+        # Check if order is in a valid status for marking as received
+        valid_statuses = ['shipped', 'to receive', 'to-receive', 'paid']
+        if current_status not in valid_statuses:
+            return jsonify({'success': False, 'message': 'Order cannot be marked as received in its current status.'}), 400
+
+        # Update order status to completed
+        completed_status = OrderStatus.query.filter_by(status_name='Completed').first()
+        if completed_status:
+            order.status_id = completed_status.status_id
+            order.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Order marked as received.'})
+        else:
+            return jsonify({'success': False, 'message': 'Error updating order status.'}), 500
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @auth.route('/request-management')
 @login_required
@@ -1398,53 +1442,79 @@ def cancel_order_details():
 @login_required
 def request_refund():
     try:
-        data = request.get_json()
-        order_id = data.get('order_id')
-        items_received = data.get('items_received')
-        reason = data.get('reason')
-        damage_type = data.get('damage_type')
-        solution = data.get('solution')
-        refund_amount = data.get('refund_amount')
-        description = data.get('description', '')
+        # Support both JSON and multipart/form-data
+        if request.content_type and request.content_type.startswith('multipart/form-data'):
+            order_id = request.form.get('order_id')
+            items_received = request.form.get('items_received')
+            reason = request.form.get('reason')
+            damage_type = request.form.get('damage_type')
+            solution = request.form.get('solution')
+            refund_amount = request.form.get('refund_amount')
+            description = request.form.get('description', '')
+            proof_files = request.files.getlist('proof_files')
+        else:
+            data = request.get_json()
+            order_id = data.get('order_id')
+            items_received = data.get('items_received')
+            reason = data.get('reason')
+            damage_type = data.get('damage_type')
+            solution = data.get('solution')
+            refund_amount = data.get('refund_amount')
+            description = data.get('description', '')
+            proof_files = []
 
         # Validate required fields
         if not all([order_id, items_received, reason]):
             return jsonify({'success': False, 'message': 'Missing required fields'}), 400
 
         # Get the order
-        order = Order.query.filter_by(order_id=order_id, user_id=current_user.id).first()
+        order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
         if not order:
             return jsonify({'success': False, 'message': 'Order not found'}), 404
 
         # Check if order is in "to receive" status
-        if order.order_status != "to receive":
+        if hasattr(order, 'order_status'):
+            order_status = order.order_status
+        else:
+            # fallback for status_name
+            status_obj = OrderStatus.query.get(order.status_id)
+            order_status = status_obj.status_name.lower() if status_obj else ''
+        if order_status != "to receive":
             return jsonify({'success': False, 'message': 'Refund can only be requested for orders in "To receive" status'}), 400
 
         # Define reasons that automatically get refund only
         auto_refund_reasons = ['not_delivered', 'empty_parcel']
-        
         # Define reasons that require return and refund
         require_return_reasons = ['damaged', 'defective', 'wrong_item']
 
         # Validate solution based on reason
         if reason in auto_refund_reasons and solution != 'refund_only':
             return jsonify({'success': False, 'message': 'This reason only allows refund only'}), 400
-        
         if reason in require_return_reasons and solution != 'return_refund':
             return jsonify({'success': False, 'message': 'This reason requires return and refund'}), 400
 
+        # Save proof files if any
+        saved_files = []
+        for file in proof_files:
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                ext = filename.rsplit('.', 1)[1].lower()
+                unique_filename = f"{uuid.uuid4().hex}.{ext}"
+                proof_dir = os.path.join(current_app.root_path, 'static', 'refund_proofs')
+                os.makedirs(proof_dir, exist_ok=True)
+                file_path = os.path.join(proof_dir, unique_filename)
+                file.save(file_path)
+                saved_files.append(unique_filename)
+
         # Create refund record with automatic approval for certain reasons
         refund_status = 'approved' if reason in auto_refund_reasons else 'pending'
-        
+        # Combine extra info into description
+        extra_info = f"items_received={items_received}; solution={solution}; damage_type={damage_type or ''}; refund_amount={refund_amount or ''}; description={description}"
         refund = Refund(
             order_id=order_id,
             refund_reason=reason,
             refund_status=refund_status,
-            refund_type=solution,
-            refund_amount=refund_amount if solution == 'refund_only' else None,
-            items_received=items_received == 'yes',
-            damage_type=damage_type if reason == 'damaged' else None,
-            description=description
+            proof_of_refund=','.join(saved_files) if saved_files else None
         )
         db.session.add(refund)
 
@@ -1459,9 +1529,17 @@ def request_refund():
             )
             db.session.add(return_record)
 
-        # Update order status
-        order.order_status = "refunded" if refund_status == 'approved' else "pending_refund"
-        
+        # Update order status to 'pending_refund' using status_id
+        pending_refund_status = OrderStatus.query.filter(OrderStatus.status_name.ilike('pending_refund')).first()
+        if pending_refund_status:
+            order.status_id = pending_refund_status.status_id
+            order.updated_at = datetime.utcnow()
+            print(f"[DEBUG] Set order.status_id to: {order.status_id} (pending_refund)")
+        else:
+            print(f"[DEBUG] Could not set pending_refund status!")
+        db.session.commit()
+        print(f"[DEBUG] Order status after commit: order_status={getattr(order, 'order_status', None)}, status_id={getattr(order, 'status_id', None)}")
+
         # Send email notification
         msg = Message(
             "New Refund Request",
@@ -1477,7 +1555,7 @@ def request_refund():
         Description: {description}
         """
         mail.send(msg)
-        
+
         db.session.commit()
         return jsonify({'success': True, 'message': 'Refund request submitted successfully'})
 

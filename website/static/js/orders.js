@@ -245,23 +245,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.querySelectorAll('.order-received-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const orderCard = btn.closest('.order-card');
+                const orderCard = this.closest('.order-card');
                 const orderId = orderCard ? orderCard.getAttribute('data-order-id') : null;
                 if (!orderId) {
                     alert('Order ID not found.');
                     return;
                 }
+                
                 btn.disabled = true;
                 btn.textContent = 'Processing...';
+                
                 fetch(`/api/orders/${orderId}/received`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
+                    body: JSON.stringify({ order_id: orderId }),
                     credentials: 'same-origin'
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         btn.textContent = 'Received';
@@ -281,7 +290,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         alert(data.message || 'Failed to mark order as received.');
                     }
                 })
-                .catch(() => {
+                .catch(error => {
+                    console.error('Error:', error);
                     btn.disabled = false;
                     btn.textContent = 'Order Received';
                     alert('Network error. Please try again.');
