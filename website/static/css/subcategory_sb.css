@@ -1,0 +1,29 @@
+/* Subcategory Sidebar Styles */
+.subcategory-sidebar {
+    margin: 10px 0 10px 20px;
+    padding: 15px 10px;
+    width: 220px;
+}
+.subcategory-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #212a3e;
+}
+.subcategory-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.subcategory-item {
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    color: #48516b;
+}
+.subcategory-item:hover, .subcategory-item.active {
+    background: #e2e8f0;
+    color: #1b253b;
+}
