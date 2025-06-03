@@ -96,8 +96,8 @@ class Product(db.Model):
     description = db.Column(db.Text)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.category_id'), nullable=False)
     base_price = db.Column(db.Numeric(10, 2), nullable=False)
-    created_at = db.Column(db.DateTime, nullable=True)
-    updated_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     __table_args__ = (
         db.UniqueConstraint('product_name', 'model_number', name='unique_product_name_model'),
     )
@@ -227,7 +227,7 @@ class OrderItem(db.Model):
     item_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     order_id = db.Column(db.Integer, db.ForeignKey('orders.order_id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.product_id'), nullable=False)
-    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.variant_id'), nullable=False)
+    variant_id = db.Column(db.Integer, db.ForeignKey('product_variants.variant_id'), nullable=True)
     quantity = db.Column(db.Integer, nullable=False)
     unit_price = db.Column(db.Numeric(10, 2), nullable=False)
     discount_amount = db.Column(db.Numeric(10, 2), nullable=False, default=0.00)

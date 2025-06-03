@@ -1644,7 +1644,10 @@ def add_product():
         return jsonify({'success': False, 'error': str(e)})
 
 @views.route('/admin/update_product/<int:product_id>', methods=['PUT'])
+@login_required
 def update_product(product_id):
+    if current_user.role is None or current_user.role.lower() != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized access'}), 403
     try:
         product = Product.query.get(product_id)
         if not product:
@@ -1656,7 +1659,26 @@ def update_product(product_id):
         product.description = data.get('description', product.description)
         product.category_id = data.get('category_id', product.category_id)
         product.base_price = data.get('price', product.base_price)
-        product.stock_quantity = data.get('stock_quantity', product.stock_quantity)
+
+        # Update stock quantity in the Inventory table
+        stock_quantity_data = data.get('stock_quantity')
+        if stock_quantity_data is not None:
+            inventory_item = Inventory.query.filter_by(product_id=product.product_id).first()
+            if inventory_item:
+                try:
+                    inventory_item.stock_quantity = int(stock_quantity_data)
+                except ValueError:
+                    # Handle cases where stock_quantity_data is not a valid integer
+                    db.session.rollback()
+                    return jsonify({'success': False, 'error': 'Invalid stock quantity format'}), 400
+            else:
+                # Optionally, create an inventory record if it doesn't exist, or log/return an error
+                # For now, just log it. Product details will be updated, but stock won't.
+                print(f"INFO: No inventory record found for product_id {product.product_id}. Stock not updated.")
+                # If creating a new inventory item is desired, it would look something like:
+                # new_inventory_item = Inventory(product_id=product.product_id, stock_quantity=int(stock_quantity_data), ... other required fields ...)
+                # db.session.add(new_inventory_item)
+
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:

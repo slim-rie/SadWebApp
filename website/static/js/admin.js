@@ -574,7 +574,6 @@ function renderInventoryTable(items) {
         tr.innerHTML = `
             <td>${i.inventory_id}</td>
             <td>${i.product_id}</td>
-            <td>${i.order_id}</td>
             <td>${i.product_name}</td>
             <td>${i.supplier_name}</td>
             <td>${i.supplier_price}</td>
@@ -1392,16 +1391,74 @@ function showUpdateProductModal(product) {
 
     document.getElementById('update-product-form').onsubmit = function(e) {
         e.preventDefault();
-        const updated = {
+        const updatedProductData = { // Renamed for clarity
             name: document.getElementById('update-product-name').value,
             model_number: document.getElementById('update-product-model-number').value,
             description: document.getElementById('update-product-description').value,
             category_id: document.getElementById('update-product-category-id').value,
             price: document.getElementById('update-product-price').value,
-            };
-        updateProduct(product.product_id, updated);
-        modal.style.display = 'none';
+        };
+        // The 'product' variable is available in this scope from showUpdateProductModal(product)
+        updateProduct(product.product_id, updatedProductData);
+        // Modal hiding is now handled by updateProduct
     };
+}
+
+// --- UPDATE PRODUCT FUNCTION ---
+function updateProduct(productId, data) {
+    const modal = document.getElementById('update-product-modal');
+    // Attempt to get CSRF token
+    let csrfToken = null;
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    if (csrfMeta) {
+        csrfToken = csrfMeta.getAttribute('content');
+    } else {
+        console.warn('CSRF token meta tag not found.'); // Warn if not found
+    }
+
+    const headers = {
+        'Content-Type': 'application/json'
+    };
+    if (csrfToken) {
+        headers['X-CSRFToken'] = csrfToken;
+    }
+
+    fetch(`/admin/update_product/${productId}`, {
+        method: 'PUT', // Using PUT for updates
+        headers: headers,
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        // Check if response is ok (status in the range 200-299)
+        if (!response.ok) {
+            // If not OK, attempt to parse JSON error body, then throw an error to be caught by .catch()
+            return response.json().then(errData => {
+                throw new Error(errData.error || `Request failed with status ${response.status}`);
+            }).catch(() => { // If error body is not JSON or other parsing error
+                throw new Error(`Request failed with status ${response.status} and error body could not be parsed.`);
+            });
+        }
+        return response.json(); // If OK, parse JSON response
+    })
+    .then(result => {
+        if (result.success) {
+            alert('Product updated successfully!');
+            if (typeof fetchAndRenderProducts === 'function') {
+                fetchAndRenderProducts(); // Refresh product list
+            } else {
+                console.warn('fetchAndRenderProducts function is not defined. Product table will not refresh automatically.');
+            }
+            if (modal) modal.style.display = 'none'; // Hide modal on success
+        } else {
+            // If server returns success:false, but request was OK (e.g. validation error)
+            alert('Failed to update product: ' + (result.error || 'Unknown server error'));
+        }
+    })
+    .catch(error => {
+        // Catches errors from fetch itself (network error) or errors thrown from .then() blocks
+        console.error('Error updating product:', error);
+        alert('Error updating product: ' + error.message);
+    });
 }
 
 // ... (rest of the code remains the same)
@@ -1696,6 +1753,7 @@ function renderCustomerOrdersTable(orders) {
     }
     orders.forEach(order => {
         const tr = document.createElement('tr');
+        tr.setAttribute('data-order-id', order.order_id);
         tr.innerHTML = `
             <td>${order.order_id}</td>
             <td>${order.username || ''}</td>
@@ -1716,56 +1774,122 @@ function renderCustomerOrdersTable(orders) {
                     <option value="7" ${order.status_name === 'Returned' ? 'selected' : ''}>Returned</option>
                 </select>
             </td>
-            <td><input type="text" class="courier-input" data-order-id="${order.order_id}" value="${order.courier || ''}" placeholder="Courier"></td>
-            <td><input type="text" class="reference-number-input" data-order-id="${order.order_id}" value="${order.reference_number || ''}" placeholder="Reference Number"></td>
-            <td>
-                <select class="tracking-status-dropdown" data-order-id="${order.order_id}">
-    <option value="1" ${order.tracking_status_id == 1 ? 'selected' : ''}>Order Placed</option>
-    <option value="2" ${order.tracking_status_id == 2 ? 'selected' : ''}>Processing</option>
-    <option value="3" ${order.tracking_status_id == 3 ? 'selected' : ''}>Ready to Ship</option>
-    <option value="4" ${order.tracking_status_id == 4 ? 'selected' : ''}>Shipped</option>
-    <option value="5" ${order.tracking_status_id == 5 ? 'selected' : ''}>In Transit</option>
-    <option value="6" ${order.tracking_status_id == 6 ? 'selected' : ''}>Out for Delivery</option>
-    <option value="7" ${order.tracking_status_id == 7 ? 'selected' : ''}>Delivered</option>
-    <option value="8" ${order.tracking_status_id == 8 ? 'selected' : ''}>Failed Delivery</option>
-    <option value="9" ${order.tracking_status_id == 9 ? 'selected' : ''}>Returned to Seller</option>
-    <option value="10" ${order.tracking_status_id == 10 ? 'selected' : ''}>Cancelled</option>
-    <option value="11" ${order.tracking_status_id == 11 ? 'selected' : ''}>Return/Refund in Progress</option>
-    <option value="12" ${order.tracking_status_id == 12 ? 'selected' : ''}>Return/Refund Completed</option>
-</select>
-            </td>
+            <td>${order.courier || ''}</td>
+            <td>${order.reference_number || ''}</td>
+            <td>${order.tracking_status_name || ''}</td>
             <td>${order.created_at || ''}</td>
             <td>${order.updated_at || ''}</td>
         `;
         tbody.appendChild(tr);
     });
 
-    // Attach change listeners for tracking fields
-    tbody.querySelectorAll('.courier-input, .reference-number-input, .tracking-status-dropdown').forEach(input => {
-        input.addEventListener('change', function() {
+
+    // Attach change listener for Order Status dropdowns
+    tbody.querySelectorAll('.order-status-dropdown').forEach(select => {
+        select.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex].text;
             const orderId = this.getAttribute('data-order-id');
-            const row = this.closest('tr');
-            const courier = row.querySelector('.courier-input').value;
-            const referenceNumber = row.querySelector('.reference-number-input').value;
-            const trackingStatusId = row.querySelector('.tracking-status-dropdown').value;
-            fetch(`/admin/update_tracking/${orderId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    courier: courier,
-                    reference_number: referenceNumber,
-                    tracking_status_id: trackingStatusId
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) {
-                    alert('Failed to update tracking info: ' + (data.error || 'Unknown error'));
+            if (selectedOption === 'To Ship') {
+                // Get current values for the order
+                const row = this.closest('tr');
+                const currentCourier = row.children[8].textContent.trim();
+                const currentReference = row.children[9].textContent.trim();
+                const currentTracking = row.children[10].textContent.trim();
+                // Inject modal HTML if not already present
+                let modal = document.getElementById('toShipModal');
+                if (!modal) {
+                    modal = document.createElement('div');
+                    modal.id = 'toShipModal';
+                    modal.innerHTML = `
+                        <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:9999;display:flex;align-items:center;justify-content:center;">
+                            <div style="background:#fff;padding:24px 32px;border-radius:10px;min-width:320px;max-width:90vw;box-shadow:0 2px 16px rgba(0,0,0,0.16);position:relative;">
+                                <h3 style="margin-top:0;">Update Shipping Details</h3>
+                                <form id="toShipForm">
+                                    <div style="margin-bottom:12px;">
+                                        <label>Courier</label>
+<select id="modalCourier" class="form-control" style="width:100%;">
+    <option value="J&T">J&amp;T</option>
+    <option value="Lalamove">Lalamove</option>
+    <option value="Ninja Van">Ninja Van</option>
+    <option value="Flash Express">Flash Express</option>
+    <option value="2GO">2GO</option>
+</select>
+                                    </div>
+                                    <div style="margin-bottom:12px;">
+                                        <label>Reference Number</label>
+                                        <input type="text" id="modalReference" class="form-control" value="${currentReference}" style="width:100%;">
+                                    </div>
+                                    <div style="margin-bottom:12px;">
+                                        <label>Tracking Status</label>
+                                        <select id="modalTracking" class="form-control" style="width:100%;">
+                                            <option value="1">Order Placed</option>
+                                            <option value="2">Processing</option>
+                                            <option value="3">Ready to Ship</option>
+                                            <option value="4">Shipped</option>
+                                            <option value="5">In Transit</option>
+                                            <option value="6">Out for Delivery</option>
+                                            <option value="7">Delivered</option>
+                                            <option value="8">Failed Delivery</option>
+                                            <option value="9">Returned to Seller</option>
+                                            <option value="10">Cancelled</option>
+                                            <option value="11">Return/Refund in Progress</option>
+                                            <option value="12">Return/Refund Completed</option>
+                                        </select>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <button type="button" id="closeToShipModal" style="margin-right:8px;">Cancel</button>
+                                        <button type="submit">Update</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
                 } else {
-                    fetchAndRenderCustomerOrders();
+                    modal.style.display = 'flex';
+                    document.getElementById('modalCourier').value = currentCourier;
+                    document.getElementById('modalReference').value = currentReference;
+                    document.getElementById('modalTracking').value = '';
                 }
-            })
-            .catch(err => alert('Failed to update tracking info: ' + err));
+                // Set tracking status value if possible
+                const modalTracking = document.getElementById('modalTracking');
+                for (let i = 0; i < modalTracking.options.length; i++) {
+                    if (modalTracking.options[i].text === currentTracking) {
+                        modalTracking.selectedIndex = i;
+                        break;
+                    }
+                }
+                // Close modal handler
+                document.getElementById('closeToShipModal').onclick = function() {
+                    modal.style.display = 'none';
+                };
+                // Submit handler
+                document.getElementById('toShipForm').onsubmit = function(e) {
+                    e.preventDefault();
+                    const courier = document.getElementById('modalCourier').value;
+                    const referenceNumber = document.getElementById('modalReference').value;
+                    const trackingStatusId = document.getElementById('modalTracking').value;
+                    fetch(`/admin/update_tracking/${orderId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            courier: courier,
+                            reference_number: referenceNumber,
+                            tracking_status_id: trackingStatusId
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert('Failed to update tracking info: ' + (data.error || 'Unknown error'));
+                        } else {
+                            modal.style.display = 'none';
+                            fetchAndRenderCustomerOrders();
+                        }
+                    })
+                    .catch(err => alert('Failed to update tracking info: ' + err));
+                };
+            }
         });
     });
 }
