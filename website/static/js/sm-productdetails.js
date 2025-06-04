@@ -39,7 +39,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('productBreadcrumb').textContent = product.name || 'Product';
     document.getElementById('productTitle').textContent = product.name || 'Product Title';
     document.getElementById('productPrice').textContent = '₱ ' + (product.price ? product.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00');
-    document.getElementById('stockInfo').textContent = (product.stock || 0) + ' pieces available';
+    // Fetch available stock from inventory table and display it
+    fetch('/admin/inventory_list')
+      .then(res => res.json())
+      .then(inventoryList => {
+        const record = inventoryList.find(item => item.product_id == product.product_id);
+        const availableStock = record ? record.available_stock : 0;
+        document.getElementById('stockInfo').textContent = availableStock + ' pieces available';
+      });
     document.getElementById('productDescription').innerHTML = product.description || '';
 
     // --- Image Gallery/Slider Logic ---
@@ -519,7 +526,7 @@ if (closeChatBtn) {
             }
         });
 
-    // Helper for stars
+    // Helper for stars (copied from related products)
     function generateStarsHTML(rating) {
         const fullStars = Math.floor(rating);
         const hasHalfStar = rating % 1 >= 0.5;
@@ -537,27 +544,14 @@ if (closeChatBtn) {
         return starsHTML;
     }
 
-    // Fetch and display average rating
+    // Fetch and display average rating and review count from the review table
     fetch(`/api/reviews/average?product_id=${productId}`)
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                // Update stars
-                const rating = data.average;
-                const ratingContainer = document.getElementById('productRating');
-                ratingContainer.innerHTML = '';
-                for (let i = 1; i <= 5; i++) {
-                    const star = document.createElement('i');
-                    if (i <= Math.floor(rating)) {
-                        star.className = 'fas fa-star';
-                    } else if (i - 0.5 <= rating) {
-                        star.className = 'fas fa-star-half-alt';
-                    } else {
-                        star.className = 'far fa-star';
-                    }
-                    ratingContainer.appendChild(star);
-                }
-                document.getElementById('ratingValue').textContent = rating.toFixed(1);
+                const avg = parseFloat(data.average) || 0;
+                document.getElementById('productRating').innerHTML = generateStarsHTML(avg);
+                document.getElementById('ratingValue').textContent = avg.toFixed(1);
                 document.getElementById('reviewCount').textContent = `${data.count} review${data.count === 1 ? '' : 's'}`;
             }
         });
@@ -605,14 +599,6 @@ if (closeChatBtn) {
                     for (let i = 1; i <= 5; i++) {
                         starsHTML += i <= review.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
                     }
-                    let mediaHTML = '';
-                    if (review.media_url) {
-                        if (review.media_type && ['mp4','mov','avi'].includes(review.media_type)) {
-                            mediaHTML = `<video class='review-media-thumb' style='max-width:120px;max-height:90px;cursor:pointer;' src="${review.media_url}" controls></video>`;
-                        } else {
-                            mediaHTML = `<img class='review-media-thumb' style='max-width:120px;max-height:90px;cursor:pointer;' src="${review.media_url}" alt="Review Media">`;
-                        }
-                    }
                     reviewsContainer.innerHTML += `
                         <div class="review">
                             <div class="review-header">
@@ -624,22 +610,8 @@ if (closeChatBtn) {
                             </div>
                             <div class="review-rating">${starsHTML}</div>
                             <p class="review-text">${review.comment}</p>
-                            ${mediaHTML ? `<div class="review-media">${mediaHTML}</div>` : ''}
                         </div>
                     `;
-                });
-                // Add click event for thumbnails
-                document.querySelectorAll('.review-media-thumb').forEach(el => {
-                    el.onclick = function() {
-                        const modal = document.getElementById('reviewMediaModal');
-                        const modalContent = document.getElementById('reviewMediaModalContent');
-                        if (el.tagName === 'IMG') {
-                            modalContent.innerHTML = `<img src='${el.src}' style='max-width:90vw;max-height:90vh;'>`;
-                        } else if (el.tagName === 'VIDEO') {
-                            modalContent.innerHTML = `<video src='${el.src}' style='max-width:90vw;max-height:90vh;' controls autoplay></video>`;
-                        }
-                        modal.style.display = 'flex';
-                    };
                 });
             });
     }

@@ -298,7 +298,22 @@
 .rating-container {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.rating-value-main {
+    font-weight: bold;
+    font-size: 1.15em;
+    margin-left: 4px;
+    margin-right: 6px;
+    color: #222;
+}
+
+.review-count-main, .sold-count-main {
+    color: #888;
+    font-size: 1em;
+    margin-right: 10px;
 }
 
 .stars {
@@ -971,4 +986,16 @@ footer {
     margin-right: 8px;
     display: inline-block;
     vertical-align: middle;
+}
+
+.reviews-container .fa-star,
+.reviews-container .fa-star-half-alt {
+    color: #ffd700 !important;
+}
+
+.reviews-container .fa-star,
+.reviews-container .fa-star-half-alt,
+.reviews-container .fa-star-o {
+    font-size: 1.2em;
+    margin-right: 2px;
 }

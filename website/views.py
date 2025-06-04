@@ -100,6 +100,7 @@ def sewingmachines():
     for product in products:
         sales_count = Sales.query.filter_by(product_id=product.product_id).count()
         product_sales[product.product_id] = sales_count
+    print("DEBUG: Product sales mapping:", product_sales)
     
     return render_template('sewingmachines.html', 
                          user=current_user, 
@@ -109,12 +110,42 @@ def sewingmachines():
 
 @views.route('/sewingparts')
 def sewing_parts():
-    sewing_parts_categories = [
-        Category(category_name='Sewing Machine Components'),
-        Category(category_name='Sewing Machine Accessories'),
-        Category(category_name='Sewing Machine Needles')
+    # Map category names to IDs
+    category_map = {
+        'Sewing Machine Components': 6,
+        'Sewing Machine Accessories': 7,
+        'Sewing Machine Needles': 8
+    }
+    # Get selected category from query param or default
+    category_name = request.args.get('category') or 'Sewing Machine Components'
+    category_id = category_map.get(category_name, 6)
+    categories = [
+        {'category_name': 'Sewing Machine Components'},
+        {'category_name': 'Sewing Machine Accessories'},
+        {'category_name': 'Sewing Machine Needles'}
     ]
-    return render_template('sewingparts.html', user=current_user, categories=sewing_parts_categories, default_category='Sewing Machine Components')
+    # Fetch products for the selected category
+    products = Product.query.filter_by(category_id=category_id).all()
+    from .models import ProductImage
+    for product in products:
+        img = None
+        # Try product.images relationship first
+        if hasattr(product, 'images') and product.images and len(product.images) > 0:
+            img = product.images[0].image_url
+        # If not found, query ProductImage directly
+        if not img:
+            img_obj = ProductImage.query.filter_by(product_id=product.product_id).first()
+            if img_obj and img_obj.image_url:
+                img = img_obj.image_url
+        # Fallback to default
+        if not img:
+            img = '/static/pictures/no-image.png'
+        # Ensure path starts with /static/
+        if not img.startswith('/static/'):
+            img = '/static/' + img.lstrip('/')
+        product.first_image_url = img
+        print(f"[DEBUG] Product: {product.product_name} (ID: {product.product_id}) -> Image: {img}")
+    return render_template('sewingparts.html', user=current_user, categories=categories, default_category=category_name, products=products)
 
 @views.route('/products-by-category/<category_name>')
 def products_by_category_new(category_name):
@@ -780,6 +811,10 @@ def get_reviews():
     product_id = request.args.get('product_id')
     if not product_id:
         return jsonify({'success': False, 'message': 'Missing product_id'}), 400
+    try:
+        product_id = int(product_id)
+    except Exception:
+        return jsonify({'success': False, 'message': 'Invalid product_id'}), 400
     reviews = Review.query.filter_by(product_id=product_id).order_by(Review.created_at.desc()).all()
     review_list = []
     for r in reviews:
@@ -790,8 +825,6 @@ def get_reviews():
             'profile_image': f"/static/profile_images/{r.user.profile_image}" if r.user and r.user.profile_image else None,
             'rating': r.rating,
             'comment': r.comment,
-            'media_url': r.media_url,
-            'media_type': r.media_type,
             'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')
         })
     return jsonify({'success': True, 'reviews': review_list})
@@ -801,8 +834,13 @@ def get_average_rating():
     product_id = request.args.get('product_id')
     if not product_id:
         return jsonify({'success': False, 'message': 'Missing product_id'}), 400
+    try:
+        product_id = int(product_id)
+    except Exception:
+        return jsonify({'success': False, 'message': 'Invalid product_id'}), 400
     avg_rating = db.session.query(func.avg(Review.rating)).filter_by(product_id=product_id).scalar()
     count = db.session.query(func.count(Review.rating)).filter_by(product_id=product_id).scalar()
+    print('DEBUG: product_id', product_id, 'avg_rating', avg_rating, 'count', count)
     return jsonify({'success': True, 'average': round(avg_rating or 0, 2), 'count': count})
 
 @views.route('/api/create-order', methods=['POST'])

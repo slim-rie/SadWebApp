@@ -434,3 +434,7 @@
         grid-template-columns: 1fr;
     }
 }
+
+.dropdown-sort {
+    position: relative;
+}

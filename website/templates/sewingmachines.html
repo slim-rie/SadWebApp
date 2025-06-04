@@ -222,7 +222,9 @@
 
             <div class="product-grid-container">
                 <div class="product-grid" id="productGrid">
+                    <!-- Product Sales Keys: {{ product_sales.keys()|list }} -->
                     {% for product in products %}
+                    <!-- Product ID: {{ product.product_id }} | Sold: {{ product_sales[product.product_id|int] if product.product_id|int in product_sales else 0 }} -->
                     <a href="/sm-productdetails?product_id={{ product.product_id }}" class="product-card">
                         <div class="product-image">
                             {% if product.images and product.images|length > 0 %}
@@ -236,6 +238,9 @@
                             <p class="model-number">{{ product.model_number }}</p>
                             <div class="product-price">
                                 <span class="price">₱{{ "%.2f"|format(product.base_price) }}</span>
+                            </div>
+                            <div class="product-meta">
+                                <span class="sold-count">{{ product_sales[product.product_id|int] if product.product_id|int in product_sales else 0 }} sold</span>
                             </div>
                         </div>
                     </a>

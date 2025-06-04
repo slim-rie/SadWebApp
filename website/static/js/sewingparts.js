@@ -37,7 +37,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // On page load, select the default category
-    await selectCategory(window.DEFAULT_CATEGORY || 'Sewing Machine Components');
+    const defaultCategory = window.DEFAULT_CATEGORY || 'Sewing Machine Components';
+    await selectCategory(defaultCategory);
 
     // DOM elements
     const productGrid = document.getElementById('productGrid');
@@ -85,8 +86,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                 break;
             case 'topsales':
                 filteredProducts.sort((a, b) => {
-                    const aSold = parseInt(a.sold || '0');
-                    const bSold = parseInt(b.sold || '0');
+                    const aSold = typeof a.sold_count !== 'undefined' ? a.sold_count : 0;
+                    const bSold = typeof b.sold_count !== 'undefined' ? b.sold_count : 0;
                     return bSold - aSold;
                 });
                 break;
@@ -173,15 +174,17 @@ document.addEventListener('DOMContentLoaded', async function () {
     ratingItems.forEach(item => {
         item.addEventListener('click', function() {
             const rating = parseInt(this.getAttribute('data-rating'));
-
-            ratingItems.forEach(ri => {
-                ri.classList.remove('active');
-            });
-
-            this.classList.add('active');
-
-            currentFilters.rating = rating;
-            renderProducts();
+            // If already selected, unselect and show all
+            if (currentFilters.rating === rating) {
+                ratingItems.forEach(ri => ri.classList.remove('active'));
+                currentFilters.rating = 0;
+                renderProducts();
+            } else {
+                ratingItems.forEach(ri => ri.classList.remove('active'));
+                this.classList.add('active');
+                currentFilters.rating = rating;
+                renderProducts();
+            }
         });
     });
 
@@ -228,7 +231,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     allCategoriesBtn.addEventListener('click', function() {
-        categoriesModal.classList.add('show-modal');
+        // Close the modal if open
+        categoriesModal.classList.remove('show-modal');
+        // Redirect to index.html and scroll to categories section
+        window.location.href = '/#category-Categories';
     });
 
     if (closeCategories) {

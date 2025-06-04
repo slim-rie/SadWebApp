@@ -66,8 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             case 'topsales':
                 filteredProducts.sort((a, b) => {
-                    const aSold = parseInt(a.sold.replace('K', '000'));
-                    const bSold = parseInt(b.sold.replace('K', '000'));
+                    const aSold = typeof a.sold_count !== 'undefined' ? a.sold_count : 0;
+                    const bSold = typeof b.sold_count !== 'undefined' ? b.sold_count : 0;
                     return bSold - aSold;
                 });
                 break;
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${starsHTML}
                         </div>
                         <span class="rating-value">${product.rating.toFixed(1)}</span>
-                        <span class="sold-count">${product.sold ? product.sold : 0} sold</span>
+                        <span class="sold-count">${typeof product.sold_count !== 'undefined' ? product.sold_count : 0} sold</span>
                     </div>
                 </div>
             `;
@@ -170,12 +170,17 @@ document.addEventListener('DOMContentLoaded', function() {
     ratingItems.forEach(item => {
         item.addEventListener('click', function() {
             const rating = parseInt(this.getAttribute('data-rating'));
-
-            ratingItems.forEach(el => el.classList.remove('active'));
-            this.classList.add('active');
-
-            currentFilters.rating = rating;
-            renderProducts();
+            // If already selected, unselect and show all
+            if (currentFilters.rating === rating) {
+                ratingItems.forEach(el => el.classList.remove('active'));
+                currentFilters.rating = 0;
+                renderProducts();
+            } else {
+                ratingItems.forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+                currentFilters.rating = rating;
+                renderProducts();
+            }
         });
     });
 
@@ -209,7 +214,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     allCategoriesBtn.addEventListener('click', function() {
-        categoriesModal.style.display = 'block';
+        // Close the modal if open
+        categoriesModal.style.display = 'none';
+        // Redirect to index.html and scroll to categories section
+        window.location.href = '/#category-Categories';
     });
 
     closeCategories.addEventListener('click', function() {
@@ -264,11 +272,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (priceDropdownBtn && priceDropdownMenu) {
         priceDropdownBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            priceDropdownMenu.style.display = priceDropdownMenu.style.display === 'block' ? 'none' : 'block';
+            priceDropdownMenu.classList.toggle('show');
         });
         window.addEventListener('click', function(e) {
             if (!priceDropdown.contains(e.target)) {
-                priceDropdownMenu.style.display = 'none';
+                priceDropdownMenu.classList.remove('show');
             }
         });
     }
