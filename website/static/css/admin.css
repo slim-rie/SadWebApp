@@ -237,9 +237,9 @@ body {
 }
 
 .main-content {
-  margin-left: 240px !important;
+  margin-left: 150px !important;
   width: calc(100% - 240px) !important;
-  padding: 8px 8px !important;
+  padding: 8px 4px !important;
 }
 
 @media (max-width: 1199px) {
@@ -596,25 +596,16 @@ body {
 }
 
 .user-profile {
-  right: 36px !important;
-  left: auto !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  position: fixed;
-  top: 10px;
+  height: 50px;
+  min-height: 32px;
   z-index: 1000;
-  padding: 2px 8px !important;
-  background: #fff !important;
-  border-radius: 14px !important;
-  gap: 8px !important;
-  display: flex !important;
-  align-items: center !important;
-  background: #f8fafc !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
-  border: 1px solid #e0e0e0 !important;
-  min-width: 0 !important;
-  height: 36px !important;
-  min-height: 36px !important;
+  padding: 10px 15px;
+  background: white;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .user-profile span {
@@ -1112,7 +1103,7 @@ admin header*/
     display: block;
 }
 
-.chat-profile-dropdown-item {
+.chat-profile {
     padding: 12px 18px;
     cursor: pointer;
     color: #222;
@@ -1438,8 +1429,7 @@ admin header*/
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  width: 72px;
-  height: 72px;
+  width: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1447,11 +1437,17 @@ admin header*/
 }
 
 .chat-icon-btn {
-  width: 32px !important;
-  height: 32px !important;
-  font-size: 18px !important;
-  border-radius: 10px !important;
-  padding: 0 !important;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  color: #222;
+  padding: 0;
 }
 
 .chat-badge {
@@ -1473,10 +1469,16 @@ admin header*/
 }
 
 .profile-icon {
-  width: 32px !important;
-  height: 32px !important;
-  font-size: 18px !important;
-  border-radius: 10px !important;
+  width: 50px;
+  height: 32px;
+  background: #ededed;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  color: #222;
+  margin: 0;
 }
 
 .profile-details {
@@ -1506,29 +1508,41 @@ admin header*/
 }
 
 .dropdown-btn {
-  font-size: 16px !important;
-  padding: 0 2px !important;
-  margin-left: -8px !important;
-  margin-top: 0 !important;
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #888;
+  cursor: pointer;
+  padding: 0 8px;
+  margin-top: 4px;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 8px 16px;
+  color: #444;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s, color 0.2s;
+  border-radius: 6px;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+  color: #222;
 }
 
 .dropdown-menu {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
+  position: revert!important;
+  height: 45;
+  font-size: 100px;
+  min-width: 20px;
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.13);
-  padding: 18px 0;
-  min-width: 160px;
-  z-index: 9999;
-  text-align: center;
-  border: 1px solid #eee;
-  transition: box-shadow 0.2s;
-
+  border-radius: 250px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+  padding: 2;
 }
 
 .dropdown-menu.active {
@@ -1536,13 +1550,18 @@ admin header*/
 }
 
 .dropdown-menu .logout-link {
-  font-size: 0.7rem !important;
-  padding: 2px 0 !important;
-  margin: 0 4px !important;
-  border-radius: 4px !important;
-  min-width: 60px !important;
-  max-width: 120px !important;
-  text-align: center !important;
+  display: block;
+  font-size: 18px;
+  color: #e53935;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 12px 0;
+  margin: 0 18px;
+  border-radius: 12px;
+  background: #f9f9f9;
+  letter-spacing: 1px;
+  box-shadow: 0 1px 4px rgba(229,57,53,0.07);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
 }
 
 /* Reports */
@@ -2117,7 +2136,7 @@ html, body {
   transform: none !important;
 }
 
-.compact-profile, .compact-chat {
+/*.compact-profile, .compact-chat {
   height: 32px !important;
   min-height: 32px !important;
   display: flex !important;
@@ -2126,4 +2145,4 @@ html, body {
   padding: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
-}
+}*/

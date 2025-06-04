@@ -516,13 +516,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 show = false;
                 tds.forEach((cell, idx) => {
                     if (colMap[idx] === searchBy) {
+                        let cellValue = cell.textContent;
+                        // Special handling for order_status column with a dropdown
+                        if (colMap[idx] === 'order_status') {
+                            const select = cell.querySelector('select');
+                            if (select) {
+                                cellValue = select.selectedOptions[0].textContent;
+                            }
+                        }
                         const exactMatchCols = [
                             'order_id', 'users', 'order_date', 'product_name', 'product_quantity', 'total_amount', 'payment_method', 'order_status', 'courier', 'reference_number', 'tracking_status', 'created_at', 'updated_at'
                         ];
                         if (exactMatchCols.includes(searchBy)) {
-                            if (cell.textContent.trim().toLowerCase() === query) show = true;
+                            if (cellValue.trim().toLowerCase() === query) show = true;
                         } else {
-                            if (cell.textContent.toLowerCase().includes(query)) show = true;
+                            if (cellValue.toLowerCase().includes(query)) show = true;
                         }
                     }
                 });
