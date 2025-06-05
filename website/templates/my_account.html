@@ -33,10 +33,10 @@
 
             <div class="nav-icons">
                 <span class="phone-info">
-                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
+                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img"> 
                     <span class="phone-text">+63 912-3456-789</span>
                 </span>
-                <a href="#" class="chat-link" id="chatLink">
+                <a href="#" class="chat-link">
                     <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                 </a>
                 <a href="{{ url_for('views.cart') }}" class="cart-link">
@@ -368,5 +368,6 @@
     });
     </script>
 
+    {% include 'components/email_modal.html' %}
 </body>
 </html>

@@ -36,7 +36,7 @@
                     <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img"> 
                     <span class="phone-text">+63 912-3456-789</span>
                 </span>
-                <a href="/chat" class="chat-link">
+                <a href="#" class="chat-link">
                     <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                 </a>
                 <a href="/cart" class="cart-link">
@@ -291,6 +291,7 @@
         </div>
     </footer>
 
+    {% include 'components/email_modal.html' %}
     <script src="{{ url_for('static', filename='js/sewingmachines.js') }}" defer></script>
 </body>
 </html>

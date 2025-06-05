@@ -35,7 +35,7 @@
                     <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
                     <span class="phone-text">+63 912-3456-789</span>
                 </span>
-                <a href="/chat" class="chat-link">
+                <a href="#" class="chat-link" id="openEmailModal">
                     <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                 </a>
                 <a href="/cart" class="cart-link">
@@ -55,5 +55,95 @@
             </div> 
         </nav>
     </header>
+
+    <!-- Email Modal -->
+    <div class="email-modal-overlay" id="emailModalOverlay" style="display:none;">
+        <div class="email-modal" style="background:#fff; border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.18); padding:24px 20px; width:95%; max-width:420px; max-height:90vh; overflow-y:auto; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2000;">
+            <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between;">
+                <span class="modal-title" style="font-weight:600; font-size:1.2em;">Contact Us</span>
+                <button class="close-modal-btn" id="closeEmailModal" style="font-size:1.5em; background:none; border:none; cursor:pointer;">&times;</button>
+            </div>
+            <form id="emailForm" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <label for="emailSubject">Subject:</label>
+                    <select id="emailSubject" name="subject" required style="width:100%;margin-bottom:10px;">
+                        <option value="General Inquiry">General Inquiry</option>
+                        <option value="Product Inquiry">Product Inquiry</option>
+                        <option value="Order Issue">Order Issue</option>
+                        <option value="Shipping Concern">Shipping Concern</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" id="customSubjectInput" name="custom_subject" placeholder="Enter custom subject" style="width:100%;margin-bottom:10px;display:none;">
+                    <label for="emailMessage">Message:</label>
+                    <textarea id="emailMessage" name="message" rows="5" required style="width:100%;"></textarea>
+                    <label for="emailAttachment" style="margin-top:10px;display:block;">Attachment (optional):</label>
+                    <input type="file" id="emailAttachment" name="attachment" style="margin-bottom:10px;">
+                </div>
+                <div class="modal-footer" style="display:flex; justify-content:flex-end; margin-top:10px;">
+                    <button type="submit" class="submit-btn" style="background:#ffb400; color:#fff; border:none; border-radius:5px; padding:10px 24px; font-weight:600; cursor:pointer;">Send Email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Open email modal
+        document.getElementById('openEmailModal').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('emailModalOverlay').style.display = 'flex';
+        });
+
+        // Close email modal
+        document.getElementById('closeEmailModal').addEventListener('click', function() {
+            document.getElementById('emailModalOverlay').style.display = 'none';
+        });
+
+        // Show/hide custom subject input
+        var subjectSelect = document.getElementById('emailSubject');
+        var customSubjectInput = document.getElementById('customSubjectInput');
+        subjectSelect.addEventListener('change', function() {
+            if (this.value === 'Other') {
+                customSubjectInput.style.display = 'block';
+                customSubjectInput.required = true;
+            } else {
+                customSubjectInput.style.display = 'none';
+                customSubjectInput.required = false;
+            }
+        });
+
+        // Handle form submit
+        document.getElementById('emailForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var form = this;
+            var formData = new FormData(form);
+            
+            // If custom subject, set it in FormData
+            if (subjectSelect.value === 'Other') {
+                formData.set('subject', customSubjectInput.value);
+            }
+
+            fetch('/api/contact-seller-email', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Message sent successfully!');
+                    form.reset();
+                    customSubjectInput.style.display = 'none';
+                    customSubjectInput.required = false;
+                    document.getElementById('emailModalOverlay').style.display = 'none';
+                } else {
+                    alert('Failed to send message: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(err => {
+                alert('Network error. Please try again.');
+            });
+        });
+    });
+    </script>
 </body>
 </html> 

@@ -35,7 +35,7 @@
                     <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img"> 
                     <span class="phone-text">+63 912-3456-789</span>
                 </span>
-                <a href="#" class="chat-link" id="chatLink">
+                <a href="#" class="chat-link">
                     <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
                 </a>
                 <a href="{{ url_for('views.cart') }}" class="cart-link">
@@ -212,6 +212,8 @@
             </div>
         </div>
     </div>
+
+    {% include 'components/email_modal.html' %}
 
     <div>
     <script src="{{ url_for('static', filename='js/f-productdetails.js') }}"></script>
