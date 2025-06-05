@@ -10,51 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <div class="nav-left">
-                <a href="{{ url_for('views.home') }}" class="nav-logo" id="homeLink">
-                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
-                    <h2 class="logo-text">JBR Tanching C.O</h2>
-                </a>
-            </div>
-
-            <div class="search-bar">
-                <select class="search-dropdown">
-                    <option>All</option>
-                    <option>Fabrics</option>
-                    <option>Sewing Machines</option>
-                    <option>Sewing Parts</option>
-                </select>
-                <input type="text" class="search-input" placeholder="What can we help you find?">
-                <button class="search-btn">
-                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
-                </button>
-            </div>
-
-            <div class="nav-icons">
-                <span class="phone-info">
-                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
-                    <span class="phone-text">+63 912-3456-789</span>
-                </span>
-                <a href="#" class="chat-link" id="chatLink">
-                    <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
-                </a>
-                <a href="{{ url_for('views.cart') }}" class="cart-link">
-                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
-                </a>
-
-                <div class="user-dropdown">
-                    <div class="user-info">
-                        <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
-                        <span class="username" id="usernameDisplay"></span>
-                    </div>
-                    <div class="dropdown-container" id="dropdownMenu">
-                    </div>
-                </div>
-            </div> 
-        </nav>
-    </header>
+    {% include 'components/header.html' %}
 
     <main class="transaction-container">
         <h1>Checkout</h1>
@@ -182,46 +138,7 @@
         </div>
     </div>
 
-    <footer>
-        <div class="container footer-grid">
-            <div class="footer-section">
-                <h3>About Us</h3>
-                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
-            </div>
-
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="{{ url_for('views.home') }}">Home</a></li>
-                    <li><a href="#" id="footerShopLink">Shop</a></li>
-                    <li><a href="{{ url_for('views.about') }}">About</a></li>
-                    <li><a href="{{ url_for('views.contact') }}">Contact</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section payment-section">
-                <h3>Payment Methods</h3>
-                <div class="payment-icons">
-                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
-                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
-                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
-                </div>
-            </div>
-
-            <div class="footer-section contact-section">
-                <div class="footer-logo">
-                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
-                </div>
-                <div class="contact-info">
-                    <h3>JBR Tanching C.O</h3>
-                    <p class="contact-phone">(02) 8123-4567</p>
-                </div>
-            </div>
-        </div>
-        <div class="copyright">
-            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
-        </div>
-    </footer>
+    {% include 'components/footer.html' %}
 
     <script src="{{ url_for('static', filename='js/transaction.js') }}" defer></script>
     <script>
@@ -250,17 +167,15 @@
                         modalFilePreview.appendChild(document.createTextNode(previewText));
                         modalFilePreview.appendChild(img);
 
-                        // OCR: Use Tesseract to extract reference number
                         Tesseract.recognize(
                             file,
                             'eng',
                             { logger: m => console.log(m) }
                         ).then(({ data: { text } }) => {
-                            // Try to find a reference number (sequence of 8+ digits)
                             const match = text.match(/\b\d{8,}\b/);
                             if (match) {
                                 referenceInput.value = match[0];
-                                referenceInput.dataset.ocr = match[0]; // Store OCR result in data attribute
+                                referenceInput.dataset.ocr = match[0]; 
                             } else {
                                 referenceInput.dataset.ocr = '';
                             }
@@ -294,7 +209,6 @@
         }
     });
     </script>
-
 </body>
 </html>
-``` 
+```

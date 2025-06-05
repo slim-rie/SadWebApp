@@ -37,9 +37,6 @@
                     <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
                     <span class="phone-text">+63 912-3456-789</span>
                 </span>
-                <a href="#" class="chat-link" id="chatLink">
-                    <img src="{{ url_for('static', filename='pictures/chat.png') }}" alt="Chat" class="icon-img">
-                </a>
                 <a href="{{ url_for('auth.cart') }}" class="cart-link">
                     <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
                 </a>
@@ -114,39 +111,33 @@
         <p id="successText">Order action successful</p>
     </div>
 
-    <div class="chat-modal" id="chatModal">
-        <div class="chat-header">
-            <h3>Customer Support</h3>
-            <button class="close-chat" id="closeChat">&times;</button>
+    <div class="email-modal-overlay" id="emailModalOverlay" style="display:none;">
+      <div class="email-modal" style="background:#fff; border-radius:10px; box-shadow:0 8px 32px rgba(0,0,0,0.18); padding:24px 20px; width:95%; max-width:420px; max-height:90vh; overflow-y:auto; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2000;">
+        <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between;">
+          <span class="modal-title" style="font-weight:600; font-size:1.2em;">Contact Seller</span>
+          <button class="close-modal-btn" id="closeEmailModal" style="font-size:1.5em; background:none; border:none; cursor:pointer;">&times;</button>
         </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message">
-                Hello! How can I help you with your shopping today?
-            </div>
-        </div>
-        <div class="quick-questions" id="quickQuestions">
-            <button class="quick-question-btn" data-question="Shipping policy">Shipping policy</button>
-            <button class="quick-question-btn" data-question="Return policy">Return policy</button>
-            <button class="quick-question-btn" data-question="Product inquiry">Product inquiry</button>
-            <button class="quick-question-btn" data-question="Payment methods">Payment methods</button>
-            <button class="quick-question-btn" data-question="Order tracking">Order tracking</button>
-            <button class="quick-question-btn" data-question="Chat with Seller">Chat with Seller</button>
-        </div>
-        <form class="chat-form" id="chatForm">
-            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
-            <label for="fileInput" class="file-label">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="clip-icon">
-                    <path d="M21.44 11.05l-8.49 8.49a5.5 5.5 0 01-7.78-7.78l8.49-8.49a3.5 3.5 0 014.95 4.95l-8.49 8.49a1.5 1.5 0 01-2.12-2.12l8.49-8.49.71.71-8.49 8.49a.5.5 0 00.71.71l8.49-8.49a2.5 2.5 0 10-3.54-3.54l-8.49 8.49a4.5 4.5 0 006.36 6.36l8.49-8.49.71.71z"/>
-                </svg>
-                <input type="file" id="fileInput" class="file-input" style="display: none;" accept="image/*,video/*">
-            </label>
-            <button type="submit" class="send-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-            </button>
+        <form id="emailForm" enctype="multipart/form-data">
+          <input type="hidden" id="emailOrderId" name="order_id">
+          <div class="modal-body">
+            <label for="emailSubject">Subject:</label>
+            <select id="emailSubject" name="subject" required style="width:100%;margin-bottom:10px;">
+              <option value="Order Issue">Order Issue</option>
+              <option value="Product Inquiry">Product Inquiry</option>
+              <option value="Shipping Concern">Shipping Concern</option>
+              <option value="Other">Other</option>
+            </select>
+            <input type="text" id="customSubjectInput" name="custom_subject" placeholder="Enter custom subject" style="width:100%;margin-bottom:10px;display:none;">
+            <label for="emailMessage">Message:</label>
+            <textarea id="emailMessage" name="message" rows="5" required style="width:100%;"></textarea>
+            <label for="emailAttachment" style="margin-top:10px;display:block;">Attachment (optional):</label>
+            <input type="file" id="emailAttachment" name="attachment" style="margin-bottom:10px;">
+          </div>
+          <div class="modal-footer" style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button type="submit" class="submit-btn" style="background:#ffb400; color:#fff; border:none; border-radius:5px; padding:10px 24px; font-weight:600; cursor:pointer;">Send Email</button>
+          </div>
         </form>
-        <div id="filePreview" class="file-preview"></div>
+      </div>
     </div>
 
 <!-- Modernized Rating Modal -->
@@ -784,6 +775,133 @@ document.addEventListener('DOMContentLoaded', function() {
       alert('Network error. Please try again.');
     });
   });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('ordersContainer').addEventListener('click', function(e) {
+    if (e.target.classList.contains('contact-seller-btn')) {
+      e.preventDefault();
+      const btn = e.target;
+      const orderCard = btn.closest('.order-card');
+      const orderId = orderCard ? orderCard.getAttribute('data-order-id') : '';
+      // Find the first product item in the order card
+      let productName = '';
+      let productVariant = '';
+      let productLink = '';
+      let productId = '';
+      let productType = '';
+      const productItem = orderCard ? orderCard.querySelector('.order-item') : null;
+      if (productItem) {
+        // Product name and link info
+        const nameElem = productItem.querySelector('.order-item-link');
+        if (nameElem) {
+          productName = nameElem.textContent.trim();
+          productId = nameElem.getAttribute('data-item-id');
+          productType = nameElem.getAttribute('data-type') || 'sm';
+        }
+        // Product variant
+        const variantElem = productItem.querySelector('p');
+        if (variantElem && variantElem.textContent.startsWith('Variation:')) {
+          productVariant = variantElem.textContent.replace('Variation:', '').trim();
+        }
+      }
+      // Build product link for the correct product details page (absolute URL)
+      const baseUrl = "https://jbr-tanching-c-o.onrender.com";
+      if (productId) {
+        if (productType === 'sm') {
+          productLink = `${baseUrl}/sm-productdetails?product_id=${productId}`;
+        } else if (productType === 'sp') {
+          productLink = `${baseUrl}/sp-productdetails?product_id=${productId}`;
+        } else if (productType === 'f') {
+          productLink = `${baseUrl}/f-productdetails?product_id=${productId}`;
+        }
+      }
+      // Set hidden product link input
+      let productLinkInput = document.getElementById('emailProductLink');
+      if (!productLinkInput) {
+        productLinkInput = document.createElement('input');
+        productLinkInput.type = 'hidden';
+        productLinkInput.id = 'emailProductLink';
+        productLinkInput.name = 'product_link';
+        document.getElementById('emailForm').appendChild(productLinkInput);
+      }
+      productLinkInput.value = productLink;
+      // Set hidden product name input
+      let productNameInput = document.getElementById('emailProductName');
+      if (!productNameInput) {
+        productNameInput = document.createElement('input');
+        productNameInput.type = 'hidden';
+        productNameInput.id = 'emailProductName';
+        productNameInput.name = 'product_name';
+        document.getElementById('emailForm').appendChild(productNameInput);
+      }
+      productNameInput.value = productName;
+      // Set hidden product variant input
+      let productVariantInput = document.getElementById('emailProductVariant');
+      if (!productVariantInput) {
+        productVariantInput = document.createElement('input');
+        productVariantInput.type = 'hidden';
+        productVariantInput.id = 'emailProductVariant';
+        productVariantInput.name = 'product_variant';
+        document.getElementById('emailForm').appendChild(productVariantInput);
+      }
+      productVariantInput.value = productVariant;
+
+      document.getElementById('emailOrderId').value = orderId;
+      // Leave the message textarea empty for user input only
+      document.getElementById('emailMessage').value = '';
+      document.getElementById('emailModalOverlay').style.display = 'flex';
+      // Debug log
+      console.log('Contact Seller Clicked:', {orderId, productName, productVariant, productLink, productType});
+    }
+  });
+  // Show/hide custom subject input
+  var subjectSelect = document.getElementById('emailSubject');
+  var customSubjectInput = document.getElementById('customSubjectInput');
+  subjectSelect.addEventListener('change', function() {
+    if (this.value === 'Other') {
+      customSubjectInput.style.display = 'block';
+      customSubjectInput.required = true;
+    } else {
+      customSubjectInput.style.display = 'none';
+      customSubjectInput.required = false;
+    }
+  });
+  // Close modal
+  document.getElementById('closeEmailModal').onclick = function() {
+    document.getElementById('emailModalOverlay').style.display = 'none';
+  };
+  // Handle form submit via AJAX
+  document.getElementById('emailForm').onsubmit = function(e) {
+    e.preventDefault();
+    var form = this;
+    var formData = new FormData(form);
+    // If custom subject, set it in FormData
+    if (subjectSelect.value === 'Other') {
+      formData.set('subject', customSubjectInput.value);
+    }
+    fetch('/api/contact-seller-email', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Message sent successfully!');
+        form.reset();
+        customSubjectInput.style.display = 'none';
+        customSubjectInput.required = false;
+        document.getElementById('emailModalOverlay').style.display = 'none';
+      } else {
+        alert('Failed to send message: ' + (data.message || 'Unknown error'));
+      }
+    })
+    .catch(err => {
+      alert('Network error. Please try again.');
+    });
+  };
 });
 </script>
 

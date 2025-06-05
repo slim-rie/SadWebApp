@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <img src="${product.image}" alt="${product.name}">
                         </div>
                         <div class="order-item-details">
-                            <h3><a href="/orders/${order.id}/item/${product.id}" class="order-item-link" data-order-id="${order.id}" data-item-id="${product.id}">${product.name}</a></h3>
+                            <h3><a href="/orders/${order.id}/item/${product.id}" class="order-item-link" data-order-id="${order.id}" data-item-id="${product.id}" data-type="${product.type || product.category || 'sm'}">${product.name}</a></h3>
                             ${product.variation ? `<p>Variation: ${product.variation}</p>` : ''}
                             <p>x${product.quantity}</p>
                             <div class="price-container">
@@ -146,12 +146,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function addButtonEventListeners() {
         document.querySelectorAll('.contact-seller-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (isLoggedIn) {
-                    openChatModal();
-                } else {
-                    openLoginModal();
-                }
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('emailModalOverlay').style.display = 'flex';
             });
         });
         
@@ -588,7 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <img src="${product.image}" alt="${product.name}">
                         </div>
                         <div class="order-item-details">
-                            <h3><a href="/orders/${order.id}/item/${product.id}" class="order-item-link" data-order-id="${order.id}" data-item-id="${product.id}">${product.name}</a></h3>
+                            <h3><a href="/orders/${order.id}/item/${product.id}" class="order-item-link" data-order-id="${order.id}" data-item-id="${product.id}" data-type="${product.type || product.category || 'sm'}">${product.name}</a></h3>
                             ${product.variation ? `<p>Variation: ${product.variation}</p>` : ''}
                             <p>x${product.quantity}</p>
                             <div class="price-container">
@@ -718,113 +715,6 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem('username');
         window.location.href = 'index.html';
     }
-
-     const chatLink = document.getElementById('chatLink');
-    const chatModal = document.getElementById('chatModal');
-    const chatForm = document.getElementById('chatForm');
-    const chatInput = document.getElementById('chatInput');
-    const chatMessages = document.getElementById('chatMessages');
-    const quickQuestions = document.querySelectorAll('.quick-question-btn');
-
-    function addMessage(text, className) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', className);
-        messageElement.textContent = text;
-        chatMessages.appendChild(messageElement);
-
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    quickQuestions.forEach(button => {
-        button.addEventListener('click', function () {
-            const question = this.getAttribute('data-question');
-            addMessage(question, 'user-message'); 
-
-            setTimeout(() => {
-                let response = '';
-                switch (question.toLowerCase()) {
-                    case 'shipping policy':
-                        response = 'Our shipping policy ensures delivery within 3-5 business days.';
-                        break;
-                    case 'return policy':
-                        response = 'You can return items within 30 days of purchase.';
-                        break;
-                    case 'product inquiry':
-                        response = 'Please provide the product name for more details.';
-                        break;
-                    case 'payment methods':
-                        response = 'We accept GCash, bank transfers, and cash on delivery.';
-                        break;
-                    case 'order tracking':
-                        response = 'You can track your order using the tracking ID sent to your email.';
-                        break;
-                    default:
-                        response = 'Thank you for your message! Our team will get back to you shortly.';
-                        break;
-                }
-                addMessage(response, 'bot-message'); 
-            }, 1000);
-        });
-    });
-
-    function openChatModal() {
-        chatModal.classList.add('show-modal');
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeChatModal() {
-        chatModal.classList.remove('show-modal');
-        document.body.style.overflow = '';
-    }
-    
-    if (chatLink) {
-        chatLink.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (isLoggedIn) {
-                openChatModal();
-            } else {
-                openLoginModal();
-            }
-        });
-    }
-
-    if (chatForm) {
-        chatForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const message = chatInput.value.trim();
-            
-            if (message) {
-                addMessage(message, 'user-message');
-                
-                chatInput.value = '';
-                
-                setTimeout(() => {
-                    addMessage('Thank you for your message! Our team will get back to you shortly.', 'system-message');
-                }, 1000);
-            }
-        });
-    }
-    
-    if (chatModal) {
-        const closeChatBtn = chatModal.querySelector('.close-chat');
-        
-        if (closeChatBtn) {
-            closeChatBtn.addEventListener('click', closeChatModal);
-        }
-    }
-
-    const ratingModalOverlay = document.querySelector('.rating-modal-overlay');
-    const closeModalBtn = document.querySelector('.close-modal-btn');
-
-    closeModalBtn.addEventListener('click', function () {
-        ratingModalOverlay.style.display = 'none'; 
-    });
-
-    ratingModalOverlay.addEventListener('click', function (e) {
-        if (e.target === ratingModalOverlay) {
-            ratingModalOverlay.style.display = 'none';
-        }
-    });
 
     // === Cancel Modal Dedicated Logic (robust, independent) ===
     let cancelOrderId = null;

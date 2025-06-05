@@ -3,199 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cancellation Details - JBR Tanching C.O</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Cancel Order Details - JBR Tanching C.O</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_account.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cancel-order-details.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cancel_order_details.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <header>
-        <nav class="navbar">
-            <div class="nav-left">
-                <a href="{{ url_for('views.home') }}" class="nav-logo" id="homeLink">
-                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="Logo" class="logo-image">
-                    <h2 class="logo-text">JBR Tanching C.O</h2>
-                </a>
-            </div>
-            <div class="search-bar">
-                <select class="search-dropdown">
-                    <option>All</option>
-                    <option>Fabrics</option>
-                    <option>Sewing Machines</option>
-                    <option>Sewing Parts</option>
-                </select>
-                <input type="text" class="search-input" placeholder="What can we help you find?">
-                <button class="search-btn">
-                    <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
-                </button>
-            </div>
-            <div class="nav-icons">
-                <span class="phone-info">
-                    <img src="{{ url_for('static', filename='pictures/contact.png') }}" alt="Contact" class="icon-img non-clickable"> 
-                    <span class="phone-text">+63 912-3456-789</span>
-                </span>
-                <a href="{{ url_for('auth.cart') }}" class="cart-link">
-                    <img src="{{ url_for('static', filename='pictures/cart.png') }}" alt="Cart" class="icon-img">
-                </a>
-                <div class="user-dropdown">
-                    <div class="user-info">
-                        <img src="{{ url_for('static', filename='pictures/user.png') }}" alt="User" class="icon-img" id="user-icon">
-                        <span class="username" id="usernameDisplay"></span>
-                    </div>
-                    <div class="dropdown-container" id="dropdownMenu">
-                    </div>
-                </div>
-            </div> 
-        </nav>
-    </header>
+    {% include 'components/header.html' %}
 
-    <main class="my-account-container">
-        <div class="container">
-            <div class="account-wrapper">
-                <div class="sidebar">
-                    <div class="user-profile">
-                        {% if user.profile_image and (user.profile_image.startswith('http://') or user.profile_image.startswith('https://')) %}
-                            <img src="{{ user.profile_image }}" alt="Profile" id="profileImage" class="profile-image">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='profile_images/' ~ (user.profile_image or 'user-circle.png')) }}" alt="Profile" id="profileImage" class="profile-image">
-                        {% endif %}
-                        <div class="user-info">
-                            <div class="user-name-section">
-                                <h3 id="sidebarUsername">{{ user.first_name }} {{ user.last_name }}</h3>
-                                <div class="green-line">
-                                    <button class="edit-profile-btn" id="editProfileBtn">✏️ Edit Profile</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <ul class="sidebar-menu">
-                        <li class="parent-menu"><a href="{{ url_for('auth.my_account') }}"><i class="fas fa-user"></i> My Account</a></li>
-                        <li class="sub-menu"><a href="{{ url_for('auth.addresses') }}"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
-                        <li class="sub-menu"><a href="{{ url_for('auth.change_password') }}"><i class="fas fa-lock"></i> Change Password</a></li>
-                        <li class="sub-menu"><a href="{{ url_for('auth.privacy_settings') }}"><i class="fas fa-shield-alt"></i> Privacy Settings</a></li>
-                        <li class="active"><a href="{{ url_for('auth.orders') }}"><i class="fas fa-shopping-bag"></i> Orders</a></li>
-                    </ul>
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">Home</a> &gt;
+            <a href="/orders">Orders</a> &gt;
+            <span>Cancel Order Details</span>
+        </div>
+
+        <div class="cancel-order-details">
+            <h1>Cancel Order Details</h1>
+            
+            <div class="order-info">
+                <div class="info-section">
+                    <h2>Order Information</h2>
+                    <p><strong>Order ID:</strong> {{ order.order_id }}</p>
+                    <p><strong>Order Date:</strong> {{ order.order_date.strftime('%B %d, %Y') }}</p>
+                    <p><strong>Status:</strong> <span class="status cancelled">Cancelled</span></p>
                 </div>
-                <div class="account-content">
-                    {% if order %}
-                    <div class="header">
-                        <div class="back-button">
-                            <a href="/orders"><i class="fas fa-arrow-left"></i> BACK</a>
-                        </div>
-                        <span class="requested-date">
-                            Requested at: {{ order.updated_at.strftime('%m/%d/%Y %I:%M %p') if order and order.updated_at else '' }}
-                        </span>
-                    </div>
-                    <div class="cancellation-header">
-                        <h2 class="cancellation-title">Cancellation Completed</h2>
-                        <p class="cancellation-date">
-                            {% if order_cancellation and order_cancellation.cancelled_at and order_cancellation.cancelled_at.strftime %}
-                                on {{ order_cancellation.cancelled_at.strftime('%m/%d/%Y %I:%M %p') }}
-                            {% else %}
-                                on {{ '' }}
-                            {% endif %}
-                        </p>
-                    </div>
+
+                <div class="info-section">
+                    <h2>Cancellation Details</h2>
+                    <p><strong>Cancellation Date:</strong> {{ order.cancellation_date.strftime('%B %d, %Y') }}</p>
+                    <p><strong>Reason:</strong> {{ order.cancellation_reason }}</p>
+                </div>
+            </div>
+
+            <div class="items-section">
+                <h2>Ordered Items</h2>
+                <div class="items-list">
                     {% for item in order.items %}
-                    <div class="cancelled-product">
-                        <div class="product-image">
-                            <img src="{{ url_for('static', filename=item.image_path) }}" alt="Product Image">
-                        </div>
-                        <div class="product-details">
-                            <h4 class="product-name">{{ item.product.product_name }}</h4>
-                            <p class="product-variation">Variation: {{ item.product.model_number }}</p>
-                            <p class="product-quantity">x{{ item.quantity }}</p>
-                        </div>
-                        <div class="product-price">
-                            <p class="original-price">₱{{ '%.2f'|format(item.product.base_price) }}</p>
-                            {% if item.price is defined %}
-                                <p class="discounted-price">₱{{ '%.2f'|format(item.price) }}</p>
-                            {% elif item.unit_price is defined %}
-                                <p class="discounted-price">₱{{ '%.2f'|format(item.unit_price) }}</p>
+                    <div class="item-card">
+                        <div class="item-image">
+                            {% if item.product.images and item.product.images|length > 0 %}
+                            <img src="{{ url_for('static', filename='product_images/' + item.product.images[0].image_url) }}" alt="{{ item.product.product_name }}">
                             {% else %}
-                                <p class="discounted-price">₱0.00</p>
+                            <img src="{{ url_for('static', filename='pictures/no-image.png') }}" alt="No image available">
                             {% endif %}
+                        </div>
+                        <div class="item-details">
+                            <h3>{{ item.product.product_name }}</h3>
+                            <p class="model-number">{{ item.product.model_number }}</p>
+                            <p class="quantity">Quantity: {{ item.quantity }}</p>
+                            <p class="price">₱{{ "%.2f"|format(item.price) }}</p>
                         </div>
                     </div>
                     {% endfor %}
-                    <div class="order-info">
-                        <div class="info-row">
-                            <span class="info-label">Requested by</span>
-                            <span class="info-value">You</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Payment method</span>
-                            <span class="info-value">
-                                {{ payment_method.method_name if payment_method else 'Unpaid' }}
-                            </span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Order ID</span>
-                            <span class="info-value order-id">{{ order.order_id }}</span>
-                        </div>
-                    </div>
-                    <div class="cancellation-reason">
-                        <h4>Reason: 
-                            {% if order.cancellation_reason %}
-                                {{ order.cancellation_reason }}
-                            {% elif cancellation_reason %}
-                                {{ cancellation_reason.cancellation_reason_name }}
-                            {% else %}
-                                (No reason provided)
-                            {% endif %}
-                        </h4>
-                    </div>
-                    {% else %}
-                    <div class="cancellation-header">
-                        <h2 class="cancellation-title">Order Not Found</h2>
-                        <p class="cancellation-date">The order you are looking for does not exist.</p>
-                    </div>
+                </div>
+            </div>
+
+            <div class="payment-section">
+                <h2>Payment Information</h2>
+                <div class="payment-details">
+                    <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+                    <p><strong>Total Amount:</strong> ₱{{ "%.2f"|format(order.total_amount) }}</p>
+                    <p><strong>Refund Status:</strong> <span class="status {{ order.refund_status.lower() }}">{{ order.refund_status }}</span></p>
+                    {% if order.refund_date %}
+                    <p><strong>Refund Date:</strong> {{ order.refund_date.strftime('%B %d, %Y') }}</p>
                     {% endif %}
                 </div>
             </div>
-        </div>
-    </main>
 
-    <footer>
-        <div class="container footer-grid">
-            <div class="footer-section">
-                <h3>About Us</h3>
-                <p>JBR Tanching C.O has been delivering high-quality sewing machines, parts, and fabrics since 2014. We're committed to supporting your creativity with reliable products and expert service.</p>
-            </div>
-            <div class="footer-section">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="#" id="footerShopLink">Shop</a></li>
-                    <li><a href="about.html">About</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                </ul>
-            </div>
-            <div class="footer-section payment-section">
-                <h3>Payment Methods</h3>
-                <div class="payment-icons">
-                    <img src="{{ url_for('static', filename='pictures/bank-icon.png') }}" alt="Bank Transfer" class="payment-icon">
-                    <img src="{{ url_for('static', filename='pictures/gcash-icon.png') }}" alt="GCash" class="payment-icon">
-                    <img src="{{ url_for('static', filename='pictures/cod-icon.png') }}" alt="Cash on Delivery" class="payment-icon">
-                </div>
-            </div>
-            <div class="footer-section contact-section">
-                <div class="footer-logo">
-                    <img src="{{ url_for('static', filename='pictures/logo.ico') }}" alt="JBR Tanching C.O Logo" class="footer-logo-img">
-                </div>
-                <div class="contact-info">
-                    <h3>JBR Tanching C.O</h3>
-                    <p class="contact-phone">(02) 8123-4567</p>
-                </div>
+            <div class="actions">
+                <a href="/orders" class="btn back-btn">Back to Orders</a>
+                {% if order.refund_status == 'Pending' %}
+                <button class="btn contact-btn" onclick="window.location.href='/contact'">Contact Support</button>
+                {% endif %}
             </div>
         </div>
-        <div class="copyright">
-            <p>© 2014-2025 JBR TANCHING C.O JOSE ABAD SANTOS, TONDO, MANILA, PHILIPPINES. All Rights Reserved</p>
-        </div>
-    </footer>
+    </div>
 
-    <script src="{{ url_for('static', filename='js/cancel-order-details.js') }}" defer></script>
+    {% include 'components/footer.html' %}
 
+    <script src="{{ url_for('static', filename='js/cancel_order_details.js') }}" defer></script>
 </body>
 </html>

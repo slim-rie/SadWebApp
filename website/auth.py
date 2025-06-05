@@ -156,7 +156,7 @@ def admin():
     if current_user.role != 'admin':
         flash('Access denied. Admin only.', category='error')
         return redirect(url_for('views.home'))
-    return render_template("admin.html", user=current_user)
+    return render_template("admin.html", user=current_user, admin=current_user)
 
 @auth.route('/staff', methods=['GET', 'POST'])
 @login_required
@@ -1628,4 +1628,45 @@ def submit_review():
     except Exception as e:
         db.session.rollback()
         print('Exception in submit_review:', str(e))
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth.route('/api/contact-seller-email', methods=['POST'])
+@login_required
+def contact_seller_email():
+    from flask import current_app
+    to_email = current_app.config.get('SHOP_EMAIL', 'tanchingcojbr@gmail.com')
+    subject = request.form.get('subject')
+    custom_subject = request.form.get('custom_subject')
+    message = request.form.get('message')
+    order_id = request.form.get('order_id')
+    product_link = request.form.get('product_link')
+    product_name = request.form.get('product_name')
+    product_variant = request.form.get('product_variant')
+    file = request.files.get('attachment')
+
+    # Use custom subject if 'Other' is selected
+    if subject == 'Other' and custom_subject:
+        subject = custom_subject
+    elif not subject:
+        subject = 'Contact Seller Inquiry'
+
+    user_email = getattr(current_user, 'email', None)
+    user_name = (getattr(current_user, 'first_name', '') + ' ' + getattr(current_user, 'last_name', '')).strip()
+
+    print(f"[Contact Seller Email] order_id={order_id}, product_link={product_link}, product_name={product_name}, product_variant={product_variant}, message={message}, user_email={user_email}, user_name={user_name}")
+
+    # Compose email body
+    body = f"From: {user_name} <{user_email}>\n"
+    if order_id:
+        body += f"Order ID: {order_id}\n"
+    body += f"Product: {product_name or ''} {('('+product_variant+')') if product_variant else ''}\nProduct Link: {product_link}\n\nMessage:\n{message}"
+    try:
+        msg = Message(subject=subject, recipients=[to_email], body=body, sender=to_email)
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            msg.attach(filename, file.content_type, file.read())
+        mail.send(msg)
+        return jsonify({'success': True, 'message': 'Email sent successfully'})
+    except Exception as e:
+        print(f"[Contact Seller Email ERROR] {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
