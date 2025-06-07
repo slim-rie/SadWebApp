@@ -224,18 +224,36 @@
 
             <div class="product-grid-container">
                 <div id="productGrid" class="product-grid">
-                    <!-- Product cards will be rendered by JavaScript -->
+                    {% for product in products %}
+                    <a href="/sp-productdetails?product_id={{ product.product_id }}" class="product-card">
+                        <div class="product-image">
+                            <img src="{{ product.first_image_url }}" alt="{{ product.product_name }}">
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ product.product_name }}</h3>
+                            <div class="product-price">
+                                <span class="price" style="font-weight: bold; font-size: 16px;">₱{{ "%.2f"|format(product.base_price) }}</span>
+                            </div>
+                            <div class="product-meta" style="display: flex; align-items: center; gap: 6px; margin-top: 8px;">
+                                <span class="stars" style="color: #ffc107; font-size: 13px; display: flex; align-items: center;">
+                                    {% set rating = avg_ratings[product.product_id] if product.product_id in avg_ratings else 0 %}
+                                    {% for i in range(1, 6) %}
+                                        {% if i <= rating|round(0, 'floor') %}
+                                            <i class="fas fa-star"></i>
+                                        {% elif i - rating < 1 and i - rating > 0 %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                                <span style="font-size: 13px; font-weight: bold; color: #222;">{{ '%.1f' % rating }}</span>
+                                <span style="color: #888; font-size: 13px;">{{ product_sales[product.product_id] if product.product_id in product_sales else 0 }} sold</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div style="margin: 50px;">
-        <div class="dropdown-sort" id="testDropdown">
-            <button class="sort-btn dropdown-toggle">Test Price <i class="fas fa-chevron-down"></i></button>
-            <div class="dropdown-menu" id="testDropdownMenu">
-                <div class="dropdown-item">Option 1</div>
-                <div class="dropdown-item">Option 2</div>
             </div>
         </div>
     </div>
@@ -286,19 +304,6 @@
         window.DEFAULT_CATEGORY = "Sewing Machine Components";
     </script>
     <script src="{{ url_for('static', filename='js/sewingparts.js') }}" defer></script>
-    <script>
-        const btn = document.getElementById('testDropdown').querySelector('.dropdown-toggle');
-        const menu = document.getElementById('testDropdownMenu');
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            menu.classList.toggle('show');
-        });
-        window.addEventListener('click', function(e) {
-            if (!document.getElementById('testDropdown').contains(e.target)) {
-                menu.classList.remove('show');
-            }
-        });
-    </script>
 
 </body>
 </html>

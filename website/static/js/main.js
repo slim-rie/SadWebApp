@@ -205,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function logout() {
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('username');
+        sessionStorage.clear();
         updateUIForLoginStatus(false, null);
         window.location.href = '/';
     }

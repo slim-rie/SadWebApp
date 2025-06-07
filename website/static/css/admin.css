@@ -344,7 +344,7 @@ body {
 
 .card-for-delivery,
 .card-for-new-orders {
-  width: 160px !important;
+  width: 220px !important;
   min-width: 120px !important;
   max-width: 100%;
   padding: 8px 8px !important;

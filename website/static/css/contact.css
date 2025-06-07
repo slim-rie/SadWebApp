@@ -82,11 +82,12 @@
 }
 
 /* Contact Form Styles */
-.contact-form-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.contact-form-container,
+.contact-form-card,
+.contact-content-row > .contact-form-container {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
 .contact-form-card h2 {

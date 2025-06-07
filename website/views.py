@@ -126,7 +126,10 @@ def sewing_parts():
     ]
     # Fetch products for the selected category
     products = Product.query.filter_by(category_id=category_id).all()
-    from .models import ProductImage
+    from .models import ProductImage, Sales, Review
+    product_sales = {}
+    avg_ratings = {}
+    review_counts = {}
     for product in products:
         img = None
         # Try product.images relationship first
@@ -144,8 +147,16 @@ def sewing_parts():
         if not img.startswith('/static/'):
             img = '/static/' + img.lstrip('/')
         product.first_image_url = img
-        print(f"[DEBUG] Product: {product.product_name} (ID: {product.product_id}) -> Image: {img}")
-    return render_template('sewingparts.html', user=current_user, categories=categories, default_category=category_name, products=products)
+        # Sales count
+        sales_count = Sales.query.filter_by(product_id=product.product_id).count()
+        product_sales[product.product_id] = sales_count
+        # Reviews
+        reviews = Review.query.filter_by(product_id=product.product_id).all()
+        avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
+        avg_ratings[product.product_id] = avg_rating
+        review_counts[product.product_id] = len(reviews)
+        print(f"[DEBUG] Product: {product.product_name} (ID: {product.product_id}) -> Image: {img}, Sales: {sales_count}, Avg Rating: {avg_rating}, Review Count: {len(reviews)}")
+    return render_template('sewingparts.html', user=current_user, categories=categories, default_category=category_name, products=products, product_sales=product_sales, avg_ratings=avg_ratings, review_counts=review_counts)
 
 @views.route('/products-by-category/<category_name>')
 def products_by_category_new(category_name):
