@@ -6,6 +6,53 @@
     <title>JBR Tanching C.O</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <style>
+        /* Ensure modal and form are the same width */
+        .email-modal {
+            width: 540px !important;
+            max-width: 95vw;
+            min-width: 320px;
+            box-sizing: border-box;
+        }
+        .email-modal form {
+            width: 100%;
+        }
+        #orderIdSection {
+            width: 100%;
+        }
+        #emailSubject,
+        #orderId {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #orderId option {
+            font-size: 0.95em;
+            font-weight: 400;
+        }
+        /* Product search results styling */
+        #productSearchResults {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            margin-top: 5px;
+            display: none;
+            background: #fff;
+            z-index: 10;
+            position: absolute;
+            width: 100%;
+        }
+        .product-result {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            background-color: #fff;
+            transition: background-color 0.2s;
+        }
+        .product-result:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -74,6 +121,23 @@
                         <option value="Other">Other</option>
                     </select>
                     <input type="text" id="customSubjectInput" name="custom_subject" placeholder="Enter custom subject" style="width:100%;margin-bottom:10px;display:none;">
+                    <!-- Product Search Section -->
+                    <div id="productSearchSection" style="display:none; margin-bottom:10px; position:relative;">
+                        <label for="productSearch">Search Product:</label>
+                        <input type="text" id="productSearch" placeholder="Type to search products..." style="width:100%;">
+                        <div id="productSearchResults"></div>
+                        <input type="hidden" id="selectedProductId" name="product_id">
+                        <input type="hidden" id="selectedProductName" name="product_name">
+                        <input type="hidden" id="selectedProductLink" name="product_link">
+                    </div>
+                    <!-- Order ID Section -->
+                    <div id="orderIdSection" style="display:none; margin-bottom:10px;">
+                        <label for="orderId">Select Order:</label>
+                        <select id="orderId" name="order_id" style="width:100%;" required>
+                            <option value="">Select an order...</option>
+                        </select>
+                    </div>
+
                     <label for="emailMessage">Message:</label>
                     <textarea id="emailMessage" name="message" rows="5" required style="width:100%;"></textarea>
                     <label for="emailAttachment" style="margin-top:10px;display:block;">Attachment (optional):</label>
@@ -99,16 +163,113 @@
             document.getElementById('emailModalOverlay').style.display = 'none';
         });
 
-        // Show/hide custom subject input
+        // Show/hide custom subject input and other fields based on subject
         var subjectSelect = document.getElementById('emailSubject');
         var customSubjectInput = document.getElementById('customSubjectInput');
+        var productSearchSection = document.getElementById('productSearchSection');
+        var orderIdSection = document.getElementById('orderIdSection');
+        var productSearch = document.getElementById('productSearch');
+        var productSearchResults = document.getElementById('productSearchResults');
+        var selectedProductId = document.getElementById('selectedProductId');
+        var selectedProductName = document.getElementById('selectedProductName');
+        var selectedProductLink = document.getElementById('selectedProductLink');
+        var orderId = document.getElementById('orderId');
+
         subjectSelect.addEventListener('change', function() {
+            // Reset all sections
+            customSubjectInput.style.display = 'none';
+            productSearchSection.style.display = 'none';
+            orderIdSection.style.display = 'none';
+            productSearchResults.style.display = 'none';
+
+            // Clear all input fields when subject changes
+            customSubjectInput.value = '';
+            productSearch.value = '';
+            selectedProductId.value = '';
+            selectedProductName.value = '';
+            selectedProductLink.value = '';
+            orderId.value = '';
+            document.getElementById('emailMessage').value = '';
+
+            // Always reset required attribute
+            orderId.required = false;
+            selectedProductId.required = false;
+            customSubjectInput.required = false;
+
+            // Show relevant sections
             if (this.value === 'Other') {
                 customSubjectInput.style.display = 'block';
                 customSubjectInput.required = true;
-            } else {
-                customSubjectInput.style.display = 'none';
-                customSubjectInput.required = false;
+            } else if (this.value === 'Product Inquiry') {
+                productSearchSection.style.display = 'block';
+                selectedProductId.required = true;
+            } else if (this.value === 'Order Issue') {
+                orderIdSection.style.display = 'block';
+                orderId.required = true;
+                loadUserOrders();
+            }
+        });
+
+        // Product search functionality
+        let searchTimeout;
+        productSearch.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (!query) {
+                productSearchResults.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`/api/search-products?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        productSearchResults.innerHTML = '';
+                        if (data.products && data.products.length > 0) {
+                            data.products.forEach(product => {
+                                const div = document.createElement('div');
+                                div.className = 'product-result';
+                                div.innerHTML = `
+                                    <div style=\"font-weight: 500;\">${product.name}</div>
+                                    ${product.variant ? `<div style=\"font-size: 0.9em; color: #666;\">${product.variant}</div>` : ''}
+                                `;
+                                div.addEventListener('mouseover', () => {
+                                    div.style.backgroundColor = '#f5f5f5';
+                                });
+                                div.addEventListener('mouseout', () => {
+                                    div.style.backgroundColor = '#fff';
+                                });
+                                div.addEventListener('click', () => {
+                                    selectedProductId.value = product.id;
+                                    selectedProductName.value = product.name;
+                                    selectedProductLink.value = product.link;
+                                    productSearch.value = product.name;
+                                    productSearchResults.style.display = 'none';
+                                });
+                                productSearchResults.appendChild(div);
+                            });
+                            productSearchResults.style.display = 'block';
+                        } else {
+                            const noResults = document.createElement('div');
+                            noResults.style.padding = '8px';
+                            noResults.style.color = '#666';
+                            noResults.textContent = 'No products found';
+                            productSearchResults.appendChild(noResults);
+                            productSearchResults.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error searching products:', error);
+                        productSearchResults.style.display = 'none';
+                    });
+            }, 100);
+        });
+
+        // Close search results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!productSearch.contains(e.target) && !productSearchResults.contains(e.target)) {
+                productSearchResults.style.display = 'none';
             }
         });
 
@@ -118,9 +279,53 @@
             var form = this;
             var formData = new FormData(form);
             
+            // Validate required fields based on subject
+            if (subjectSelect.value === 'Product Inquiry' && !selectedProductId.value) {
+                alert('Please select a product');
+                return;
+            }
+            if (subjectSelect.value === 'Order Issue' && !orderId.value) {
+                alert('Please select an order');
+                return;
+            }
+            
             // If custom subject, set it in FormData
             if (subjectSelect.value === 'Other') {
                 formData.set('subject', customSubjectInput.value);
+            }
+
+            // Remove irrelevant fields based on subject
+            if (subjectSelect.value !== 'Product Inquiry') {
+                formData.delete('product_id');
+                formData.delete('product_name');
+                formData.delete('product_link');
+            }
+            if (subjectSelect.value !== 'Order Issue') {
+                formData.delete('order_id');
+            }
+            if (subjectSelect.value !== 'Other') {
+                formData.delete('custom_subject');
+            }
+
+            // For General Inquiry, Shipping Concern, Other: only send message
+            if (subjectSelect.value === 'General Inquiry' || subjectSelect.value === 'Shipping Concern' || subjectSelect.value === 'Other') {
+                formData.delete('product_id');
+                formData.delete('product_name');
+                formData.delete('product_link');
+                formData.delete('order_id');
+            }
+
+            // For Product Inquiry: only send product and message
+            if (subjectSelect.value === 'Product Inquiry') {
+                formData.delete('order_id');
+                formData.delete('custom_subject');
+            }
+
+            // For Order Issue: only send order_id, product_name, and message
+            if (subjectSelect.value === 'Order Issue') {
+                formData.delete('product_id');
+                formData.delete('product_link');
+                formData.delete('custom_subject');
             }
 
             fetch('/api/contact-seller-email', {
@@ -133,7 +338,9 @@
                     alert('Message sent successfully!');
                     form.reset();
                     customSubjectInput.style.display = 'none';
-                    customSubjectInput.required = false;
+                    productSearchSection.style.display = 'none';
+                    orderIdSection.style.display = 'none';
+                    productSearchResults.style.display = 'none';
                     document.getElementById('emailModalOverlay').style.display = 'none';
                 } else {
                     alert('Failed to send message: ' + (data.message || 'Unknown error'));
@@ -143,6 +350,40 @@
                 alert('Network error. Please try again.');
             });
         });
+
+        // Load user orders when order section is shown
+        function loadUserOrders() {
+            fetch('/api/user-orders')
+                .then(response => response.json())
+                .then(data => {
+                    orderId.innerHTML = '<option value="">Select an order...</option>';
+                    if (data.orders && data.orders.length > 0) {
+                        data.orders.forEach(order => {
+                            let productNames = order.products.map(p => p.product_name);
+                            let displayText = '';
+                            if (productNames[0]) {
+                                displayText = productNames[0].slice(0, 35) + (productNames[0].length > 35 ? '…' : '');
+                            }
+                            if (productNames.length > 1) {
+                                displayText += ', ...';
+                            }
+                            const option = document.createElement('option');
+                            option.value = order.order_id;
+                            option.textContent = `Order #${order.order_id}: ${displayText}`;
+                            orderId.appendChild(option);
+                        });
+                    } else {
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "No orders found";
+                        orderId.appendChild(option);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading orders:', error);
+                    orderId.innerHTML = '<option value="">Error loading orders</option>';
+                });
+        }
     });
     </script>
 </body>

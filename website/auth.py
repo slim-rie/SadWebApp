@@ -1657,9 +1657,32 @@ def contact_seller_email():
 
     # Compose email body
     body = f"From: {user_name} <{user_email}>\n"
-    if order_id:
+
+    if subject == 'Order Issue' and order_id:
         body += f"Order ID: {order_id}\n"
-    body += f"Product: {product_name or ''} {('('+product_variant+')') if product_variant else ''}\nProduct Link: {product_link}\n\nMessage:\n{message}"
+        # Look up product names for this order
+        try:
+            order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+            if order and hasattr(order, 'items'):
+                product_names = []
+                for item in order.items:
+                    product = Product.query.get(item.product_id)
+                    if product:
+                        name = product.product_name
+                        if hasattr(item, 'variation') and item.variation:
+                            name += f" ({item.variation})"
+                        product_names.append(name)
+                if product_names:
+                    body += f"Product(s): {', '.join(product_names)}\n"
+        except Exception as e:
+            print(f"[Order Issue Product Lookup ERROR] {e}")
+
+    elif subject == 'Product Inquiry' and product_name:
+        body += f"Product: {product_name} {('('+product_variant+')') if product_variant else ''}\n"
+
+    # For General Inquiry, Shipping Concern, Other: only message
+    body += f"\nMessage:\n{message}"
+    
     try:
         msg = Message(subject=subject, recipients=[to_email], body=body, sender=to_email)
         if file and file.filename:
@@ -1670,3 +1693,58 @@ def contact_seller_email():
     except Exception as e:
         print(f"[Contact Seller Email ERROR] {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@auth.route('/api/search-products', methods=['GET'])
+@login_required
+def search_products():
+    query = request.args.get('query', '').strip()
+    print(f"[Search Products] Query: {query}")
+    
+    if not query:
+        return jsonify({'products': []})
+    
+    try:
+        # Search products in the database using product_name field
+        products = Product.query.filter(
+            Product.product_name.ilike(f'%{query}%')
+        ).all()
+        
+        print(f"[Search Products] Found {len(products)} products")
+        for product in products:
+            print(f"[Search Products] Product: {product.product_name}")
+        
+        return jsonify({
+            'products': [{
+                'id': product.product_id,
+                'name': product.product_name,
+                'link': url_for('views.product_detail', product_id=product.product_id),
+                'variant': product.variant_name if hasattr(product, 'variant_name') else None
+            } for product in products]
+        })
+    except Exception as e:
+        print(f"[Search Products ERROR] {e}")
+        return jsonify({'products': []}), 500
+
+@auth.route('/api/user-orders', methods=['GET'])
+@login_required
+def get_user_orders():
+    try:
+        orders = Order.query.filter_by(user_id=current_user.user_id).order_by(Order.created_at.desc()).all()
+        result = []
+        for order in orders:
+            products = []
+            for item in order.items:
+                product = Product.query.get(item.product_id)
+                if product:
+                    products.append({
+                        'product_id': product.product_id,
+                        'product_name': product.product_name
+                    })
+            result.append({
+                'order_id': order.order_id,
+                'products': products
+            })
+        return jsonify({'orders': result})
+    except Exception as e:
+        print(f"[Get User Orders ERROR] {e}")
+        return jsonify({'orders': []}), 500
