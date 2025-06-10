@@ -11,6 +11,54 @@ from sqlalchemy import text
 
 views = Blueprint('views', __name__)
 
+# In-memory notifications (not persistent, resets on server restart)
+from website.notifications_store import notifications
+
+# Endpoint for customer to send a notification (simulate message)
+@views.route('/notify_admin', methods=['POST'])
+def notify_admin():
+    data = request.get_json()
+    sender_username = data.get('username')
+    sender_email = data.get('email')
+    message = data.get('message')
+    print('[DEBUG] /notify_admin called with:', sender_username, sender_email, message)
+    if not (sender_username and sender_email and message):
+        print('[DEBUG] /notify_admin missing fields!')
+        return jsonify({'success': False, 'error': 'Missing fields'}), 400
+    notifications.append({
+        'username': sender_username,
+        'email': sender_email,
+        'message': message,
+        'read': False
+    })
+    print('[DEBUG] Notification added. Current notifications:', notifications)
+    return jsonify({'success': True})
+
+# Endpoint for admin to fetch notifications
+@views.route('/admin/get_notifications', methods=['GET'])
+@login_required
+def get_notifications():
+    global notifications
+    print('[DEBUG] /admin/get_notifications called by user:', getattr(current_user, 'username', None), 'role_id:', getattr(current_user, 'role_id', None))
+    print('[DEBUG] Notifications before sending:', notifications)
+    if not hasattr(current_user, 'role_id') or getattr(current_user, 'role_id', None) not in [1]:
+        print('[DEBUG] /admin/get_notifications unauthorized access!')
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    notif_copy = notifications.copy()
+    print('[DEBUG] Notifications sent to admin:', notif_copy)
+    return jsonify({'success': True, 'notifications': notif_copy})
+
+# Endpoint to mark all notifications as read
+@views.route('/admin/mark_notifications_read', methods=['POST'])
+@login_required
+def mark_notifications_read():
+    global notifications
+    if not hasattr(current_user, 'role_id') or getattr(current_user, 'role_id', None) not in [1]:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    for n in notifications:
+        n['read'] = True
+    return jsonify({'success': True})
+
 def calculate_shipping_fee(address, cart_items):
     # --- Address-based logic ---
     address_str = (address.complete_address or "").lower()
