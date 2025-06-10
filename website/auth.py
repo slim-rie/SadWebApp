@@ -1655,6 +1655,19 @@ def contact_seller_email():
 
     print(f"[Contact Seller Email] order_id={order_id}, product_link={product_link}, product_name={product_name}, product_variant={product_variant}, message={message}, user_email={user_email}, user_name={user_name}")
 
+    # Add in-memory notification for admin
+    try:
+        from website.notifications_store import notifications  # Import the shared notifications list
+        notifications.append({
+            'username': user_name or 'Anonymous',
+            'email': user_email or 'unknown',
+            'message': message or '',
+            'read': False
+        })
+        print('[DEBUG] Notification added from contact_seller_email. Current notifications:', notifications)
+    except Exception as e:
+        print('[DEBUG] Failed to add notification from contact_seller_email:', str(e))
+
     # Compose email body
     body = f"From: {user_name} <{user_email}>\n"
     if order_id:

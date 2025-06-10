@@ -83,9 +83,17 @@
 
         <div class="user-profile compact-profile" style="position: absolute; top: 10px; right: 10px;">
           <div class="chat-floating-wrapper compact-chat">
-            <button id="chat-modal-btn" class="chat-icon-btn compact-chat-btn">
-              <i class="fa fa-envelope"></i>
-            </button>
+            <button id="chat-modal-btn" class="chat-icon-btn compact-chat-btn" style="position:relative;">
+  <i class="fa fa-envelope"></i>
+  <span id="chat-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:red;color:#fff;border-radius:50%;padding:2px 6px;font-size:12px;">!</span>
+</button>
+<div id="chat-notification-dropdown" style="display:none;position:absolute;right:0;top:40px;z-index:9999;background:#fff;border:1px solid #ccc;box-shadow:0 2px 8px rgba(0,0,0,0.15);min-width:250px;max-width:350px;">
+  <div style="padding:10px 12px;font-weight:bold;border-bottom:1px solid #eee;">New Messages</div>
+  <div id="chat-notification-list" style="max-height:300px;overflow-y:auto;"></div>
+  <div style="padding:6px 12px;text-align:right;">
+    <button id="close-chat-dropdown" class="btn btn-sm btn-secondary">Close</button>
+  </div>
+</div>
           </div>
           <div class="profile-icon compact-profile-icon">
             <i class="fa fa-user"></i>
@@ -1151,7 +1159,7 @@
                       <th>Last Name</th>
                       <th>Role</th>
                       <th>Last Login</th>
-                      
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1523,6 +1531,17 @@
     </div> <!-- end of row/dashboard -->
 </div> <!-- end of container-fluid -->
 
+<!-- Admin Notification Dropdown (separate from chat modal) -->
+<div id="chat-notification-dropdown" style="display:none;position:absolute;top:20px;right:60px;z-index:9999;background:#fff;border:1px solid #ccc;box-shadow:0 2px 8px rgba(0,0,0,0.15);min-width:250px;max-width:350px;">
+  <div style="padding:10px 12px;font-weight:bold;border-bottom:1px solid #eee;">New Messages</div>
+  <div id="chat-notification-list" style="max-height:300px;overflow-y:auto;"></div>
+  <div style="padding:6px 12px;text-align:right;">
+    <button id="close-chat-dropdown" class="btn btn-sm btn-secondary">Close</button>
+  </div>
+</div>
+<!-- End Admin Notification Dropdown -->
+
+<!--
 <div id="chatModal" class="chat-modal">
   <div class="chat-modal-content">
       <div class="chat-modal-header" id="chatHeaderBar">
@@ -1571,6 +1590,7 @@
       </div>
   </div>
 </div>
+-->
 
 <script>
   // Sidebar navigation: show only the selected section
@@ -1635,3 +1655,4 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="{{ url_for('static', filename='js/admin_reports.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin_notifications.js') }}"></script>
