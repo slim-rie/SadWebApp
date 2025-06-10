@@ -66,7 +66,7 @@
         <div class="product-details-wrapper">
             <div class="product-gallery">
                 <div class="main-image">
-                    <img id="mainProductImage" src="{{ url_for('static', filename='images/B9117-012-000.jpg') }}" alt="Product Image">
+                    <img id="mainProductImage" src="/static/pictures/default.jpg" alt="Product Image">
                     <div class="image-slider-controls">
                         <button class="slider-btn prev" id="prevImage">
                             <i class="fas fa-chevron-left"></i>
@@ -76,50 +76,24 @@
                         </button>
                     </div>
                 </div>
-                <div class="thumbnail-gallery" id="thumbnailGallery">
-                </div>
+                <div class="thumbnail-gallery" id="thumbnailGallery"></div>
             </div>
-
             <div class="product-info-details">
                 <h1 id="productTitle" class="product-title">Product Title</h1>
                 <div class="product-meta">
                     <div class="rating-container">
-                        <div class="stars" id="productRating">
-                        </div>
+                        <div class="stars" id="productRating"></div>
                         <span id="ratingValue">0.0</span>
                         <span id="reviewCount">0 reviews</span>
                         <span id="soldCount">0 sold</span>
                     </div>
                 </div>
-
                 <div class="product-price-section">
                     <span class="price-label">Price:</span>
                     <h2 class="product-price" id="productPrice">₱ 0.00</h2>
                 </div>
-
                 <div class="product-options">
-                    <div class="product-options">
-                    <div class="option-row" id="materialOptionRow" style="margin-top: 1em;">
-                        <span class="option-label">Material</span>
-                        <div class="option-value material-options" id="materialOptions">
-                            <!-- Color buttons will be rendered by JS -->
-                        </div>
-                    </div>
-                    <!-- Width selection row (dynamic) -->
-                    <div class="option-row" id="sizeOptionRow" style="margin-top: 1em;">
-                        <span class="option-label">Size</span>
-                        <div class="option-value size-options" id="sizeOptions">
-                            <!-- Width buttons will be rendered by JS -->
-                        </div>
-                    </div>
-                    <!-- Variant options row -->
-                    <div class="option-row" id="variantOptionRow" style="margin-top: 1em;">
-                        <span class="option-label">Variants</span>
-                        <div class="option-value" id="variantOptions">
-                            <!-- Variant buttons will be rendered by JS -->
-                        </div>
-                    </div>
-                    <div class="option-row">
+                    <div class="option-row quantity-selector-row">
                         <span class="option-label">Quantity</span>
                         <div class="quantity-selector">
                             <button class="quantity-btn minus">-</button>
@@ -129,13 +103,12 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="product-actions">
                     <button class="add-to-cart-btn" id="addToCartBtn">
                         <i class="fas fa-shopping-cart"></i>
                         Add To Cart
                     </button>
-                    <a href="{{ url_for('views.transaction') }}" class="buy-now-btn" id="buyNowBtn">Buy Now</a>
+                    <button class="buy-now-btn" id="buyNowBtn">Buy Now</button>
                 </div>
             </div>
         </div>
@@ -149,27 +122,23 @@
         </div>
         <div class="tab-content active" id="descriptionTab">
             <h3>Product Description</h3>
-            <div id="productDescription">
-            </div>
+            <div id="productDescription"></div>
         </div>
         <div class="tab-content" id="specificationsTab">
             <h3>Specifications</h3>
             <table class="specs-table">
-                <tbody id="specsTableBody">
-                </tbody>
+                <tbody id="specsTableBody"></tbody>
             </table>
         </div>
         <div class="tab-content" id="reviewsTab">
             <h3>Customer Reviews</h3>
-            <div class="reviews-container" id="reviewsContainer">
-            </div>
+            <div class="reviews-container" id="reviewsContainer"></div>
         </div>
     </div>
 
     <div class="related-products container">
         <h2>Related Products</h2>
-        <div class="product-grid" id="relatedProductsGrid">
-        </div>
+        <div class="product-grid" id="relatedProductsGrid"></div>
     </div>
 
     <footer>
@@ -240,5 +209,167 @@
     {% include 'components/email_modal.html' %}
     
     <script src="{{ url_for('static', filename='js/sp-productdetails.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('product_id');
+        if (!productId) {
+            document.getElementById('productTitle').textContent = 'Product Not Found';
+            return;
+        }
+        const response = await fetch(`/api/productdetails?product_id=${productId}`);
+        const data = await response.json();
+        if (data.error) {
+            document.getElementById('productTitle').textContent = 'Product Not Found';
+            return;
+        }
+        document.getElementById('productTitle').textContent = data.name;
+        document.getElementById('modelValue').textContent = data.model_number || '';
+        document.getElementById('breadcrumbParent').textContent = data.category_name || '';
+        document.getElementById('productPrice').textContent = `₱ ${data.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('stockInfo').textContent = `${data.stock} pieces available`;
+
+        // Set images
+        const mainImage = document.getElementById('mainProductImage');
+        if (data.images && data.images.length > 0) {
+            mainImage.src = data.images[0];
+        } else {
+            mainImage.src = '/static/pictures/default.jpg';
+        }
+        // Show all images as thumbnails
+        const thumbnailGallery = document.getElementById('thumbnailGallery');
+        thumbnailGallery.innerHTML = '';
+        if (data.images && data.images.length > 0) {
+            data.images.forEach((img, idx) => {
+                const thumb = document.createElement('img');
+                thumb.src = img;
+                thumb.className = 'thumbnail';
+                thumb.onclick = () => { mainImage.src = img; };
+                thumbnailGallery.appendChild(thumb);
+            });
+        }
+
+        // Set description
+        document.getElementById('productDescription').textContent = data.description || '';
+
+        // Set specifications
+        const specsTable = document.getElementById('specsTableBody');
+        specsTable.innerHTML = '';
+        if (data.specifications && data.specifications.length > 0) {
+            data.specifications.forEach(spec => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${spec.name}</td><td>${spec.value}</td>`;
+                specsTable.appendChild(row);
+            });
+        }
+
+        // Set rating, reviews, sold
+        document.getElementById('ratingValue').textContent = data.rating ? data.rating.toFixed(1) : '0.0';
+        document.getElementById('reviewCount').textContent = `${data.review_count || 0} reviews`;
+        document.getElementById('soldCount').textContent = `${data.sold || 0} sold`;
+
+        // Show reviews
+        const reviewsContainer = document.getElementById('reviewsContainer');
+        reviewsContainer.innerHTML = '';
+        if (data.reviews && data.reviews.length > 0) {
+            data.reviews.forEach(review => {
+                const div = document.createElement('div');
+                div.className = 'review';
+                // Profile image (use default if not available)
+                const profileImg = document.createElement('img');
+                profileImg.className = 'review-profile-img';
+                profileImg.src = review.profile_image || '/static/pictures/user.png';
+                profileImg.alt = review.username;
+                // Username and date
+                const userInfo = document.createElement('div');
+                userInfo.className = 'review-user-info';
+                userInfo.innerHTML = `<strong>${review.username}</strong> <span class="review-date">${review.created_at}</span>`;
+                // Header (profile + user info)
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'review-header';
+                headerDiv.appendChild(profileImg);
+                headerDiv.appendChild(userInfo);
+                div.appendChild(headerDiv);
+                // Stars (at least 1)
+                const starsDiv = document.createElement('div');
+                starsDiv.className = 'review-stars';
+                let rating = review.rating || 1;
+                for (let i = 1; i <= 5; i++) {
+                    const star = document.createElement('i');
+                    star.className = i <= rating ? 'fas fa-star' : 'far fa-star';
+                    starsDiv.appendChild(star);
+                }
+                div.appendChild(starsDiv);
+                // Review text
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'review-comment';
+                commentDiv.textContent = review.comment;
+                div.appendChild(commentDiv);
+                // Review image/media
+                let mediaDiv = '';
+                if (review.media_url) {
+                    mediaDiv = document.createElement('img');
+                    mediaDiv.className = 'review-media-img';
+                    mediaDiv.src = review.media_url;
+                    mediaDiv.alt = 'Review media';
+                    div.appendChild(mediaDiv);
+                }
+                reviewsContainer.appendChild(div);
+            });
+        } else {
+            reviewsContainer.textContent = 'No reviews yet.';
+        }
+
+        // Show related products (no duplicates, card style)
+        const relatedGrid = document.getElementById('relatedProductsGrid');
+        relatedGrid.innerHTML = '';
+        if (data.related_products && data.related_products.length > 0) {
+            const seen = new Set();
+            data.related_products.forEach(prod => {
+                if (seen.has(prod.product_id)) return;
+                seen.add(prod.product_id);
+                const card = document.createElement('div');
+                card.className = 'related-product-card';
+                card.style.width = '260px';
+                card.innerHTML = `
+                    <div class="related-product-img-wrapper">
+                        <img src="${prod.image && prod.image !== '' ? prod.image : '/static/pictures/no-image.png'}" alt="${prod.name}" class="related-product-img">
+                    </div>
+                    <div class="related-product-title">${prod.name}</div>
+                    <div class="related-product-price" style="text-align: left;">₱ ${prod.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                    <div class="related-product-rating-container" style="box-sizing: border-box; width: 100%; padding: 0 0 10px 0;">
+                        <div class="related-product-rating-row" style="display: flex; align-items: center; gap: 4px; margin-top: 4px; white-space: nowrap; width: 100%; justify-content: flex-start;">
+                            <span class="stars" style="color: #ffc107; font-size: 13px; display: flex; align-items: center;">
+                                ${(() => {
+                                    let stars = '';
+                                    const rating = prod.rating || 0;
+                                    for (let i = 1; i <= 5; i++) {
+                                        if (i <= Math.floor(rating)) {
+                                            stars += '<i class=\"fas fa-star\"></i>';
+                                        } else if (i - rating < 1 && i - rating > 0) {
+                                            stars += '<i class=\"fas fa-star-half-alt\"></i>';
+                                        } else {
+                                            stars += '<i class=\"far fa-star\"></i>';
+                                        }
+                                    }
+                                    return stars;
+                                })()}
+                            </span>
+                            <span style="font-size: 12px; color: #222;">${prod.rating ? prod.rating.toFixed(1) : '0.0'}</span>
+                            <span style="font-size: 12px; color: #222;">${prod.review_count || 0}</span>
+                            <span style="color: #888; font-size: 12px; margin-left: 2px;">reviews</span>
+                            <span style="color: #888; font-size: 12px; margin-left: 8px;">${prod.sold || 0}</span>
+                            <span style="color: #888; font-size: 12px; margin-left: 2px;">sold</span>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => window.location = `/sp-productdetails?product_id=${prod.product_id}`;
+                relatedGrid.appendChild(card);
+            });
+        } else {
+            relatedGrid.textContent = 'No related products.';
+        }
+    });
+    </script>
 </body>
 </html>
