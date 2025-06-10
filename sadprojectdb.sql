@@ -221,7 +221,7 @@ CREATE TABLE `products` (
   PRIMARY KEY (`product_id`),
   UNIQUE KEY `unique_product_name_model` (`product_name`,`model_number`),
   KEY `category_id` (`category_id`),
-  FULLTEXT KEY `product_search` (`product_name`, `description`),
+  FULLTEXT INDEX `idx_product_fulltext` (`product_name`, `description`),
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=95 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

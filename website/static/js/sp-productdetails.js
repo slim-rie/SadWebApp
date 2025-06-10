@@ -379,32 +379,196 @@ document.addEventListener('DOMContentLoaded', async function () {
     initializeQuantitySelector(product.total_stock);
     initializeTabs();
 
-    // Render related products from API (with variant boxes)
+    // --- Render Related Products (EXACTLY like sm-productdetails.html) ---
     const relatedGrid = document.getElementById('relatedProductsGrid');
     relatedGrid.innerHTML = '';
-    if (Array.isArray(product.related_products) && product.related_products.length > 0) {
-        product.related_products.forEach(rp => {
-            const card = document.createElement('a');
-            card.className = 'product-card';
-            card.href = `/sp-productdetails?product_id=${rp.product_id}`;
-            card.style.textDecoration = 'none';
-            // Remove variant boxes from related products
-            card.innerHTML = `
-                <img src="${rp.image || '/static/pictures/default.jpg'}" alt="${rp.name}">
-                <div class="product-info">
-                    <h3>${rp.name}</h3>
-                    <div class="product-price">₱ ${rp.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-                    <div class="product-rating product-rating-sm"><div class="stars">${generateStarsHTML(rp.rating)}</div><span class="rating-value">${rp.rating.toFixed(1)}</span><span class="review-count">${rp.review_count} review${rp.review_count === 1 ? '' : 's'}</span><span class="sold-count">${rp.sold} sold</span></div>
-                </div>
-            `;
-            relatedGrid.appendChild(card);
+    fetch(`/api/related-products?product_id=${product.product_id}`)
+        .then(res => res.json())
+        .then(relatedProducts => {
+            relatedGrid.innerHTML = '';
+            if (Array.isArray(relatedProducts) && relatedProducts.length > 0) {
+                const seen = new Set();
+                relatedProducts.forEach(prod => {
+                    if (seen.has(prod.product_id)) return;
+                    seen.add(prod.product_id);
+                    const card = document.createElement('div');
+                    card.className = 'related-product-card';
+                    card.style.width = '260px';
+                    card.innerHTML = `
+                        <div class="related-product-img-wrapper">
+                            <img src="${prod.image && prod.image !== '' ? prod.image : '/static/pictures/no-image.png'}" alt="${prod.name}" class="related-product-img">
+                        </div>
+                        <div class="related-product-title">${prod.name}</div>
+                        <div class="related-product-price" style="text-align: left;">₱ ${prod.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                        <div class="related-product-rating-container" style="box-sizing: border-box; width: 100%; padding: 0 0 10px 0;">
+                            <div class="related-product-rating-row" style="display: flex; align-items: center; gap: 4px; margin-top: 4px; white-space: nowrap; width: 100%; justify-content: flex-start;">
+                                <span class="stars" style="color: #ffc107; font-size: 13px; display: flex; align-items: center;">
+                                    ${(() => {
+                                        let stars = '';
+                                        const rating = prod.rating || 0;
+                                        for (let i = 1; i <= 5; i++) {
+                                            if (i <= Math.floor(rating)) {
+                                                stars += '<i class=\"fas fa-star\"></i>';
+                                            } else if (i - rating < 1 && i - rating > 0) {
+                                                stars += '<i class=\"fas fa-star-half-alt\"></i>';
+                                            } else {
+                                                stars += '<i class=\"far fa-star\"></i>';
+                                            }
+                                        }
+                                        return stars;
+                                    })()}
+                                </span>
+                                <span style="font-size: 12px; color: #222;">${prod.rating ? prod.rating.toFixed(1) : '0.0'}</span>
+                                <span style="font-size: 12px; color: #222;">${prod.review_count || 0}</span>
+                                <span style="color: #888; font-size: 12px; margin-left: 2px;">reviews</span>
+                                <span style="color: #888; font-size: 12px; margin-left: 8px;">${prod.sold || 0}</span>
+                                <span style="color: #888; font-size: 12px; margin-left: 2px;">sold</span>
+                            </div>
+                        </div>
+                    `;
+                    card.onclick = () => window.location = `/sp-productdetails?product_id=${prod.product_id}`;
+                    relatedGrid.appendChild(card);
+                });
+            } else {
+                relatedGrid.textContent = 'No related products.';
+            }
         });
-    } else {
-        relatedGrid.innerHTML = '<div class="no-products">No related products found.</div>';
-    }
 
     // When redirecting to /addresses, include product_type=sp
     function redirectToAddressesForBuyNow(productId) {
         window.location.href = `/addresses?from=product&product_id=${productId}&product_type=sp`;
     }
+
+    // --- Reviews Section ---
+    const reviewsContainer = document.getElementById('reviewsContainer');
+    function generateStarsHTML(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let starsHTML = '';
+        for (let i = 0; i < fullStars; i++) {
+            starsHTML += '<i class="fas fa-star"></i>';
+        }
+        if (hasHalfStar) {
+            starsHTML += '<i class="fas fa-star-half-alt"></i>';
+        }
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+        for (let i = 0; i < emptyStars; i++) {
+            starsHTML += '<i class="far fa-star"></i>';
+        }
+        return starsHTML;
+    }
+    function loadReviews() {
+        fetch(`/api/reviews?product_id=${product.product_id}`)
+            .then(res => res.json())
+            .then(data => {
+                reviewsContainer.innerHTML = '';
+                if (!data.success || !data.reviews.length) {
+                    reviewsContainer.innerHTML = '<p>No reviews yet. Be the first to review this product!</p>';
+                    return;
+                }
+                data.reviews.forEach(review => {
+                    let starsHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        starsHTML += i <= review.rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+                    }
+                    let mediaHTML = '';
+                    if (review.media_url) {
+                        if (review.media_type && review.media_type.startsWith('video')) {
+                            mediaHTML = `<video controls style='max-width:180px;max-height:120px;'><source src='${review.media_url}' type='${review.media_type}'></video>`;
+                        } else {
+                            mediaHTML = `<img src='${review.media_url}' alt='Review Media' style='max-width:120px;max-height:120px;border-radius:6px;margin-top:6px;'>`;
+                        }
+                    }
+                    reviewsContainer.innerHTML += `
+                        <div class="review">
+                            <div class="review-header">
+                                <img src="${review.profile_image || '/static/pictures/user-circle.png'}" alt="${review.username}'s Profile Picture" class="profile-picture">
+                                <div class="review-user-info">
+                                    <strong class="review-username">${review.username}</strong>
+                                    <span class="review-date">${review.created_at}</span>
+                                </div>
+                            </div>
+                            <div class="review-rating">${starsHTML}</div>
+                            <p class="review-text">${review.comment}</p>
+                            ${mediaHTML}
+                        </div>
+                    `;
+                });
+            });
+    }
+    loadReviews();
+
+    // --- Review Submission (if logged in and eligible) ---
+    fetch('/api/user')
+        .then(res => res.json())
+        .then(userData => {
+            if (userData.is_authenticated) {
+                fetch(`/api/can-review?product_id=${product.product_id}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.can_review) {
+                            const reviewTab = document.getElementById('reviewsTab');
+                            const formHTML = `
+                                <form id="reviewForm" enctype="multipart/form-data" class="review-form">
+                                    <h4>Leave a Review</h4>
+                                    <div class="star-rating-input">
+                                        <span>Rating:</span>
+                                        <span id="starInput"></span>
+                                    </div>
+                                    <textarea id="reviewComment" placeholder="Write your review..." required></textarea>
+                                    <input type="file" id="reviewMedia" accept="image/*,video/*">
+                                    <button type="submit">Submit Review</button>
+                                </form>
+                            `;
+                            reviewTab.insertAdjacentHTML('afterbegin', formHTML);
+                            // Star input
+                            const starInput = document.getElementById('starInput');
+                            let selectedRating = 0;
+                            for (let i = 1; i <= 5; i++) {
+                                const star = document.createElement('i');
+                                star.className = 'far fa-star';
+                                star.dataset.value = i;
+                                star.addEventListener('click', function() {
+                                    selectedRating = i;
+                                    document.querySelectorAll('#starInput i').forEach((s, idx) => {
+                                        s.className = idx < i ? 'fas fa-star' : 'far fa-star';
+                                    });
+                                });
+                                starInput.appendChild(star);
+                            }
+                            // Submit handler
+                            document.getElementById('reviewForm').addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                if (!selectedRating) {
+                                    alert('Please select a rating.');
+                                    return;
+                                }
+                                const comment = document.getElementById('reviewComment').value.trim();
+                                const media = document.getElementById('reviewMedia').files[0];
+                                const formData = new FormData();
+                                formData.append('product_id', product.product_id);
+                                formData.append('rating', selectedRating);
+                                formData.append('comment', comment);
+                                if (media) formData.append('media', media);
+                                fetch('/api/reviews', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('Review submitted!');
+                                        loadReviews();
+                                        document.getElementById('reviewForm').reset();
+                                        document.querySelectorAll('#starInput i').forEach(s => s.className = 'far fa-star');
+                                        selectedRating = 0;
+                                    } else {
+                                        alert(data.message || 'Failed to submit review.');
+                                    }
+                                });
+                            });
+                        }
+                    });
+            }
+        });
 });
