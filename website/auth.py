@@ -218,7 +218,7 @@ def login():
         return jsonify({'success': False, 'message': 'Invalid request'}), 400
     return redirect(url_for('views.home'))
 
-@auth.route('/logout')
+@auth.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
     logout_user()
@@ -1658,12 +1658,42 @@ def contact_seller_email():
     # Add in-memory notification for admin
     try:
         from website.notifications_store import notifications  # Import the shared notifications list
-        notifications.append({
+        from datetime import datetime
+        notif_data = {
             'username': user_name or 'Anonymous',
             'email': user_email or 'unknown',
             'message': message or '',
+            'subject': subject or '',
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'read': False
-        })
+        }
+        # Add extra info for Product Inquiry and Order Issue
+        if subject == 'Order Issue' and order_id:
+            notif_data['order_id'] = order_id
+            # Look up product names for this order (copied from email logic)
+            try:
+                order = Order.query.filter_by(order_id=order_id, user_id=current_user.user_id).first()
+                if order and hasattr(order, 'items'):
+                    product_names = []
+                    for item in order.items:
+                        product = Product.query.get(item.product_id)
+                        if product:
+                            name = product.product_name
+                            if hasattr(item, 'variation') and item.variation:
+                                name += f" ({item.variation})"
+                            product_names.append(name)
+                    if product_names:
+                        notif_data['products'] = ', '.join(product_names)
+            except Exception as e:
+                print(f"[Order Issue Product Lookup ERROR] {e}")
+        elif subject == 'Product Inquiry':
+            product_info = ''
+            if product_name:
+                product_info += product_name
+            if product_variant:
+                product_info += f" ({product_variant})"
+            notif_data['product'] = product_info.strip()
+        notifications.append(notif_data)
         print('[DEBUG] Notification added from contact_seller_email. Current notifications:', notifications)
     except Exception as e:
         print('[DEBUG] Failed to add notification from contact_seller_email:', str(e))

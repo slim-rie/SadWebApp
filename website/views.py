@@ -12,7 +12,7 @@ from sqlalchemy import text
 views = Blueprint('views', __name__)
 
 # In-memory notifications (not persistent, resets on server restart)
-from website.notifications_store import notifications
+from website.notifications_store import notifications, save_notifications
 
 # Endpoint for customer to send a notification (simulate message)
 @views.route('/notify_admin', methods=['POST'])
@@ -25,12 +25,16 @@ def notify_admin():
     if not (sender_username and sender_email and message):
         print('[DEBUG] /notify_admin missing fields!')
         return jsonify({'success': False, 'error': 'Missing fields'}), 400
+    from datetime import datetime
     notifications.append({
         'username': sender_username,
         'email': sender_email,
         'message': message,
+        'subject': data.get('subject', ''),
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'read': False
     })
+    save_notifications()
     print('[DEBUG] Notification added. Current notifications:', notifications)
     return jsonify({'success': True})
 
@@ -41,11 +45,12 @@ def get_notifications():
     global notifications
     print('[DEBUG] /admin/get_notifications called by user:', getattr(current_user, 'username', None), 'role_id:', getattr(current_user, 'role_id', None))
     print('[DEBUG] Notifications before sending:', notifications)
-    if not hasattr(current_user, 'role_id') or getattr(current_user, 'role_id', None) not in [1]:
+    # Allow both admin (1) and staff (2)
+    if not hasattr(current_user, 'role_id') or getattr(current_user, 'role_id', None) not in [1, 2]:
         print('[DEBUG] /admin/get_notifications unauthorized access!')
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
     notif_copy = notifications.copy()
-    print('[DEBUG] Notifications sent to admin:', notif_copy)
+    print('[DEBUG] Notifications sent to admin/staff:', notif_copy)
     return jsonify({'success': True, 'notifications': notif_copy})
 
 # Endpoint to mark all notifications as read
@@ -57,7 +62,22 @@ def mark_notifications_read():
         return jsonify({'success': False, 'error': 'Unauthorized'}), 403
     for n in notifications:
         n['read'] = True
+    save_notifications()
     return jsonify({'success': True})
+
+# Endpoint to mark a specific notification as read
+@views.route('/admin/mark_notification_read/<int:idx>', methods=['POST'])
+@login_required
+def mark_notification_read(idx):
+    global notifications
+    # Allow both admin (1) and staff (2)
+    if not hasattr(current_user, 'role_id') or getattr(current_user, 'role_id', None) not in [1, 2]:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 403
+    if 0 <= idx < len(notifications):
+        notifications[idx]['read'] = True
+        save_notifications()
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Invalid notification index'}), 400
 
 def calculate_shipping_fee(address, cart_items):
     # --- Address-based logic ---
