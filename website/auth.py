@@ -1748,3 +1748,43 @@ def get_user_orders():
     except Exception as e:
         print(f"[Get User Orders ERROR] {e}")
         return jsonify({'orders': []}), 500
+
+@auth.route('/api/search-suggestions', methods=['GET'])
+def search_suggestions():
+    query = request.args.get('query', '').strip()
+    category = request.args.get('category', '').strip()
+    print(f"[Search Suggestions] Query: '{query}', Category: '{category}'")
+    if not query:
+        return jsonify({'products': []})
+    try:
+        products_query = Product.query
+        # Category mapping for dropdown values to DB values
+        category_map = {
+            'fabrics': 'Fabrics',
+            'sewing machines': 'Sewing Machines',
+            'sewing parts': 'Sewing Parts',
+        }
+        cat_key = category.lower().strip()
+        mapped_category = category_map.get(cat_key, category)
+        if cat_key and cat_key != 'all':
+            from sqlalchemy import func
+            products_query = products_query.join(Product.category_obj).filter(func.lower(func.trim(Product.category_obj.category_name)) == mapped_category.lower())
+        # Search both name and description
+        products = products_query.filter(
+            (Product.product_name.ilike(f'%{query}%')) | (Product.description.ilike(f'%{query}%'))
+        ).limit(8).all()
+        print(f"[Search Suggestions] Found {len(products)} products")
+        for product in products:
+            print(f"[Search Suggestions] Product: {product.product_name}")
+        return jsonify({
+            'products': [{
+                'id': product.product_id,
+                'name': product.product_name,
+                'category': product.category_obj.category_name if hasattr(product, 'category_obj') and product.category_obj else '',
+                'image_url': product.images[0].image_url if hasattr(product, 'images') and product.images and len(product.images) > 0 else '',
+                'price': float(product.base_price) if hasattr(product, 'base_price') else 0
+            } for product in products]
+        })
+    except Exception as e:
+        print(f"[Search Suggestions ERROR] {e}")
+        return jsonify({'products': []}), 500

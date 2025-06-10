@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload, subqueryload
+from sqlalchemy import text
 
 views = Blueprint('views', __name__)
 
@@ -511,13 +512,77 @@ def delete_info():
 def search():
     query = request.args.get('q', '')
     category = request.args.get('category', 'All')
-    products = Product.query
-    if category and category != 'All':
-        products = products.join(Product.category_obj).filter_by(name=category)
+    products_query = Product.query
+    from sqlalchemy import func, or_, text
+    
+    # Category filter
+    if category and category.lower() != 'all':
+        # Map category names to their proper format
+        category_map = {
+            'fabrics': 'Fabrics',
+            'sewing machines': 'Sewing Machines',
+            'sewing parts': 'Sewing Parts'
+        }
+        mapped_category = category_map.get(category.lower(), category)
+        
+        # Get the category object and its subcategories
+        category_obj = Category.query.filter(
+            func.lower(func.trim(Category.category_name)) == mapped_category.lower()
+        ).first()
+        
+        if category_obj:
+            # Get all subcategories if they exist
+            subcategories = Category.query.filter_by(parent_category_id=category_obj.category_id).all()
+            category_ids = [category_obj.category_id] + [subcat.category_id for subcat in subcategories]
+            products_query = products_query.filter(Product.category_id.in_(category_ids))
+    
+    # Search if query provided
     if query:
-        products = products.filter(Product.name.ilike(f'%{query}%'))
-    products = products.all()
-    return render_template('search_results.html', user=current_user, products=products, query=query, category=category)
+        try:
+            # Try FULLTEXT search first
+            products_query = products_query.filter(
+                text("MATCH(product_name, description) AGAINST(:query IN BOOLEAN MODE)")
+            ).params(query=query)
+        except Exception as e:
+            print(f"FULLTEXT search failed: {e}")
+            # Fallback to LIKE search
+            products_query = products_query.filter(
+                (Product.product_name.ilike(f'%{query}%')) | (Product.description.ilike(f'%{query}%'))
+            )
+    
+    products = products_query.all()
+    
+    # Prepare product data for template
+    product_list = []
+    for product in products:
+        # Get image
+        img = None
+        if hasattr(product, 'images') and product.images and len(product.images) > 0:
+            img = product.images[0].image_url
+        if not img:
+            img = '/static/pictures/no-image.png'
+        
+        # Get rating, review count, sold count
+        reviews = Review.query.filter_by(product_id=product.product_id).all()
+        avg_rating = sum(r.rating for r in reviews) / len(reviews) if reviews else 0
+        review_count = len(reviews)
+        sold_count = Sales.query.filter_by(product_id=product.product_id).count()
+        
+        # Get category name
+        category_name = product.category.category_name if product.category else ''
+        
+        product_list.append({
+            'product_id': product.product_id,
+            'name': product.product_name,
+            'price': float(product.base_price),
+            'image': img,
+            'rating': avg_rating,
+            'review_count': review_count,
+            'sold_count': sold_count,
+            'category': category_name
+        })
+    
+    return render_template('search_results.html', user=current_user, products=product_list, query=query, category=category)
 
 @views.route('/api/products')
 def products():

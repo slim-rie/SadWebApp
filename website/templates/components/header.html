@@ -52,6 +52,30 @@
         .product-result:hover {
             background-color: #f5f5f5;
         }
+        .search-suggestions {
+            position: absolute;
+            background: #fff;
+            border: 1px solid #ddd;
+            width: 100%;
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 1000;
+            left: 0;
+            top: 100%;
+        }
+        .search-suggestion-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+            color: #000;
+        }
+        .search-suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .search-suggestion-item:hover {
+            background: #f5f5f5;
+        }
     </style>
 </head>
 <body>
@@ -64,7 +88,7 @@
                 </a>
             </div>
 
-            <div class="search-bar">
+            <div class="search-bar" style="position:relative;">
                 <select class="search-dropdown">
                     <option>All</option>
                     <option>Fabrics</option>
@@ -72,6 +96,7 @@
                     <option>Sewing Parts</option>
                 </select>
                 <input type="text" class="search-input" placeholder="What can we help you find?">
+                <div class="search-suggestions" style="display:none;"></div>
                 <button class="search-btn">
                     <img src="{{ url_for('static', filename='pictures/search.png') }}" alt="Search" class="icon-img">
                 </button>
@@ -383,6 +408,88 @@
                     console.error('Error loading orders:', error);
                     orderId.innerHTML = '<option value="">Error loading orders</option>';
                 });
+        }
+
+        // Header search bar live suggestions
+        const searchInput = document.querySelector('.search-input');
+        const searchDropdown = document.querySelector('.search-dropdown');
+        const searchBtn = document.querySelector('.search-btn');
+        const suggestionsBox = document.querySelector('.search-suggestions');
+
+        // Use a single searchTimeout variable for the whole script
+        window.headerSearchTimeout = window.headerSearchTimeout || null;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(window.headerSearchTimeout);
+            const query = this.value.trim();
+            let category = searchDropdown.value;
+            // Normalize category for backend
+            if (category) category = category.trim();
+            if (!query) {
+                suggestionsBox.style.display = 'none';
+                suggestionsBox.innerHTML = '';
+                return;
+            }
+            window.headerSearchTimeout = setTimeout(() => {
+                fetch(`/api/search-suggestions?query=${encodeURIComponent(query)}&category=${encodeURIComponent(category)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        suggestionsBox.innerHTML = '';
+                        if (data.products && data.products.length > 0) {
+                            data.products.forEach(product => {
+                                const div = document.createElement('div');
+                                div.className = 'search-suggestion-item';
+                                div.textContent = product.name;
+                                div.addEventListener('click', () => {
+                                    window.location.href = `/search?q=${encodeURIComponent(searchInput.value.trim())}&category=${encodeURIComponent(category)}`;
+                                });
+                                suggestionsBox.appendChild(div);
+                            });
+                            suggestionsBox.style.display = 'block';
+                        } else {
+                            suggestionsBox.innerHTML = '';
+                            suggestionsBox.style.display = 'none';
+                        }
+                    })
+                    .catch(() => {
+                        suggestionsBox.style.display = 'none';
+                    });
+            }, 120);
+        });
+        // Hide suggestions on blur
+        searchInput.addEventListener('blur', function() {
+            setTimeout(() => { suggestionsBox.style.display = 'none'; }, 200);
+        });
+        // Show suggestions on focus if input has value
+        searchInput.addEventListener('focus', function() {
+            if (this.value.trim() && suggestionsBox.innerHTML) {
+                suggestionsBox.style.display = 'block';
+            }
+        });
+        // On search button click or enter, go to search results
+        function goToSearchResults() {
+            const query = searchInput.value.trim();
+            const category = searchDropdown.value;
+            if (query) {
+                window.location.href = `/search?q=${encodeURIComponent(query)}&category=${encodeURIComponent(category)}`;
+            }
+        }
+        searchBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            goToSearchResults();
+        });
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                goToSearchResults();
+            }
+        });
+
+        // Set initial category from URL if present
+        const urlParams = new URLSearchParams(window.location.search);
+        const categoryParam = urlParams.get('category');
+        if (categoryParam) {
+            searchDropdown.value = categoryParam;
         }
     });
     </script>

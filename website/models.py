@@ -100,6 +100,7 @@ class Product(db.Model):
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     __table_args__ = (
         db.UniqueConstraint('product_name', 'model_number', name='unique_product_name_model'),
+        db.Index('idx_product_fulltext', 'product_name', 'description', mysql_prefix='FULLTEXT'),
     )
     # Relationships
     images = db.relationship('ProductImage', backref='product', lazy=True, cascade='all, delete-orphan')
