@@ -72,11 +72,13 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
             variantTypeMap[v.variant_name].add(v.variant_value);
         });
-        // Enforce order: Color > Size > others (alphabetically)
+        // Enforce order: Material > Color > Size > others (alphabetically)
         const allVariantTypes = Object.keys(variantTypeMap);
+        const materialKey = allVariantTypes.find(k => k.toLowerCase().includes('material'));
         const colorKey = allVariantTypes.find(k => k.toLowerCase().includes('color'));
         const sizeKey = allVariantTypes.find(k => k.toLowerCase().includes('size'));
         let sortedVariantTypes = [];
+        if (materialKey) sortedVariantTypes.push(materialKey);
         if (colorKey) sortedVariantTypes.push(colorKey);
         if (sizeKey) sortedVariantTypes.push(sizeKey);
         allVariantTypes.sort().forEach(k => {
@@ -305,7 +307,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             plusButton.onclick = function () {
                 let currentValue = parseInt(quantityInput.value, 10);
                 if (currentValue < currentVariantStock) {
-                    quantityInput.value = currentVariantStock > 0 ? currentVariantStock : 1;
+                    quantityInput.value = currentValue + 1;
                 }
             };
         }
@@ -571,4 +573,61 @@ document.addEventListener('DOMContentLoaded', async function () {
                     });
             }
         });
+
+    // --- Breadcrumb update for Sewing Parts main link ---
+    const breadcrumbNav = document.getElementById('breadcrumbNav');
+    if (breadcrumbNav && product) {
+        while (breadcrumbNav.firstChild) breadcrumbNav.removeChild(breadcrumbNav.firstChild);
+        // Home link
+        const homeA = document.createElement('a');
+        homeA.href = '/';
+        homeA.textContent = 'Home';
+        breadcrumbNav.appendChild(homeA);
+        breadcrumbNav.appendChild(document.createTextNode(' > '));
+        // Main category (always link to /sewingparts)
+        if (product.category_name) {
+            const catA = document.createElement('a');
+            catA.textContent = product.category_name;
+            catA.setAttribute('href', '/sewingparts');
+            breadcrumbNav.appendChild(catA);
+            breadcrumbNav.appendChild(document.createTextNode(' > '));
+        }
+        // Subcategory (if available)
+        if (product.subcategory_name) {
+            const subcatA = document.createElement('a');
+            subcatA.textContent = product.subcategory_name;
+            subcatA.href = '#';
+            breadcrumbNav.appendChild(subcatA);
+            breadcrumbNav.appendChild(document.createTextNode(' > '));
+        }
+        // Product name (not a link)
+        const prodSpan = document.createElement('span');
+        prodSpan.textContent = product.name;
+        prodSpan.style.fontWeight = 'bold';
+        breadcrumbNav.appendChild(prodSpan);
+    }
+
+    // --- Tab switching logic for Description, Specifications, Reviews ---
+    function initializeTabs() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId + 'Tab').classList.add('active');
+            });
+        });
+    }
+    initializeTabs();
+
+    // --- Force the category link to /sewingparts after DOM update ---
+    setTimeout(() => {
+        const breadcrumbLinks = document.querySelectorAll('#breadcrumbNav a');
+        if (breadcrumbLinks.length > 1) {
+            breadcrumbLinks[1].setAttribute('href', '/sewingparts');
+        }
+    }, 100);
 });
